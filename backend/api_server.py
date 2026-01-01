@@ -35,6 +35,7 @@ class PerceptronService:
         sample = self.samples[self.idx]
         result = self.perceptron.train_step(sample["x"], sample["y"], lr=self.lr)
         self.idx = (self.idx + 1) % len(self.samples)
+        next_sample = self.samples[self.idx]
         return {
             "w": self.perceptron.w,
             "b": self.perceptron.b,
@@ -48,6 +49,8 @@ class PerceptronService:
             "idx": self.idx,
             "dataset": self.dataset,
             "lr": self.lr,
+            "next_x": next_sample["x"],
+            "next_y": next_sample["y"],
         }
 
     def reset(self) -> Dict[str, Any]:
@@ -61,6 +64,8 @@ class PerceptronService:
             "idx": self.idx,
             "dataset": self.dataset,
             "lr": self.lr,
+            "next_x": self.samples[self.idx]["x"],
+            "next_y": self.samples[self.idx]["y"],
         }
 
 

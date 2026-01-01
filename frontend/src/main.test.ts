@@ -6,14 +6,13 @@ function setupDom() {
   document.body.innerHTML = `
     <div>
       <canvas id="plot" width="420" height="420"></canvas>
-      <canvas id="input" width="200" height="200"></canvas>
-      <canvas id="weights" width="200" height="200"></canvas>
-      <canvas id="contrib" width="200" height="200"></canvas>
+      <canvas id="input" width="200" height="120"></canvas>
+      <canvas id="weights" width="200" height="120"></canvas>
+      <canvas id="contrib" width="200" height="120"></canvas>
       <span id="score"></span>
       <input id="lr" type="range" min="0.1" max="2" step="0.1" value="1" />
       <span id="lr-value"></span>
       <select id="dataset"><option value="or">OR</option><option value="xor">XOR</option></select>
-      <select id="grid-size"><option value="2">2</option><option value="3" selected>3</option></select>
       <input id="api-base" type="text" value="http://127.0.0.1:8000" />
       <div id="calc-x"></div>
       <div id="calc-y"></div>
@@ -24,6 +23,14 @@ function setupDom() {
       <div id="calc-score-eq"></div>
       <div id="calc-update-eq"></div>
       <div id="calc-note"></div>
+      <div id="state-w"></div>
+      <div id="state-b"></div>
+      <div id="state-ds"></div>
+      <div id="state-idx"></div>
+      <div id="next-x"></div>
+      <div id="next-y"></div>
+      <div id="last-step-section"></div>
+      <div id="cell-tooltip"></div>
       <button id="step">Step</button>
       <button id="reset">Reset</button>
     </div>
@@ -33,7 +40,7 @@ function setupDom() {
 function mockCanvas() {
   HTMLCanvasElement.prototype.getContext = () =>
     ({
-      canvas: { width: 100, height: 100 },
+      canvas: { width: 100, height: 50 },
       clearRect: () => undefined,
       fillRect: () => undefined,
       beginPath: () => undefined,
@@ -57,7 +64,7 @@ test("initApp wires buttons and updates score", async () => {
     if (call === 1) {
       return {
         ok: true,
-        json: async () => ({ w: [0, 0], b: 0, idx: 0 }),
+        json: async () => ({ w: [0, 0], b: 0, idx: 0, next_x: [-1, -1], next_y: -1 }),
       } as Response;
     }
     return {
@@ -68,12 +75,14 @@ test("initApp wires buttons and updates score", async () => {
         idx: 1,
         x: [1, -1],
         y: 1,
-        score: 0,
+        score: 1,
         pred: 1,
         mistake: false,
         delta_w: [0, 0],
         delta_b: 0,
         lr: 1,
+        next_x: [-1, 1],
+        next_y: 1,
       }),
     } as Response;
   };

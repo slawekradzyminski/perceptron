@@ -22,15 +22,10 @@
               <option value="xor">XOR</option>
             </select>
           </label>
-          <label>
-            <span>Switchboard size</span>
-            <select id="grid-size">
-              <option value="2">2×2</option>
-              <option value="3" selected>3×3</option>
-              <option value="4">4×4</option>
-              <option value="5">5×5</option>
-            </select>
-          </label>
+          <div class="static-field">
+            <span>Switchboard</span>
+            <strong>1×2 (two inputs)</strong>
+          </div>
           <button id="step">Step</button>
           <button id="reset">Reset</button>
           <label>
@@ -56,39 +51,57 @@
 
         <section class="panel">
           <h2>Switchboard</h2>
-          <div class="boards">
+          <div class="boards boards-1x2" id="switchboard">
             <div>
               <h3>Input</h3>
-              <canvas id="input" width="200" height="200"></canvas>
+              <canvas id="input" width="200" height="120"></canvas>
             </div>
             <div>
               <h3>Weights</h3>
-              <canvas id="weights" width="200" height="200"></canvas>
+              <canvas id="weights" width="200" height="120"></canvas>
             </div>
             <div>
               <h3>Contribution</h3>
-              <canvas id="contrib" width="200" height="200"></canvas>
+              <canvas id="contrib" width="200" height="120"></canvas>
             </div>
           </div>
+          <div id="cell-tooltip" class="cell-tooltip is-hidden"></div>
           <div class="meter">
-            <span>Score</span>
+            <span>Score (s)</span>
             <strong id="score">0.00</strong>
           </div>
         </section>
 
         <section class="panel calc-panel">
           <h2>Step math</h2>
-          <div class="calc">
+          <div class="calc-section">
+            <h3>Current state</h3>
+            <div class="calc-grid">
+              <div><span>Weights w</span><strong id="state-w">[0.00, 0.00]</strong></div>
+              <div><span>Bias b</span><strong id="state-b">0.00</strong></div>
+              <div><span>Dataset</span><strong id="state-ds">or</strong></div>
+              <div><span>Sample idx</span><strong id="state-idx">0</strong></div>
+            </div>
+          </div>
+          <div class="calc-section">
+            <h3>Next input (what we expect)</h3>
+            <div class="calc-grid">
+              <div><span>Input x</span><strong id="next-x">[-1, -1]</strong></div>
+              <div><span>Label y</span><strong id="next-y">-1</strong></div>
+            </div>
+          </div>
+          <div class="calc-section" id="last-step-section">
+            <h3>Last step calculation</h3>
             <div class="calc-grid">
               <div><span>Input x</span><strong id="calc-x">[-1, 1]</strong></div>
               <div><span>Label y</span><strong id="calc-y">+1</strong></div>
-              <div><span>Weights w</span><strong id="calc-w">[0.00, 0.00]</strong></div>
-              <div><span>Bias b</span><strong id="calc-b">0.00</strong></div>
+              <div><span>Weights (after)</span><strong id="calc-w">[0.00, 0.00]</strong></div>
+              <div><span>Bias (after)</span><strong id="calc-b">0.00</strong></div>
               <div><span>Score s</span><strong id="calc-s">0.00</strong></div>
               <div><span>Prediction ŷ</span><strong id="calc-pred">+1</strong></div>
             </div>
             <p id="calc-score-eq" class="calc-eq">s = w1·x1 + w2·x2 + b</p>
-            <p id="calc-update-eq" class="calc-eq">w ← w + η y x, b ← b + η y</p>
+            <p id="calc-update-eq" class="calc-eq">w &larr; w + &eta; y x, b &larr; b + &eta; y</p>
             <p id="calc-note" class="calc-note">No update yet.</p>
           </div>
         </section>
@@ -99,7 +112,7 @@
             <p><strong>Score:</strong> <span>s = w · x + b</span></p>
             <p><strong>Prediction:</strong> <span>ŷ = sign(s)</span></p>
             <p><strong>Mistake?</strong> <span>y · s ≤ 0</span></p>
-            <p><strong>Update (only if mistake):</strong> <span>w ← w + η y x, b ← b + η y</span></p>
+            <p><strong>Update (only if mistake):</strong> <span>w &larr; w + &eta; y x, b &larr; b + &eta; y</span></p>
           </div>
           <p class="detail">
             The input grid shows the switches (x). The weight grid shows the dials (w). The contribution grid

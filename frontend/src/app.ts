@@ -1,12 +1,12 @@
 export type Point = { x: number; y: number; label: 1 | -1 };
 export type Grid = number[][];
 
+type GridKind = "input" | "weights" | "contrib";
+
 export type State = {
   datasetName: string;
   sampleIdx: number;
   points: Point[];
-  gridInput: Grid;
-  gridSize: number;
   w: [number, number];
   b: number;
   lastStep: {
@@ -19,7 +19,13 @@ export type State = {
     deltaB: number;
     lr: number;
   } | null;
+  nextInput: { x: [number, number]; y: number } | null;
   apiError: string | null;
+  grids: {
+    input: Grid;
+    weights: Grid;
+    contrib: Grid;
+  };
 };
 
 export type AppRefs = {
@@ -33,7 +39,6 @@ export type AppRefs = {
   stepBtn: HTMLButtonElement;
   resetBtn: HTMLButtonElement;
   datasetEl: HTMLSelectElement;
-  gridSizeEl: HTMLSelectElement;
   apiBase: HTMLInputElement;
   calcX: HTMLElement;
   calcY: HTMLElement;
@@ -44,6 +49,14 @@ export type AppRefs = {
   calcScoreEq: HTMLElement;
   calcUpdateEq: HTMLElement;
   calcNote: HTMLElement;
+  stateW: HTMLElement;
+  stateB: HTMLElement;
+  stateDs: HTMLElement;
+  stateIdx: HTMLElement;
+  nextX: HTMLElement;
+  nextY: HTMLElement;
+  lastStepSection: HTMLElement;
+  tooltip: HTMLElement;
 };
 
 function makeGrid(size: number, fill: (r: number, c: number) => number): Grid {
@@ -52,11 +65,24 @@ function makeGrid(size: number, fill: (r: number, c: number) => number): Grid {
   );
 }
 
-function makeInputGrid(size: number): Grid {
-  return makeGrid(size, (r, c) => (r === c ? 1 : -1));
+function weightsToGrid(w: [number, number]): Grid {
+  return [[w[0], w[1]]];
+}
+
+function inputToGrid(x: [number, number]): Grid {
+  return [[x[0], x[1]]];
+}
+
+function contributionGrid(a: Grid, b: Grid): Grid {
+  return a.map((row, r) => row.map((v, c) => v * b[r][c]));
 }
 
 export function createInitialState(): State {
+  const initialInput: [number, number] = [-1, -1];
+  const weightGrid = weightsToGrid([0, 0]);
+  const inputGrid = inputToGrid(initialInput);
+  const contribGrid = contributionGrid(inputGrid, weightGrid);
+
   return {
     datasetName: "or",
     sampleIdx: 0,
@@ -66,12 +92,16 @@ export function createInitialState(): State {
       { x: 1, y: -1, label: 1 },
       { x: 1, y: 1, label: 1 },
     ],
-    gridSize: 3,
-    gridInput: makeInputGrid(3),
     w: [0, 0],
     b: 0,
     lastStep: null,
+    nextInput: null,
     apiError: null,
+    grids: {
+      input: inputGrid,
+      weights: weightGrid,
+      contrib: contribGrid,
+    },
   };
 }
 
@@ -86,7 +116,6 @@ export function getRefs(root: Document = document): AppRefs {
   const stepBtn = root.getElementById("step") as HTMLButtonElement | null;
   const resetBtn = root.getElementById("reset") as HTMLButtonElement | null;
   const datasetEl = root.getElementById("dataset") as HTMLSelectElement | null;
-  const gridSizeEl = root.getElementById("grid-size") as HTMLSelectElement | null;
   const apiBase = root.getElementById("api-base") as HTMLInputElement | null;
   const calcX = root.getElementById("calc-x") as HTMLElement | null;
   const calcY = root.getElementById("calc-y") as HTMLElement | null;
@@ -97,6 +126,14 @@ export function getRefs(root: Document = document): AppRefs {
   const calcScoreEq = root.getElementById("calc-score-eq") as HTMLElement | null;
   const calcUpdateEq = root.getElementById("calc-update-eq") as HTMLElement | null;
   const calcNote = root.getElementById("calc-note") as HTMLElement | null;
+  const stateW = root.getElementById("state-w") as HTMLElement | null;
+  const stateB = root.getElementById("state-b") as HTMLElement | null;
+  const stateDs = root.getElementById("state-ds") as HTMLElement | null;
+  const stateIdx = root.getElementById("state-idx") as HTMLElement | null;
+  const nextX = root.getElementById("next-x") as HTMLElement | null;
+  const nextY = root.getElementById("next-y") as HTMLElement | null;
+  const lastStepSection = root.getElementById("last-step-section") as HTMLElement | null;
+  const tooltip = root.getElementById("cell-tooltip") as HTMLElement | null;
 
   if (
     !plot ||
@@ -109,7 +146,6 @@ export function getRefs(root: Document = document): AppRefs {
     !stepBtn ||
     !resetBtn ||
     !datasetEl ||
-    !gridSizeEl ||
     !apiBase ||
     !calcX ||
     !calcY ||
@@ -119,7 +155,15 @@ export function getRefs(root: Document = document): AppRefs {
     !calcPred ||
     !calcScoreEq ||
     !calcUpdateEq ||
-    !calcNote
+    !calcNote ||
+    !stateW ||
+    !stateB ||
+    !stateDs ||
+    !stateIdx ||
+    !nextX ||
+    !nextY ||
+    !lastStepSection ||
+    !tooltip
   ) {
     throw new Error("Missing required DOM elements");
   }
@@ -135,7 +179,6 @@ export function getRefs(root: Document = document): AppRefs {
     stepBtn,
     resetBtn,
     datasetEl,
-    gridSizeEl,
     apiBase,
     calcX,
     calcY,
@@ -146,6 +189,14 @@ export function getRefs(root: Document = document): AppRefs {
     calcScoreEq,
     calcUpdateEq,
     calcNote,
+    stateW,
+    stateB,
+    stateDs,
+    stateIdx,
+    nextX,
+    nextY,
+    lastStepSection,
+    tooltip,
   };
 }
 
@@ -192,7 +243,8 @@ function drawGrid(canvas: HTMLCanvasElement, grid: Grid, palette: (v: number) =>
       ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
     }
   }
-  ctx.strokeStyle = "#e3d6c7";
+  ctx.strokeStyle = "#d1bda7";
+  ctx.lineWidth = 3;
   for (let r = 0; r <= rows; r++) {
     ctx.beginPath();
     ctx.moveTo(0, r * cellH);
@@ -207,21 +259,43 @@ function drawGrid(canvas: HTMLCanvasElement, grid: Grid, palette: (v: number) =>
   }
 }
 
-function contributionGrid(a: Grid, b: Grid): Grid {
-  return a.map((row, r) => row.map((v, c) => v * b[r][c]));
-}
-
-function weightsToGrid(w: [number, number], size: number): Grid {
-  const values = [w[0], w[1], -w[0], -w[1]];
-  return makeGrid(size, (r, c) => values[(r + c) % values.length]);
-}
-
 function formatVec(v: [number, number]) {
   return `[${v[0].toFixed(2)}, ${v[1].toFixed(2)}]`;
 }
 
 function formatSign(val: number) {
   return val >= 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`;
+}
+
+function setTooltip(refs: AppRefs, text: string, x: number, y: number) {
+  refs.tooltip.textContent = text;
+  refs.tooltip.style.left = `${x + 12}px`;
+  refs.tooltip.style.top = `${y + 12}px`;
+  refs.tooltip.classList.remove("is-hidden");
+}
+
+function hideTooltip(refs: AppRefs) {
+  refs.tooltip.classList.add("is-hidden");
+}
+
+function bindTooltip(
+  refs: AppRefs,
+  canvas: HTMLCanvasElement,
+  kind: GridKind,
+  getValue: (row: number, col: number) => string,
+) {
+  canvas.addEventListener("mousemove", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const cols = 2;
+    const rows = 1;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const col = Math.min(cols - 1, Math.max(0, Math.floor((x / rect.width) * cols)));
+    const row = 0;
+    const value = getValue(row, col);
+    setTooltip(refs, `${kind}: ${value}`, event.clientX, event.clientY);
+  });
+  canvas.addEventListener("mouseleave", () => hideTooltip(refs));
 }
 
 function render(refs: AppRefs, state: State) {
@@ -233,17 +307,35 @@ function render(refs: AppRefs, state: State) {
   drawPoints(ctx, state.points);
   drawBoundary(ctx, state.w, state.b);
 
-  const gridWeights = weightsToGrid(state.w, state.gridSize);
-  drawGrid(refs.input, state.gridInput, (v) => (v > 0 ? "#ffe0c2" : "#f3f3f3"));
-  drawGrid(refs.weights, gridWeights, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
-  const contribGrid = contributionGrid(state.gridInput, gridWeights);
+  const sample = state.lastStep ? state.lastStep.x : (state.nextInput?.x ?? [-1, -1]);
+  const inputGrid = inputToGrid(sample as [number, number]);
+  const weightGrid = weightsToGrid(state.w);
+  const contribGrid = contributionGrid(inputGrid, weightGrid);
+  state.grids = { input: inputGrid, weights: weightGrid, contrib: contribGrid };
+
+  drawGrid(refs.input, inputGrid, (v) => (v > 0 ? "#ffe0c2" : "#f3f3f3"));
+  drawGrid(refs.weights, weightGrid, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
   drawGrid(refs.contrib, contribGrid, (v) => (v > 0 ? "#c7f9cc" : "#ffd6d6"));
 
-  const score = contribGrid.flat().reduce((acc, v) => acc + v, 0) + state.b;
-  refs.scoreEl.textContent = score.toFixed(2);
+  const gridScore = contribGrid.flat().reduce((acc, v) => acc + v, 0) + state.b;
+  const displayScore = state.lastStep ? state.lastStep.score : gridScore;
+  refs.scoreEl.textContent = displayScore.toFixed(2);
+
+  refs.stateW.textContent = formatVec(state.w);
+  refs.stateB.textContent = state.b.toFixed(2);
+  refs.stateDs.textContent = state.datasetName;
+  refs.stateIdx.textContent = state.sampleIdx.toString();
+
+  if (state.nextInput) {
+    refs.nextX.textContent = `[${state.nextInput.x[0]}, ${state.nextInput.x[1]}]`;
+    refs.nextY.textContent = state.nextInput.y > 0 ? "+1" : "-1";
+  }
 
   if (state.lastStep) {
+    refs.lastStepSection.classList.remove("is-hidden");
     const { x, y, score: s, pred, mistake, deltaW, deltaB, lr } = state.lastStep;
+    const wBefore: [number, number] = [state.w[0] - deltaW[0], state.w[1] - deltaW[1]];
+    const bBefore = state.b - deltaB;
     refs.calcX.textContent = `[${x[0]}, ${x[1]}]`;
     refs.calcY.textContent = y > 0 ? "+1" : "-1";
     refs.calcW.textContent = formatVec(state.w);
@@ -251,23 +343,16 @@ function render(refs: AppRefs, state: State) {
     refs.calcS.textContent = s.toFixed(2);
     refs.calcPred.textContent = pred > 0 ? "+1" : "-1";
 
-    const term1 = (state.w[0] * x[0]).toFixed(2);
-    const term2 = (state.w[1] * x[1]).toFixed(2);
-    refs.calcScoreEq.textContent = `s = (${state.w[0].toFixed(2)} * ${x[0]}) + (${state.w[1].toFixed(2)} * ${x[1]}) + ${formatSign(state.b)} = ${term1} + ${term2} + ${formatSign(state.b)} = ${s.toFixed(2)}`;
+    const term1 = (wBefore[0] * x[0]).toFixed(2);
+    const term2 = (wBefore[1] * x[1]).toFixed(2);
+    refs.calcScoreEq.textContent = `s = (${wBefore[0].toFixed(2)} * ${x[0]}) + (${wBefore[1].toFixed(2)} * ${x[1]}) + ${formatSign(bBefore)} = ${term1} + ${term2} + ${formatSign(bBefore)} = ${s.toFixed(2)}`;
 
-    refs.calcUpdateEq.textContent = `w <- w + ${lr.toFixed(2)} * ${y} * x = w + [${deltaW[0].toFixed(2)}, ${deltaW[1].toFixed(2)}],  b <- b + ${deltaB.toFixed(2)}`;
+    refs.calcUpdateEq.textContent = `w_before + Δw = ${formatVec(wBefore)} + [${deltaW[0].toFixed(2)}, ${deltaW[1].toFixed(2)}] -> ${formatVec(state.w)},  b_before + Δb = ${bBefore.toFixed(2)} + ${deltaB.toFixed(2)} -> ${state.b.toFixed(2)}`;
     refs.calcNote.textContent = mistake
-      ? `Mistake: y * s = ${(y * s).toFixed(2)} <= 0, update applied.`
-      : `Correct: y * s = ${(y * s).toFixed(2)} > 0, no update.`;
+      ? `Mistake: y * s = ${(y * s).toFixed(2)} <= 0, update applied. Score uses pre-update weights.`
+      : `Correct: y * s = ${(y * s).toFixed(2)} > 0, no update. Score uses pre-update weights.`;
   } else {
-    refs.calcX.textContent = "[-1, 1]";
-    refs.calcY.textContent = "+1";
-    refs.calcW.textContent = formatVec(state.w);
-    refs.calcB.textContent = state.b.toFixed(2);
-    refs.calcS.textContent = "0.00";
-    refs.calcPred.textContent = "+1";
-    refs.calcScoreEq.textContent = "s = w1*x1 + w2*x2 + b";
-    refs.calcUpdateEq.textContent = "w <- w + eta*y*x, b <- b + eta*y";
+    refs.lastStepSection.classList.add("is-hidden");
     refs.calcNote.textContent = state.apiError ?? "No update yet.";
   }
 }
@@ -330,6 +415,7 @@ async function apiStep(refs: AppRefs, state: State) {
       deltaB: data.delta_b,
       lr: data.lr ?? Number(refs.lrEl.value),
     };
+    state.nextInput = data.next_x && data.next_y ? { x: data.next_x, y: data.next_y } : state.nextInput;
   } catch (err) {
     state.apiError = "API unreachable. Check backend.";
   }
@@ -351,6 +437,7 @@ async function apiReset(refs: AppRefs, state: State) {
     state.w = data.w;
     state.b = data.b;
     state.sampleIdx = data.idx ?? 0;
+    state.nextInput = data.next_x && data.next_y ? { x: data.next_x, y: data.next_y } : null;
     state.lastStep = null;
   } catch (err) {
     state.apiError = "API unreachable. Check backend.";
@@ -396,12 +483,7 @@ export function initApp(root: Document = document) {
     state.sampleIdx = 0;
     void reset();
   });
-  refs.gridSizeEl.addEventListener("change", () => {
-    state.gridSize = Number(refs.gridSizeEl.value);
-    state.gridInput = makeInputGrid(state.gridSize);
-    render(refs, state);
-  });
-  window.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", (event) => {
     const target = event.target as HTMLElement | null;
     const tag = target?.tagName?.toLowerCase();
     if (tag === "input" || tag === "select" || tag === "textarea") {
@@ -414,6 +496,24 @@ export function initApp(root: Document = document) {
     if (key === "r") {
       void reset();
     }
+  });
+
+  bindTooltip(refs, refs.input, "input", (row, col) => {
+    const v = state.grids.input[row][col];
+    return `${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
+  });
+  bindTooltip(refs, refs.weights, "weight", (row, col) => {
+    const v = state.grids.weights[row][col];
+    let detail = `${v.toFixed(2)}`;
+    if (state.lastStep) {
+      const prev = v - state.lastStep.deltaW[col];
+      detail = `${v.toFixed(2)} (prev ${prev.toFixed(2)}, Δ ${state.lastStep.deltaW[col].toFixed(2)})`;
+    }
+    return detail;
+  });
+  bindTooltip(refs, refs.contrib, "contrib", (row, col) => {
+    const v = state.grids.contrib[row][col];
+    return `${v.toFixed(2)} = x${col + 1}*w${col + 1}`;
   });
 
   updateLrDisplay();

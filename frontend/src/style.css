@@ -5,7 +5,7 @@
   --ink: #1c1b19;
   --accent: #ff6a3d;
   --panel: #fff8ef;
-  --grid: #e3d6c7;
+  --grid: #d1bda7;
   --cool: #3d5af1;
 }
 
@@ -96,6 +96,17 @@ label {
   font-size: 0.9rem;
 }
 
+.static-field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.static-field strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.95rem;
+}
+
 .lr-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -162,10 +173,15 @@ label {
 }
 
 .boards {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   align-items: start;
+}
+
+.boards-1x2 canvas {
+  aspect-ratio: 2 / 1;
 }
 
 .boards > div {
@@ -181,7 +197,7 @@ h3 {
 
 canvas {
   background: #fffdf8;
-  border: 1px solid var(--grid);
+  border: 2px solid var(--grid);
   border-radius: 10px;
   width: 100%;
   height: auto;
@@ -197,6 +213,19 @@ canvas {
   font-size: 1.1rem;
 }
 
+.cell-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: #fffdf8;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 16px rgba(28, 27, 25, 0.12);
+  z-index: 5;
+}
+
 .calc-panel .calc {
   margin-top: 0;
 }
@@ -208,6 +237,19 @@ canvas {
   border-radius: 12px;
   padding: 12px;
   font-family: "IBM Plex Mono", monospace;
+}
+
+.calc-section {
+  background: #fffdf8;
+  border: 1px solid var(--grid);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.calc-section h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
 }
 
 .calc-grid {
@@ -239,6 +281,10 @@ canvas {
   margin: 8px 0 0;
   font-size: 0.9rem;
   color: #4a3b2b;
+}
+
+.is-hidden {
+  display: none;
 }
 
 @media (max-width: 1100px) {

@@ -25,6 +25,7 @@ def test_api_state_and_step():
     base = f"http://{host}:{port}"
     state = _request_json(f"{base}/state")
     assert state["dataset"] == "or"
+    assert "next_x" in state and "next_y" in state
 
     step = _request_json(f"{base}/step", method="POST", data={"lr": 0.5})
     assert "w" in step and "b" in step
@@ -32,10 +33,12 @@ def test_api_state_and_step():
     assert step["y"] in (-1, 1)
     assert "delta_w" in step and "delta_b" in step
     assert step["lr"] == 0.5
+    assert "next_x" in step and "next_y" in step
 
     reset = _request_json(f"{base}/reset", method="POST", data={"dataset": "xor", "lr": 1.2})
     assert reset["dataset"] == "xor"
     assert reset["lr"] == 1.2
+    assert "next_x" in reset and "next_y" in reset
 
     server.shutdown()
     server.server_close()
