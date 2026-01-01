@@ -150,6 +150,97 @@ label {
   grid-column: 1 / -1;
 }
 
+.custom-panel {
+  grid-column: 1 / -1;
+}
+
+.custom-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+
+.custom-controls label {
+  min-width: 80px;
+}
+
+.custom-controls button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--grid);
+  background: #fff7ee;
+  font-weight: 600;
+}
+
+.custom-controls button:hover {
+  background: #fff0df;
+}
+
+.custom-samples {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.sample-card {
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fffdf8;
+  display: grid;
+  gap: 10px;
+}
+
+.sample-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.sample-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sample-actions select {
+  border-radius: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--grid);
+  background: #fffdf8;
+}
+
+.sample-actions button {
+  border: 1px solid var(--grid);
+  background: #fff7ee;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.sample-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.sample-cell {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 2px solid var(--grid);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.custom-hint {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #6a5a4a;
+}
+
 .math {
   display: grid;
   gap: 6px;

@@ -4,32 +4,92 @@ from __future__ import annotations
 
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any, Dict
+from typing import Any, Dict, Iterable, List, Tuple
 
 from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.perceptron import Perceptron
+
+
+def _validate_grid_shape(rows: Any, cols: Any) -> Tuple[int, int]:
+    try:
+        r = int(rows)
+        c = int(cols)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("grid_rows and grid_cols must be integers") from exc
+    if r < 1 or c < 1 or r > 5 or c > 5:
+        raise ValueError("grid_rows and grid_cols must be between 1 and 5")
+    return r, c
+
+
+def _normalize_samples(
+    samples: Iterable[Dict[str, Any]],
+    rows: int,
+    cols: int,
+) -> List[Dict[str, Any]]:
+    normalized: List[Dict[str, Any]] = []
+    for sample in samples:
+        y = sample.get("y")
+        if y not in (-1, 1):
+            raise ValueError("each sample y must be -1 or +1")
+        grid = sample.get("grid")
+        x = sample.get("x")
+        if grid is not None:
+            if not isinstance(grid, list) or len(grid) != rows:
+                raise ValueError("grid rows must match grid_rows")
+            flat: List[float] = []
+            for row in grid:
+                if not isinstance(row, list) or len(row) != cols:
+                    raise ValueError("grid cols must match grid_cols")
+                for cell in row:
+                    if cell not in (-1, 1):
+                        raise ValueError("grid values must be -1 or +1")
+                    flat.append(float(cell))
+            x = flat
+        if x is None:
+            raise ValueError("each sample must include grid or x")
+        if not isinstance(x, list) or len(x) != rows * cols:
+            raise ValueError("x length must match grid_rows * grid_cols")
+        for cell in x:
+            if cell not in (-1, 1):
+                raise ValueError("x values must be -1 or +1")
+        normalized.append({"x": [float(val) for val in x], "y": int(y)})
+    if not normalized:
+        raise ValueError("samples must be non-empty")
+    return normalized
 
 
 class PerceptronService:
     def __init__(self, dataset: str = "or", lr: float = 1.0, seed: int | None = 0) -> None:
         self.lr = lr
         self.seed = seed
+        self.custom_samples: List[Dict[str, Any]] | None = None
+        self.custom_shape: Tuple[int, int] | None = None
         self.set_dataset(dataset)
 
     def set_lr(self, lr: float) -> None:
         self.lr = lr
         self.perceptron.lr = lr
 
-    def set_dataset(self, name: str) -> None:
+    def set_dataset(self, name: str, custom: Tuple[List[Dict[str, Any]], Tuple[int, int]] | None = None) -> None:
         if name == "or":
             self.samples = make_or_dataset_pm1()
+            grid_shape = (1, 2)
         elif name == "xor":
             self.samples = make_xor_dataset_pm1()
+            grid_shape = (1, 2)
+        elif name == "custom":
+            if custom is not None:
+                self.custom_samples, self.custom_shape = custom
+            if self.custom_samples is None or self.custom_shape is None:
+                raise ValueError("custom dataset requires samples and grid size")
+            self.samples = self.custom_samples
+            grid_shape = self.custom_shape
         else:
-            raise ValueError("dataset must be 'or' or 'xor'")
+            raise ValueError("dataset must be 'or', 'xor', or 'custom'")
         self.dataset = name
         self.idx = 0
-        self.perceptron = Perceptron(dim=2, lr=self.lr, seed=self.seed, init="zeros")
+        self.grid_rows, self.grid_cols = grid_shape
+        self.perceptron = Perceptron(dim=self.grid_rows * self.grid_cols, lr=self.lr, seed=self.seed, init="zeros")
 
     def step(self) -> Dict[str, Any]:
         sample = self.samples[self.idx]
@@ -51,6 +111,9 @@ class PerceptronService:
             "lr": self.lr,
             "next_x": next_sample["x"],
             "next_y": next_sample["y"],
+            "grid_rows": self.grid_rows,
+            "grid_cols": self.grid_cols,
+            "sample_count": len(self.samples),
         }
 
     def reset(self) -> Dict[str, Any]:
@@ -66,6 +129,9 @@ class PerceptronService:
             "lr": self.lr,
             "next_x": self.samples[self.idx]["x"],
             "next_y": self.samples[self.idx]["y"],
+            "grid_rows": self.grid_rows,
+            "grid_cols": self.grid_cols,
+            "sample_count": len(self.samples),
         }
 
 
@@ -110,11 +176,20 @@ class RequestHandler(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 self._send_json({"error": "lr must be a number"}, status=400)
                 return
+        custom_payload: Tuple[List[Dict[str, Any]], Tuple[int, int]] | None = None
+        if body.get("dataset") == "custom" and "samples" in body:
+            try:
+                rows, cols = _validate_grid_shape(body.get("grid_rows"), body.get("grid_cols"))
+                samples = _normalize_samples(body.get("samples", []), rows, cols)
+                custom_payload = (samples, (rows, cols))
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+                return
         if self.path == "/reset":
             dataset = body.get("dataset")
             if dataset:
                 try:
-                    self.service.set_dataset(dataset)
+                    self.service.set_dataset(dataset, custom=custom_payload)
                 except ValueError as exc:
                     self._send_json({"error": str(exc)}, status=400)
                     return
@@ -124,7 +199,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             dataset = body.get("dataset")
             if dataset and dataset != self.service.dataset:
                 try:
-                    self.service.set_dataset(dataset)
+                    self.service.set_dataset(dataset, custom=custom_payload)
                 except ValueError as exc:
                     self._send_json({"error": str(exc)}, status=400)
                     return

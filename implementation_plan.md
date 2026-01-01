@@ -6,8 +6,8 @@ Last updated: 2026-01-01
 1. Python core: perceptron math + datasets + metrics
 2. Python visualization helpers (2D + grid)
 3. Training runner / CLI or notebook harness
-4. TypeScript frontend (optional): interactive UI + plots
-5. Backend API (optional): step/reset endpoints
+4. TypeScript frontend (React): interactive UI + plots
+5. Backend API (required): step/reset endpoints
 6. Optional: Adaline/LMS comparison
 
 ## Progress Tracker
@@ -32,15 +32,15 @@ Last updated: 2026-01-01
 - [x] 6. Runner / demo harness
   - [x] Minimal CLI runner (`backend/runner.py`)
   - [x] Tested training stats output
-- [~] 7. TypeScript frontend (optional)
-  - [x] Vite + TS skeleton
-  - [x] Initial UI scaffold
-  - [x] RTL tests (Vitest + @testing-library/dom)
-  - [x] Client-side perceptron updates
-  - [x] Optional API toggle wired
-- [x] 8. API glue (optional)
+- [~] 7. TypeScript frontend (React)
+  - [x] Vite + React + TS scaffold
+  - [x] React UI scaffold
+  - [x] RTL tests (Vitest + @testing-library/react)
+  - [x] Backend-only logic (no client-side perceptron)
+  - [x] Custom grid editor (1×1 to 5×5, arbitrary samples)
+- [x] 8. API glue (required)
   - [x] `/reset`, `/step`, `/state` endpoints (stdlib server)
-  - [x] Frontend integration
+  - [x] Frontend integration (React)
 - [ ] 9. Optional Adaline/LMS
   - [ ] LMS model + loss surface demo
 
