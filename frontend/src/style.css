@@ -24,7 +24,7 @@ body {
 }
 
 #app {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px 24px 64px;
 }
@@ -75,7 +75,6 @@ h1 {
   font-family: "IBM Plex Mono", monospace;
 }
 
-
 button {
   padding: 10px 16px;
   border: 2px solid var(--ink);
@@ -113,7 +112,7 @@ label {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
   gap: 24px;
 }
 
@@ -164,17 +163,20 @@ label {
 
 .boards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.boards > div {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
 }
 
 h3 {
   margin: 8px 0;
   font-size: 0.95rem;
-}
-
-.boards > div {
-  min-width: 180px;
 }
 
 canvas {
@@ -184,6 +186,7 @@ canvas {
   width: 100%;
   height: auto;
   display: block;
+  aspect-ratio: 1 / 1;
 }
 
 .meter {
@@ -192,6 +195,60 @@ canvas {
   margin-top: 12px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 1.1rem;
+}
+
+.calc-panel .calc {
+  margin-top: 0;
+}
+
+.calc {
+  margin-top: 14px;
+  background: #fff3e4;
+  border: 1px solid var(--grid);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.calc-grid div {
+  display: grid;
+  gap: 4px;
+}
+
+.calc-grid span {
+  font-size: 0.8rem;
+  color: #6a5a4a;
+}
+
+.calc-grid strong {
+  font-size: 0.95rem;
+}
+
+.calc-eq {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+}
+
+.calc-note {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #4a3b2b;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .calc-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 800px) {

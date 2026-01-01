@@ -76,6 +76,23 @@
           </div>
         </section>
 
+        <section class="panel calc-panel">
+          <h2>Step math</h2>
+          <div class="calc">
+            <div class="calc-grid">
+              <div><span>Input x</span><strong id="calc-x">[-1, 1]</strong></div>
+              <div><span>Label y</span><strong id="calc-y">+1</strong></div>
+              <div><span>Weights w</span><strong id="calc-w">[0.00, 0.00]</strong></div>
+              <div><span>Bias b</span><strong id="calc-b">0.00</strong></div>
+              <div><span>Score s</span><strong id="calc-s">0.00</strong></div>
+              <div><span>Prediction ŷ</span><strong id="calc-pred">+1</strong></div>
+            </div>
+            <p id="calc-score-eq" class="calc-eq">s = w1·x1 + w2·x2 + b</p>
+            <p id="calc-update-eq" class="calc-eq">w ← w + η y x, b ← b + η y</p>
+            <p id="calc-note" class="calc-note">No update yet.</p>
+          </div>
+        </section>
+
         <section class="panel explain">
           <h2>What happens on each step</h2>
           <div class="math">

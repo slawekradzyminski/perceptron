@@ -9,6 +9,17 @@ export type State = {
   gridSize: number;
   w: [number, number];
   b: number;
+  lastStep: {
+    x: [number, number];
+    y: number;
+    score: number;
+    pred: number;
+    mistake: boolean;
+    deltaW: [number, number];
+    deltaB: number;
+    lr: number;
+  } | null;
+  apiError: string | null;
 };
 
 export type AppRefs = {
@@ -24,6 +35,15 @@ export type AppRefs = {
   datasetEl: HTMLSelectElement;
   gridSizeEl: HTMLSelectElement;
   apiBase: HTMLInputElement;
+  calcX: HTMLElement;
+  calcY: HTMLElement;
+  calcW: HTMLElement;
+  calcB: HTMLElement;
+  calcS: HTMLElement;
+  calcPred: HTMLElement;
+  calcScoreEq: HTMLElement;
+  calcUpdateEq: HTMLElement;
+  calcNote: HTMLElement;
 };
 
 function makeGrid(size: number, fill: (r: number, c: number) => number): Grid {
@@ -50,6 +70,8 @@ export function createInitialState(): State {
     gridInput: makeInputGrid(3),
     w: [0, 0],
     b: 0,
+    lastStep: null,
+    apiError: null,
   };
 }
 
@@ -66,6 +88,15 @@ export function getRefs(root: Document = document): AppRefs {
   const datasetEl = root.getElementById("dataset") as HTMLSelectElement | null;
   const gridSizeEl = root.getElementById("grid-size") as HTMLSelectElement | null;
   const apiBase = root.getElementById("api-base") as HTMLInputElement | null;
+  const calcX = root.getElementById("calc-x") as HTMLElement | null;
+  const calcY = root.getElementById("calc-y") as HTMLElement | null;
+  const calcW = root.getElementById("calc-w") as HTMLElement | null;
+  const calcB = root.getElementById("calc-b") as HTMLElement | null;
+  const calcS = root.getElementById("calc-s") as HTMLElement | null;
+  const calcPred = root.getElementById("calc-pred") as HTMLElement | null;
+  const calcScoreEq = root.getElementById("calc-score-eq") as HTMLElement | null;
+  const calcUpdateEq = root.getElementById("calc-update-eq") as HTMLElement | null;
+  const calcNote = root.getElementById("calc-note") as HTMLElement | null;
 
   if (
     !plot ||
@@ -79,7 +110,16 @@ export function getRefs(root: Document = document): AppRefs {
     !resetBtn ||
     !datasetEl ||
     !gridSizeEl ||
-    !apiBase
+    !apiBase ||
+    !calcX ||
+    !calcY ||
+    !calcW ||
+    !calcB ||
+    !calcS ||
+    !calcPred ||
+    !calcScoreEq ||
+    !calcUpdateEq ||
+    !calcNote
   ) {
     throw new Error("Missing required DOM elements");
   }
@@ -97,6 +137,15 @@ export function getRefs(root: Document = document): AppRefs {
     datasetEl,
     gridSizeEl,
     apiBase,
+    calcX,
+    calcY,
+    calcW,
+    calcB,
+    calcS,
+    calcPred,
+    calcScoreEq,
+    calcUpdateEq,
+    calcNote,
   };
 }
 
@@ -167,6 +216,14 @@ function weightsToGrid(w: [number, number], size: number): Grid {
   return makeGrid(size, (r, c) => values[(r + c) % values.length]);
 }
 
+function formatVec(v: [number, number]) {
+  return `[${v[0].toFixed(2)}, ${v[1].toFixed(2)}]`;
+}
+
+function formatSign(val: number) {
+  return val >= 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`;
+}
+
 function render(refs: AppRefs, state: State) {
   const ctx = refs.plot.getContext("2d");
   if (!ctx) return;
@@ -184,32 +241,120 @@ function render(refs: AppRefs, state: State) {
 
   const score = contribGrid.flat().reduce((acc, v) => acc + v, 0) + state.b;
   refs.scoreEl.textContent = score.toFixed(2);
+
+  if (state.lastStep) {
+    const { x, y, score: s, pred, mistake, deltaW, deltaB, lr } = state.lastStep;
+    refs.calcX.textContent = `[${x[0]}, ${x[1]}]`;
+    refs.calcY.textContent = y > 0 ? "+1" : "-1";
+    refs.calcW.textContent = formatVec(state.w);
+    refs.calcB.textContent = state.b.toFixed(2);
+    refs.calcS.textContent = s.toFixed(2);
+    refs.calcPred.textContent = pred > 0 ? "+1" : "-1";
+
+    const term1 = (state.w[0] * x[0]).toFixed(2);
+    const term2 = (state.w[1] * x[1]).toFixed(2);
+    refs.calcScoreEq.textContent = `s = (${state.w[0].toFixed(2)} * ${x[0]}) + (${state.w[1].toFixed(2)} * ${x[1]}) + ${formatSign(state.b)} = ${term1} + ${term2} + ${formatSign(state.b)} = ${s.toFixed(2)}`;
+
+    refs.calcUpdateEq.textContent = `w <- w + ${lr.toFixed(2)} * ${y} * x = w + [${deltaW[0].toFixed(2)}, ${deltaW[1].toFixed(2)}],  b <- b + ${deltaB.toFixed(2)}`;
+    refs.calcNote.textContent = mistake
+      ? `Mistake: y * s = ${(y * s).toFixed(2)} <= 0, update applied.`
+      : `Correct: y * s = ${(y * s).toFixed(2)} > 0, no update.`;
+  } else {
+    refs.calcX.textContent = "[-1, 1]";
+    refs.calcY.textContent = "+1";
+    refs.calcW.textContent = formatVec(state.w);
+    refs.calcB.textContent = state.b.toFixed(2);
+    refs.calcS.textContent = "0.00";
+    refs.calcPred.textContent = "+1";
+    refs.calcScoreEq.textContent = "s = w1*x1 + w2*x2 + b";
+    refs.calcUpdateEq.textContent = "w <- w + eta*y*x, b <- b + eta*y";
+    refs.calcNote.textContent = state.apiError ?? "No update yet.";
+  }
+}
+
+function validateStepPayload(data: any): data is {
+  w: [number, number];
+  b: number;
+  x: [number, number];
+  y: number;
+  score: number;
+  pred: number;
+  mistake: boolean;
+  delta_w: [number, number];
+  delta_b: number;
+  lr: number;
+} {
+  return (
+    Array.isArray(data?.w) &&
+    data.w.length === 2 &&
+    Array.isArray(data?.x) &&
+    data.x.length === 2 &&
+    typeof data?.b === "number" &&
+    typeof data?.y === "number" &&
+    typeof data?.score === "number" &&
+    typeof data?.pred === "number" &&
+    typeof data?.mistake === "boolean" &&
+    Array.isArray(data?.delta_w) &&
+    data.delta_w.length === 2 &&
+    typeof data?.delta_b === "number"
+  );
 }
 
 async function apiStep(refs: AppRefs, state: State) {
-  const res = await fetch(`${refs.apiBase.value}/step`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ dataset: state.datasetName }),
-  });
-  if (!res.ok) return;
-  const data = await res.json();
-  state.w = data.w;
-  state.b = data.b;
-  state.sampleIdx = data.idx ?? state.sampleIdx;
+  try {
+    const res = await fetch(`${refs.apiBase.value}/step`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dataset: state.datasetName, lr: Number(refs.lrEl.value) }),
+    });
+    if (!res.ok) {
+      state.apiError = `API error: ${res.status}`;
+      return;
+    }
+    const data = await res.json();
+    if (!validateStepPayload(data)) {
+      state.apiError = "API response missing step details. Restart backend.";
+      return;
+    }
+    state.apiError = null;
+    state.w = data.w;
+    state.b = data.b;
+    state.sampleIdx = data.idx ?? state.sampleIdx;
+    state.lastStep = {
+      x: data.x,
+      y: data.y,
+      score: data.score,
+      pred: data.pred,
+      mistake: data.mistake,
+      deltaW: data.delta_w,
+      deltaB: data.delta_b,
+      lr: data.lr ?? Number(refs.lrEl.value),
+    };
+  } catch (err) {
+    state.apiError = "API unreachable. Check backend.";
+  }
 }
 
 async function apiReset(refs: AppRefs, state: State) {
-  const res = await fetch(`${refs.apiBase.value}/reset`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ dataset: state.datasetName }),
-  });
-  if (!res.ok) return;
-  const data = await res.json();
-  state.w = data.w;
-  state.b = data.b;
-  state.sampleIdx = data.idx ?? 0;
+  try {
+    const res = await fetch(`${refs.apiBase.value}/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dataset: state.datasetName, lr: Number(refs.lrEl.value) }),
+    });
+    if (!res.ok) {
+      state.apiError = `API error: ${res.status}`;
+      return;
+    }
+    const data = await res.json();
+    state.apiError = null;
+    state.w = data.w;
+    state.b = data.b;
+    state.sampleIdx = data.idx ?? 0;
+    state.lastStep = null;
+  } catch (err) {
+    state.apiError = "API unreachable. Check backend.";
+  }
 }
 
 export function initApp(root: Document = document) {
@@ -233,20 +378,6 @@ export function initApp(root: Document = document) {
   refs.stepBtn.addEventListener("click", () => void step());
   refs.resetBtn.addEventListener("click", () => void reset());
   refs.lrEl.addEventListener("input", updateLrDisplay);
-  window.addEventListener("keydown", (event) => {
-    const target = event.target as HTMLElement | null;
-    const tag = target?.tagName?.toLowerCase();
-    if (tag === "input" || tag === "select" || tag === "textarea") {
-      return;
-    }
-    const key = event.key.toLowerCase();
-    if (key === "s") {
-      void step();
-    }
-    if (key === "r") {
-      void reset();
-    }
-  });
   refs.datasetEl.addEventListener("change", () => {
     state.datasetName = refs.datasetEl.value;
     state.points = state.datasetName === "xor"
@@ -263,14 +394,29 @@ export function initApp(root: Document = document) {
           { x: 1, y: 1, label: 1 },
         ];
     state.sampleIdx = 0;
-    render(refs, state);
+    void reset();
   });
   refs.gridSizeEl.addEventListener("change", () => {
     state.gridSize = Number(refs.gridSizeEl.value);
     state.gridInput = makeInputGrid(state.gridSize);
     render(refs, state);
   });
+  window.addEventListener("keydown", (event) => {
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+    if (tag === "input" || tag === "select" || tag === "textarea") {
+      return;
+    }
+    const key = event.key.toLowerCase();
+    if (key === "s") {
+      void step();
+    }
+    if (key === "r") {
+      void reset();
+    }
+  });
 
   updateLrDisplay();
   render(refs, state);
+  void reset();
 }

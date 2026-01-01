@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.perceptron import Perceptron
@@ -15,6 +15,10 @@ class PerceptronService:
         self.lr = lr
         self.seed = seed
         self.set_dataset(dataset)
+
+    def set_lr(self, lr: float) -> None:
+        self.lr = lr
+        self.perceptron.lr = lr
 
     def set_dataset(self, name: str) -> None:
         if name == "or":
@@ -34,11 +38,16 @@ class PerceptronService:
         return {
             "w": self.perceptron.w,
             "b": self.perceptron.b,
+            "x": sample["x"],
+            "y": sample["y"],
             "score": result.score,
             "pred": result.pred,
             "mistake": result.mistake,
+            "delta_w": result.delta_w,
+            "delta_b": result.delta_b,
             "idx": self.idx,
             "dataset": self.dataset,
+            "lr": self.lr,
         }
 
     def reset(self) -> Dict[str, Any]:
@@ -90,6 +99,12 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         body = self._parse_body()
+        if "lr" in body:
+            try:
+                self.service.set_lr(float(body["lr"]))
+            except (TypeError, ValueError):
+                self._send_json({"error": "lr must be a number"}, status=400)
+                return
         if self.path == "/reset":
             dataset = body.get("dataset")
             if dataset:

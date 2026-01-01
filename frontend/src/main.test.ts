@@ -15,6 +15,15 @@ function setupDom() {
       <select id="dataset"><option value="or">OR</option><option value="xor">XOR</option></select>
       <select id="grid-size"><option value="2">2</option><option value="3" selected>3</option></select>
       <input id="api-base" type="text" value="http://127.0.0.1:8000" />
+      <div id="calc-x"></div>
+      <div id="calc-y"></div>
+      <div id="calc-w"></div>
+      <div id="calc-b"></div>
+      <div id="calc-s"></div>
+      <div id="calc-pred"></div>
+      <div id="calc-score-eq"></div>
+      <div id="calc-update-eq"></div>
+      <div id="calc-note"></div>
       <button id="step">Step</button>
       <button id="reset">Reset</button>
     </div>
@@ -48,12 +57,24 @@ test("initApp wires buttons and updates score", async () => {
     if (call === 1) {
       return {
         ok: true,
-        json: async () => ({ w: [1, 0], b: 1, idx: 1 }),
+        json: async () => ({ w: [0, 0], b: 0, idx: 0 }),
       } as Response;
     }
     return {
       ok: true,
-      json: async () => ({ w: [2, 0], b: 2, idx: 2 }),
+      json: async () => ({
+        w: [1, 0],
+        b: 1,
+        idx: 1,
+        x: [1, -1],
+        y: 1,
+        score: 0,
+        pred: 1,
+        mistake: false,
+        delta_w: [0, 0],
+        delta_b: 0,
+        lr: 1,
+      }),
     } as Response;
   };
   initApp(document);
