@@ -32,7 +32,9 @@ function setupDom() {
       <div id="next-y"></div>
       <div id="last-step-section"></div>
       <div id="cell-tooltip"></div>
+      <div id="bias-before-card"></div>
       <div id="bias-before"></div>
+      <div id="bias-after-card"></div>
       <div id="bias-after"></div>
       <button id="step">Step</button>
       <button id="reset">Reset</button>

@@ -62,6 +62,8 @@ export type AppRefs = {
   tooltip: HTMLElement;
   biasBeforeEl: HTMLElement;
   biasAfterEl: HTMLElement;
+  biasBeforeCard: HTMLElement;
+  biasAfterCard: HTMLElement;
 };
 
 function makeGrid(size: number, fill: (r: number, c: number) => number): Grid {
@@ -80,6 +82,15 @@ function inputToGrid(x: [number, number]): Grid {
 
 function contributionGrid(a: Grid, b: Grid): Grid {
   return a.map((row, r) => row.map((v, c) => v * b[r][c]));
+}
+
+function valueColor(v: number): string {
+  if (v === 0) return "#ffffff";
+  return v > 0 ? "#c7f9cc" : "#f6b6b0";
+}
+
+function setBiasCardColor(card: HTMLElement, value: number) {
+  card.style.backgroundColor = valueColor(value);
 }
 
 export function createInitialState(): State {
@@ -144,6 +155,8 @@ export function getRefs(root: Document = document): AppRefs {
   const tooltip = root.getElementById("cell-tooltip") as HTMLElement | null;
   const biasBeforeEl = root.getElementById("bias-before") as HTMLElement | null;
   const biasAfterEl = root.getElementById("bias-after") as HTMLElement | null;
+  const biasBeforeCard = root.getElementById("bias-before-card") as HTMLElement | null;
+  const biasAfterCard = root.getElementById("bias-after-card") as HTMLElement | null;
 
   if (
     !plot ||
@@ -176,7 +189,9 @@ export function getRefs(root: Document = document): AppRefs {
     !lastStepSection ||
     !tooltip ||
     !biasBeforeEl ||
-    !biasAfterEl
+    !biasAfterEl ||
+    !biasBeforeCard ||
+    !biasAfterCard
   ) {
     throw new Error("Missing required DOM elements");
   }
@@ -213,6 +228,8 @@ export function getRefs(root: Document = document): AppRefs {
     tooltip,
     biasBeforeEl,
     biasAfterEl,
+    biasBeforeCard,
+    biasAfterCard,
   };
 }
 
@@ -368,16 +385,18 @@ function render(refs: AppRefs, state: State) {
   state.grids = { input: inputGrid, weightsBefore, weightsAfter, contrib: contribGrid };
   state.biasBefore = biasBefore;
 
-  drawGrid(refs.input, inputGrid, (v) => (v > 0 ? "#ffe0c2" : "#f3f3f3"));
-  drawGrid(refs.weightsBefore, weightsBefore, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
-  drawGrid(refs.weightsAfter, weightsAfter, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
-  drawGrid(refs.contrib, contribGrid, (v) => (v > 0 ? "#c7f9cc" : "#ffd6d6"));
+  drawGrid(refs.input, inputGrid, valueColor);
+  drawGrid(refs.weightsBefore, weightsBefore, valueColor);
+  drawGrid(refs.weightsAfter, weightsAfter, valueColor);
+  drawGrid(refs.contrib, contribGrid, valueColor);
 
   const displayScore = state.lastStep ? state.lastStep.score : (contribGrid.flat().reduce((acc, v) => acc + v, 0) + biasBefore);
   refs.scoreEl.textContent = displayScore.toFixed(2);
 
   refs.biasBeforeEl.textContent = biasBefore.toFixed(2);
   refs.biasAfterEl.textContent = state.b.toFixed(2);
+  setBiasCardColor(refs.biasBeforeCard, biasBefore);
+  setBiasCardColor(refs.biasAfterCard, state.b);
 
   refs.stateW.textContent = formatVec(state.w);
   refs.stateB.textContent = state.b.toFixed(2);
