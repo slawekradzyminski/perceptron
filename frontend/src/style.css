@@ -1,0 +1,201 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+:root {
+  --bg: #f4efe6;
+  --ink: #1c1b19;
+  --accent: #ff6a3d;
+  --panel: #fff8ef;
+  --grid: #e3d6c7;
+  --cool: #3d5af1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 10%, #fff2df, transparent 40%),
+    radial-gradient(circle at 90% 20%, #ffe5d4, transparent 45%),
+    var(--bg);
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  margin: 0 0 8px;
+  color: #6a5a4a;
+}
+
+h1 {
+  font-size: 2.6rem;
+  margin: 0 0 8px;
+}
+
+.subhead {
+  max-width: 520px;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.controls {
+  display: grid;
+  gap: 12px;
+  background: var(--panel);
+  border: 2px solid var(--grid);
+  padding: 16px;
+  border-radius: 16px;
+  min-width: 240px;
+}
+
+.controls select,
+.controls input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--grid);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+
+button {
+  padding: 10px 16px;
+  border: 2px solid var(--ink);
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform 0.1s ease;
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.lr-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+#lr-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+  min-width: 3ch;
+  text-align: right;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.3rem;
+}
+
+.hotkeys {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #6a5a4a;
+}
+
+.explain {
+  grid-column: 1 / -1;
+}
+
+.math {
+  display: grid;
+  gap: 6px;
+  font-family: "IBM Plex Mono", monospace;
+  background: #fff3e4;
+  border: 1px dashed var(--grid);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.math span {
+  background: #fffdf8;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--grid);
+}
+
+.detail {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.boards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+h3 {
+  margin: 8px 0;
+  font-size: 0.95rem;
+}
+
+.boards > div {
+  min-width: 180px;
+}
+
+canvas {
+  background: #fffdf8;
+  border: 1px solid var(--grid);
+  border-radius: 10px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.meter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 800px) {
+  .hero {
+    flex-direction: column;
+  }
+}

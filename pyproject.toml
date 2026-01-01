@@ -1,0 +1,25 @@
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "perceptron-visual-lab"
+version = "0.1.0"
+description = "Perceptron visual lab backend"
+authors = ["Your Name <you@example.com>"]
+packages = [{ include = "backend" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+
+[tool.poetry.scripts]
+perceptron-api = "backend.api_server:run"
+perceptron-runner = "backend.runner:main"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["."]
