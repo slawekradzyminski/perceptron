@@ -12,9 +12,9 @@ def _labels(samples):
 
 
 def test_or_and_xor_labels():
-    assert _labels(make_or_dataset_pm1()) == [-1, 1, 1, 1]
-    assert _labels(make_and_dataset_pm1()) == [-1, -1, -1, 1]
-    assert _labels(make_xor_dataset_pm1()) == [-1, 1, 1, -1]
+    assert _labels(make_or_dataset_pm1()) == [1, 1, 1, -1]
+    assert _labels(make_and_dataset_pm1()) == [-1, -1, 1, -1]
+    assert _labels(make_xor_dataset_pm1()) == [1, 1, -1, -1]
 
 
 def test_generate_translations_counts():

@@ -1,7 +1,7 @@
 export type Point = { x: number; y: number; label: 1 | -1 };
 export type Grid = number[][];
 
-type GridKind = "input" | "weights" | "contrib";
+type GridKind = "input" | "weights-before" | "weights-after" | "contrib";
 
 export type State = {
   datasetName: string;
@@ -23,15 +23,18 @@ export type State = {
   apiError: string | null;
   grids: {
     input: Grid;
-    weights: Grid;
+    weightsBefore: Grid;
+    weightsAfter: Grid;
     contrib: Grid;
   };
+  biasBefore: number;
 };
 
 export type AppRefs = {
   plot: HTMLCanvasElement;
   input: HTMLCanvasElement;
-  weights: HTMLCanvasElement;
+  weightsBefore: HTMLCanvasElement;
+  weightsAfter: HTMLCanvasElement;
   contrib: HTMLCanvasElement;
   scoreEl: HTMLElement;
   lrEl: HTMLInputElement;
@@ -57,6 +60,8 @@ export type AppRefs = {
   nextY: HTMLElement;
   lastStepSection: HTMLElement;
   tooltip: HTMLElement;
+  biasBeforeEl: HTMLElement;
+  biasAfterEl: HTMLElement;
 };
 
 function makeGrid(size: number, fill: (r: number, c: number) => number): Grid {
@@ -99,16 +104,19 @@ export function createInitialState(): State {
     apiError: null,
     grids: {
       input: inputGrid,
-      weights: weightGrid,
+      weightsBefore: weightGrid,
+      weightsAfter: weightGrid,
       contrib: contribGrid,
     },
+    biasBefore: 0,
   };
 }
 
 export function getRefs(root: Document = document): AppRefs {
   const plot = root.getElementById("plot") as HTMLCanvasElement | null;
   const input = root.getElementById("input") as HTMLCanvasElement | null;
-  const weights = root.getElementById("weights") as HTMLCanvasElement | null;
+  const weightsBefore = root.getElementById("weights-before") as HTMLCanvasElement | null;
+  const weightsAfter = root.getElementById("weights-after") as HTMLCanvasElement | null;
   const contrib = root.getElementById("contrib") as HTMLCanvasElement | null;
   const scoreEl = root.getElementById("score") as HTMLElement | null;
   const lrEl = root.getElementById("lr") as HTMLInputElement | null;
@@ -134,11 +142,14 @@ export function getRefs(root: Document = document): AppRefs {
   const nextY = root.getElementById("next-y") as HTMLElement | null;
   const lastStepSection = root.getElementById("last-step-section") as HTMLElement | null;
   const tooltip = root.getElementById("cell-tooltip") as HTMLElement | null;
+  const biasBeforeEl = root.getElementById("bias-before") as HTMLElement | null;
+  const biasAfterEl = root.getElementById("bias-after") as HTMLElement | null;
 
   if (
     !plot ||
     !input ||
-    !weights ||
+    !weightsBefore ||
+    !weightsAfter ||
     !contrib ||
     !scoreEl ||
     !lrEl ||
@@ -163,7 +174,9 @@ export function getRefs(root: Document = document): AppRefs {
     !nextX ||
     !nextY ||
     !lastStepSection ||
-    !tooltip
+    !tooltip ||
+    !biasBeforeEl ||
+    !biasAfterEl
   ) {
     throw new Error("Missing required DOM elements");
   }
@@ -171,7 +184,8 @@ export function getRefs(root: Document = document): AppRefs {
   return {
     plot,
     input,
-    weights,
+    weightsBefore,
+    weightsAfter,
     contrib,
     scoreEl,
     lrEl,
@@ -197,12 +211,44 @@ export function getRefs(root: Document = document): AppRefs {
     nextY,
     lastStepSection,
     tooltip,
+    biasBeforeEl,
+    biasAfterEl,
   };
 }
 
 function drawBoundary(ctx: CanvasRenderingContext2D, w: [number, number], b: number) {
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
+
+  ctx.fillStyle = "#fff9f0";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = "#e9dac6";
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const x = (i * width) / 4;
+    const y = (i * height) / 4;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#c9b79f";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(width / 2, 0);
+  ctx.lineTo(width / 2, height);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, height / 2);
+  ctx.lineTo(width, height / 2);
+  ctx.stroke();
+
   const x1 = -1.5;
   const x2 = 1.5;
   const y1 = -(w[0] * x1 + b) / w[1];
@@ -211,11 +257,17 @@ function drawBoundary(ctx: CanvasRenderingContext2D, w: [number, number], b: num
   const mapY = (y: number) => height - ((y + 1.5) / 3) * height;
 
   ctx.strokeStyle = "#1c1b19";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 6]);
   ctx.beginPath();
   ctx.moveTo(mapX(x1), mapY(y1));
   ctx.lineTo(mapX(x2), mapY(y2));
   ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle = "#c9b79f";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(4, 4, width - 8, height - 8);
 }
 
 function drawPoints(ctx: CanvasRenderingContext2D, points: Point[]) {
@@ -224,8 +276,11 @@ function drawPoints(ctx: CanvasRenderingContext2D, points: Point[]) {
   points.forEach((p) => {
     ctx.fillStyle = p.label === 1 ? "#3d5af1" : "#ff6a3d";
     ctx.beginPath();
-    ctx.arc(mapX(p.x), mapY(p.y), 8, 0, Math.PI * 2);
+    ctx.arc(mapX(p.x), mapY(p.y), 10, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = "#fef5ea";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   });
 }
 
@@ -287,12 +342,9 @@ function bindTooltip(
   canvas.addEventListener("mousemove", (event) => {
     const rect = canvas.getBoundingClientRect();
     const cols = 2;
-    const rows = 1;
     const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
     const col = Math.min(cols - 1, Math.max(0, Math.floor((x / rect.width) * cols)));
-    const row = 0;
-    const value = getValue(row, col);
+    const value = getValue(0, col);
     setTooltip(refs, `${kind}: ${value}`, event.clientX, event.clientY);
   });
   canvas.addEventListener("mouseleave", () => hideTooltip(refs));
@@ -301,25 +353,31 @@ function bindTooltip(
 function render(refs: AppRefs, state: State) {
   const ctx = refs.plot.getContext("2d");
   if (!ctx) return;
-  ctx.clearRect(0, 0, refs.plot.width, refs.plot.height);
-  ctx.fillStyle = "#fffdf8";
-  ctx.fillRect(0, 0, refs.plot.width, refs.plot.height);
-  drawPoints(ctx, state.points);
   drawBoundary(ctx, state.w, state.b);
+  drawPoints(ctx, state.points);
 
   const sample = state.lastStep ? state.lastStep.x : (state.nextInput?.x ?? [-1, -1]);
   const inputGrid = inputToGrid(sample as [number, number]);
-  const weightGrid = weightsToGrid(state.w);
-  const contribGrid = contributionGrid(inputGrid, weightGrid);
-  state.grids = { input: inputGrid, weights: weightGrid, contrib: contribGrid };
+  const weightsAfter = weightsToGrid(state.w);
+  const weightsBefore = state.lastStep
+    ? weightsToGrid([state.w[0] - state.lastStep.deltaW[0], state.w[1] - state.lastStep.deltaW[1]])
+    : weightsAfter;
+  const biasBefore = state.lastStep ? state.b - state.lastStep.deltaB : state.b;
+  const contribGrid = contributionGrid(inputGrid, weightsBefore);
+
+  state.grids = { input: inputGrid, weightsBefore, weightsAfter, contrib: contribGrid };
+  state.biasBefore = biasBefore;
 
   drawGrid(refs.input, inputGrid, (v) => (v > 0 ? "#ffe0c2" : "#f3f3f3"));
-  drawGrid(refs.weights, weightGrid, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
+  drawGrid(refs.weightsBefore, weightsBefore, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
+  drawGrid(refs.weightsAfter, weightsAfter, (v) => (v > 0 ? "#cbe2ff" : "#ffd1c2"));
   drawGrid(refs.contrib, contribGrid, (v) => (v > 0 ? "#c7f9cc" : "#ffd6d6"));
 
-  const gridScore = contribGrid.flat().reduce((acc, v) => acc + v, 0) + state.b;
-  const displayScore = state.lastStep ? state.lastStep.score : gridScore;
+  const displayScore = state.lastStep ? state.lastStep.score : (contribGrid.flat().reduce((acc, v) => acc + v, 0) + biasBefore);
   refs.scoreEl.textContent = displayScore.toFixed(2);
+
+  refs.biasBeforeEl.textContent = biasBefore.toFixed(2);
+  refs.biasAfterEl.textContent = state.b.toFixed(2);
 
   refs.stateW.textContent = formatVec(state.w);
   refs.stateB.textContent = state.b.toFixed(2);
@@ -502,8 +560,12 @@ export function initApp(root: Document = document) {
     const v = state.grids.input[row][col];
     return `${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
   });
-  bindTooltip(refs, refs.weights, "weight", (row, col) => {
-    const v = state.grids.weights[row][col];
+  bindTooltip(refs, refs.weightsBefore, "weights(before)", (row, col) => {
+    const v = state.grids.weightsBefore[row][col];
+    return `${v.toFixed(2)}`;
+  });
+  bindTooltip(refs, refs.weightsAfter, "weights(after)", (row, col) => {
+    const v = state.grids.weightsAfter[row][col];
     let detail = `${v.toFixed(2)}`;
     if (state.lastStep) {
       const prev = v - state.lastStep.deltaW[col];
@@ -511,7 +573,7 @@ export function initApp(root: Document = document) {
     }
     return detail;
   });
-  bindTooltip(refs, refs.contrib, "contrib", (row, col) => {
+  bindTooltip(refs, refs.contrib, "contrib(pre)", (row, col) => {
     const v = state.grids.contrib[row][col];
     return `${v.toFixed(2)} = x${col + 1}*w${col + 1}`;
   });

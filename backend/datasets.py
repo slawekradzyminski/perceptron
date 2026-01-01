@@ -19,10 +19,10 @@ def _flatten(grid: Sequence[Sequence[int]]) -> List[int]:
 def make_or_dataset_pm1() -> List[Sample]:
     # Inputs are in {-1, +1}. OR is positive if any input is +1.
     data = [
-        ([-1, -1], -1),
         ([-1, 1], 1),
         ([1, -1], 1),
         ([1, 1], 1),
+        ([-1, -1], -1),
     ]
     return [{"x": x, "y": y} for x, y in data]
 
@@ -30,10 +30,10 @@ def make_or_dataset_pm1() -> List[Sample]:
 def make_and_dataset_pm1() -> List[Sample]:
     # AND is positive only if both inputs are +1.
     data = [
-        ([-1, -1], -1),
         ([-1, 1], -1),
         ([1, -1], -1),
         ([1, 1], 1),
+        ([-1, -1], -1),
     ]
     return [{"x": x, "y": y} for x, y in data]
 
@@ -41,10 +41,10 @@ def make_and_dataset_pm1() -> List[Sample]:
 def make_xor_dataset_pm1() -> List[Sample]:
     # XOR is positive if exactly one input is +1.
     data = [
-        ([-1, -1], -1),
         ([-1, 1], 1),
         ([1, -1], 1),
         ([1, 1], -1),
+        ([-1, -1], -1),
     ]
     return [{"x": x, "y": y} for x, y in data]
 

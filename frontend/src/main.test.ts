@@ -7,7 +7,8 @@ function setupDom() {
     <div>
       <canvas id="plot" width="420" height="420"></canvas>
       <canvas id="input" width="200" height="120"></canvas>
-      <canvas id="weights" width="200" height="120"></canvas>
+      <canvas id="weights-before" width="200" height="120"></canvas>
+      <canvas id="weights-after" width="200" height="120"></canvas>
       <canvas id="contrib" width="200" height="120"></canvas>
       <span id="score"></span>
       <input id="lr" type="range" min="0.1" max="2" step="0.1" value="1" />
@@ -31,6 +32,8 @@ function setupDom() {
       <div id="next-y"></div>
       <div id="last-step-section"></div>
       <div id="cell-tooltip"></div>
+      <div id="bias-before"></div>
+      <div id="bias-after"></div>
       <button id="step">Step</button>
       <button id="reset">Reset</button>
     </div>
@@ -49,6 +52,8 @@ function mockCanvas() {
       stroke: () => undefined,
       arc: () => undefined,
       fill: () => undefined,
+      strokeRect: () => undefined,
+      setLineDash: () => undefined,
       set fillStyle(_: string) {},
       set strokeStyle(_: string) {},
       set lineWidth(_: number) {},
