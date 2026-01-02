@@ -105,5 +105,72 @@ test("shows custom dataset editor", async () => {
   render(<App />);
   const select = await screen.findByLabelText("Dataset");
   fireEvent.change(select, { target: { value: "custom" } });
-  expect(await screen.findByText("Custom dataset")).toBeInTheDocument();
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+test("switching from custom back to xor resets state", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    json: async () => ({
+      w: [0, 0],
+      b: 0,
+      idx: 0,
+      dataset: "or",
+      next_x: [-1, -1],
+      next_y: -1,
+      grid_rows: 1,
+      grid_cols: 2,
+      sample_count: 4,
+    }),
+  })) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(<App />);
+  const select = await screen.findByLabelText("Dataset");
+  fireEvent.change(select, { target: { value: "custom" } });
+  fireEvent.change(select, { target: { value: "xor" } });
+
+  await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  const lastCall = fetchMock.mock.calls.at(-1);
+  expect(lastCall).toBeTruthy();
+  const body = JSON.parse(lastCall?.[1]?.body as string);
+  expect(body.dataset).toBe("xor");
+});
+
+test("apply custom dataset posts custom payload", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    json: async () => ({
+      w: [0, 0, 0, 0],
+      b: 0,
+      idx: 0,
+      dataset: "custom",
+      next_x: [-1, -1, -1, -1],
+      next_y: -1,
+      grid_rows: 2,
+      grid_cols: 2,
+      sample_count: 1,
+    }),
+  })) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(<App />);
+  const select = await screen.findByLabelText("Dataset");
+  fireEvent.change(select, { target: { value: "custom" } });
+
+  const applyButton = await screen.findByRole("button", { name: "Apply custom dataset" });
+  fireEvent.click(applyButton);
+
+  await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  const lastCall = fetchMock.mock.calls.at(-1);
+  const body = JSON.parse(lastCall?.[1]?.body as string);
+  expect(body.dataset).toBe("custom");
+  expect(body.grid_rows).toBe(2);
+  expect(body.grid_cols).toBe(2);
+  expect(body.samples?.length).toBe(1);
 });

@@ -90,6 +90,26 @@ button:active {
   transform: translateY(2px);
 }
 
+button.primary {
+  background: var(--accent);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+button.primary:hover {
+  background: #f0cda5;
+}
+
+button.ghost {
+  background: transparent;
+  border: 2px dashed var(--grid);
+  color: var(--ink);
+}
+
+button.ghost:hover {
+  background: #fff0df;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -157,7 +177,7 @@ label {
 .custom-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px 14px;
   align-items: end;
 }
 
@@ -182,6 +202,7 @@ label {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  justify-items: start;
 }
 
 .sample-card {
@@ -191,6 +212,9 @@ label {
   background: #fffdf8;
   display: grid;
   gap: 10px;
+  width: fit-content;
+  min-width: 220px;
+  max-width: 360px;
 }
 
 .sample-head {
@@ -224,21 +248,94 @@ label {
 .sample-grid {
   display: grid;
   gap: 6px;
+  width: fit-content;
+  --cell-size: clamp(42px, 6vw, 72px);
+  grid-auto-rows: var(--cell-size);
 }
 
 .sample-cell {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: var(--cell-size);
+  height: var(--cell-size);
   border-radius: 8px;
   border: 2px solid var(--grid);
   background: #ffffff;
   cursor: pointer;
 }
 
+.select {
+  appearance: none;
+  padding: 6px 28px 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--grid);
+  background: #fffdf8;
+  font-family: "IBM Plex Mono", monospace;
+  background-image: linear-gradient(45deg, transparent 50%, #7d6a55 50%),
+    linear-gradient(135deg, #7d6a55 50%, transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.select.small {
+  padding: 4px 26px 4px 8px;
+  font-size: 0.85rem;
+}
+
 .custom-hint {
   margin-top: 8px;
   font-size: 0.85rem;
   color: #6a5a4a;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 27, 25, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(960px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff7ee;
+  border: 3px solid var(--grid);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(28, 27, 25, 0.25);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-head .subhead {
+  margin: 6px 0 0;
+}
+
+.modal-body {
+  display: grid;
+  gap: 16px;
 }
 
 .math {

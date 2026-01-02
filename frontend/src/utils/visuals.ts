@@ -1,5 +1,4 @@
-export type Grid = number[][];
-export type Point = { x: number; y: number; label: 1 | -1 };
+import type { Grid, Point } from "../types";
 
 export function valueColor(v: number): string {
   if (v === 0) return "#ffffff";
