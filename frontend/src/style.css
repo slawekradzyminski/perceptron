@@ -142,6 +142,48 @@ h1 {
   font-family: "IBM Plex Mono", monospace;
 }
 
+.lms-note {
+  font-size: 0.75rem;
+  color: #8a7562;
+}
+
+.lms-grad {
+  width: 100%;
+  height: 180px;
+}
+
+.lms-grad rect {
+  fill: #fffdf8;
+  stroke: #e2cfba;
+  stroke-width: 1.5;
+}
+
+.lms-grad line {
+  stroke: #d7c5b3;
+  stroke-width: 1;
+}
+
+.lms-grad circle {
+  fill: #2a2a2a;
+}
+
+.lms-grad line.grad {
+  stroke: #c9574c;
+  stroke-width: 2.5;
+}
+
+.lms-grad line.update {
+  stroke: #2a7b3f;
+  stroke-width: 2.5;
+}
+
+.lms-grad-legend {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #6a5a4a;
+}
+
 .lms-math ul {
   margin: 0;
   padding-left: 18px;

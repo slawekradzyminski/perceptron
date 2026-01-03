@@ -5,6 +5,7 @@ import type { CustomConfig } from "../types";
 import { BoundaryPanel } from "./BoundaryPanel";
 import { pointsForDataset } from "../utils/custom";
 import { LmsDatasetCard } from "./LmsDatasetCard";
+import { LmsGradientCard } from "./LmsGradientCard";
 import { LmsMathCard } from "./LmsMathCard";
 import { LmsTable } from "./LmsTable";
 import { LmsTooltip } from "./LmsTooltip";
@@ -50,7 +51,7 @@ function formatVec(values: number[]) {
 }
 
 export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: LmsPageProps) {
-  const { state, history, stepCount, error, loading, step, reset, resetWithOptions } = useLmsApi(apiBase);
+  const { state, history, stepCount, error, loading, step, resetWithOptions } = useLmsApi(apiBase);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; x: number; y: number }>({
     visible: false,
@@ -78,7 +79,15 @@ export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: L
     void resetWithOptions({ datasetName, customConfig, customApplied, lr: lmsLr });
   }, [resetWithOptions, datasetName, customConfig, customApplied, canUseCustom, lmsLr]);
 
-  useHotkeys({ onStep: step, onReset: reset, enabled: canUseCustom });
+  const handleReset = () => {
+    if (!canUseCustom) return;
+    void resetWithOptions({ datasetName, customConfig, customApplied, lr: lmsLr });
+  };
+  const handleStep = () => {
+    if (!canUseCustom) return;
+    void step();
+  };
+  useHotkeys({ onStep: handleStep, onReset: handleReset, enabled: canUseCustom });
 
   return (
     <section className="panel lms-panel">
@@ -90,10 +99,10 @@ export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: L
           </p>
         </div>
         <div className="lms-actions">
-          <button type="button" onClick={step} disabled={loading || !canUseCustom}>
+          <button type="button" onClick={handleStep} disabled={loading || !canUseCustom}>
             Step
           </button>
-          <button type="button" onClick={reset} disabled={loading || !canUseCustom}>
+          <button type="button" onClick={handleReset} disabled={loading || !canUseCustom}>
             Reset
           </button>
         </div>
@@ -112,6 +121,7 @@ export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: L
           state={state}
           formatVec={formatVec}
         />
+        <LmsGradientCard history={history} />
         <LmsTrendCard history={history} stepCount={stepCount} />
       </div>
 
