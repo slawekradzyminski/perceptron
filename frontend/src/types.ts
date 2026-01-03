@@ -35,6 +35,7 @@ export type LmsState = {
   x: number[];
   y: number;
   sample_count: number;
+  dataset: string;
 };
 
 export type LmsStep = {

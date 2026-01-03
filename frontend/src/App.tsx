@@ -353,7 +353,12 @@ export default function App() {
             />
           </>
         ) : (
-          <LmsPage apiBase={apiBase} />
+          <LmsPage
+            apiBase={apiBase}
+            datasetName={state.datasetName}
+            customConfig={customConfig}
+            customApplied={state.customApplied}
+          />
         )}
       </main>
 

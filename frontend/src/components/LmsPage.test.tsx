@@ -5,17 +5,18 @@ import { LmsPage } from "./LmsPage";
 test("renders LMS page and loads state", async () => {
   const fetchMock = vi.fn(async (url: RequestInfo, options?: RequestInit) => {
     const target = typeof url === "string" ? url : url.url;
-    if (target.endsWith("/lms/state")) {
+    if (target.endsWith("/lms/reset")) {
       return {
         ok: true,
         json: async () => ({
           w: [0, 0],
           b: 0,
           idx: 0,
-          lr: 0.1,
+          lr: 0.2,
           x: [-1, -1],
           y: -1,
           sample_count: 4,
+          dataset: "or",
         }),
       } as Response;
     }
@@ -49,14 +50,28 @@ test("renders LMS page and loads state", async () => {
         x: [-1, -1],
         y: -1,
         sample_count: 4,
+        dataset: "or",
       }),
     } as Response;
   }) as typeof fetch;
   global.fetch = fetchMock;
 
-  render(<LmsPage apiBase="http://127.0.0.1:8000" />);
+  render(
+    <LmsPage
+      apiBase="http://127.0.0.1:8000"
+      datasetName="or"
+      customConfig={{ rows: 1, cols: 2, samples: [] }}
+      customApplied={false}
+    />,
+  );
   expect(screen.getByText("LMS (Widrow–Hoff) Exercise")).toBeInTheDocument();
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+  const resetCall = fetchMock.mock.calls.find((call) =>
+    typeof call[0] === "string" ? call[0].endsWith("/lms/reset") : call[0].url.endsWith("/lms/reset"),
+  );
+  expect(resetCall).toBeTruthy();
+  const resetBody = JSON.parse(resetCall?.[1]?.body as string);
+  expect(resetBody.lr).toBe(0.1);
   expect(screen.getByText("Click Step to start filling the LMS table.")).toBeInTheDocument();
   expect(screen.getByText("Error trend (E = (y − ŷ)²)")).toBeInTheDocument();
 

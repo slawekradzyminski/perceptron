@@ -501,7 +501,7 @@ test("renders LMS route", async () => {
   mockCanvas();
   const fetchMock = vi.fn(async (url: RequestInfo) => {
     const target = typeof url === "string" ? url : url.url;
-    if (target.endsWith("/lms/state")) {
+    if (target.endsWith("/lms/reset")) {
       return {
         ok: true,
         json: async () => ({
@@ -512,6 +512,7 @@ test("renders LMS route", async () => {
           x: [-1, -1],
           y: -1,
           sample_count: 4,
+          dataset: "or",
         }),
       } as Response;
     }

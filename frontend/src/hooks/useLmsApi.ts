@@ -1,5 +1,13 @@
 import { useCallback, useState } from "react";
-import type { LmsState, LmsStep } from "../types";
+import type { CustomConfig, LmsState, LmsStep } from "../types";
+import { buildCustomPayload } from "../utils/custom";
+
+type ResetOptions = {
+  datasetName?: string;
+  customConfig?: CustomConfig;
+  customApplied?: boolean;
+  lr?: number;
+};
 
 export function useLmsApi(apiBase: string) {
   const [state, setState] = useState<LmsState | null>(null);
@@ -36,7 +44,7 @@ export function useLmsApi(apiBase: string) {
         return;
       }
       const data = (await res.json()) as LmsStep;
-      setHistory((prev) => [data, ...prev].slice(0, 32));
+      setHistory((prev) => [...prev, data].slice(-32));
       setStepCount((prev) => prev + 1);
       setState((prev) =>
         prev
@@ -49,6 +57,7 @@ export function useLmsApi(apiBase: string) {
               x: data.x,
               y: data.y,
               sample_count: 4,
+              dataset: "or",
             },
       );
     } catch {
@@ -58,11 +67,30 @@ export function useLmsApi(apiBase: string) {
     }
   }, [apiBase]);
 
-  const reset = useCallback(async () => {
+  const resetWithOptions = useCallback(async (options: ResetOptions = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/lms/reset`, { method: "POST", headers: { "Content-Type": "application/json" } });
+      const body: Record<string, unknown> = {};
+      if (options.datasetName) {
+        if (options.datasetName === "custom") {
+          if (!options.customApplied || !options.customConfig) {
+            setError("Apply the custom dataset before loading LMS.");
+            return;
+          }
+          Object.assign(body, { dataset: "custom" }, buildCustomPayload(options.customConfig));
+        } else {
+          body.dataset = options.datasetName;
+        }
+      }
+      if (typeof options.lr === "number") {
+        body.lr = options.lr;
+      }
+      const res = await fetch(`${apiBase}/lms/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
       if (!res.ok) {
         setError(`API error: ${res.status}`);
         return;
@@ -78,5 +106,9 @@ export function useLmsApi(apiBase: string) {
     }
   }, [apiBase]);
 
-  return { state, history, stepCount, error, loading, loadState, step, reset };
+  const reset = useCallback(async () => {
+    await resetWithOptions();
+  }, [resetWithOptions]);
+
+  return { state, history, stepCount, error, loading, loadState, step, reset, resetWithOptions };
 }

@@ -1,18 +1,37 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 
 
 class LmsService:
-    def __init__(self, lr: float = 0.1) -> None:
+    def __init__(self, lr: float = 0.1, dataset: str = "or") -> None:
         self.lr = lr
-        self.samples: List[Dict[str, Any]] = [
-            {"x": [-1.0, -1.0], "y": -1},
-            {"x": [-1.0, 1.0], "y": -1},
-            {"x": [1.0, -1.0], "y": 1},
-            {"x": [1.0, 1.0], "y": 1},
-        ]
+        self.custom_samples: Optional[List[Dict[str, Any]]] = None
+        self.set_dataset(dataset)
+
+    def set_dataset(self, name: str, custom_samples: Optional[List[Dict[str, Any]]] = None) -> None:
+        if name == "or":
+            samples = make_or_dataset_pm1()
+        elif name == "xor":
+            samples = make_xor_dataset_pm1()
+        elif name == "custom":
+            if custom_samples is not None:
+                self.custom_samples = custom_samples
+            if self.custom_samples is None:
+                raise ValueError("custom dataset requires samples")
+            samples = self.custom_samples
+        else:
+            raise ValueError("dataset must be 'or', 'xor', or 'custom'")
+        if any(len(sample.get("x", [])) != 2 for sample in samples):
+            raise ValueError("LMS requires 2D inputs")
+        self.dataset = name
+        self.samples = samples
         self.reset()
+
+    def set_lr(self, lr: float) -> None:
+        self.lr = lr
 
     def reset(self) -> Dict[str, Any]:
         self.idx = 0
@@ -30,6 +49,7 @@ class LmsService:
             "x": sample["x"],
             "y": sample["y"],
             "sample_count": len(self.samples),
+            "dataset": self.dataset,
         }
 
     def step(self) -> Dict[str, Any]:

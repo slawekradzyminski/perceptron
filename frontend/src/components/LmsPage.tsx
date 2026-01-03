@@ -1,18 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLmsApi } from "../hooks/useLmsApi";
 import { useHotkeys } from "../hooks/useHotkeys";
-import type { LmsStep } from "../types";
+import type { CustomConfig, LmsStep } from "../types";
+import { BoundaryPanel } from "./BoundaryPanel";
+import { pointsForDataset } from "../utils/custom";
 
 type LmsPageProps = {
   apiBase: string;
+  datasetName: string;
+  customConfig: CustomConfig;
+  customApplied: boolean;
 };
 
-const DATASET = [
+const OR_DATASET = [
   { x: [-1, -1], y: -1 },
-  { x: [-1, 1], y: -1 },
+  { x: [-1, 1], y: 1 },
   { x: [1, -1], y: 1 },
   { x: [1, 1], y: 1 },
 ];
+
+const XOR_DATASET = [
+  { x: [-1, -1], y: -1 },
+  { x: [-1, 1], y: 1 },
+  { x: [1, -1], y: 1 },
+  { x: [1, 1], y: -1 },
+];
+
+function datasetForLms(datasetName: string, customConfig: CustomConfig) {
+  if (datasetName === "xor") return XOR_DATASET;
+  if (datasetName === "custom") {
+    return customConfig.samples
+      .map((sample) => {
+        const flat = sample.grid.flat();
+        if (flat.length !== 2) return null;
+        return { x: [flat[0], flat[1]], y: sample.y };
+      })
+      .filter((row): row is { x: number[]; y: number } => row !== null);
+  }
+  return OR_DATASET;
+}
 
 function formatVec(values: number[]) {
   return `[${values.map((val) => val.toFixed(2)).join(", ")}]`;
@@ -22,7 +48,7 @@ function ErrorTrend({ history, stepCount }: { history: LmsStep[]; stepCount: num
   if (history.length === 0) {
     return <p className="lms-empty">Step to see the error curve.</p>;
   }
-  const points = [...history].reverse().map((row) => row.error * row.error);
+  const points = history.map((row) => row.error * row.error);
   const maxVal = Math.max(...points, 1e-6);
   const minVal = Math.min(...points);
   const height = 90;
@@ -37,7 +63,7 @@ function ErrorTrend({ history, stepCount }: { history: LmsStep[]; stepCount: num
       return `${idx === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
-  const latest = history[0];
+  const latest = history[history.length - 1];
   const latestE = latest.error * latest.error;
   return (
     <div className="lms-trend">
@@ -65,19 +91,70 @@ function ErrorTrend({ history, stepCount }: { history: LmsStep[]; stepCount: num
           return <circle key={idx} cx={x} cy={y} r={2.2} />;
         })}
       </svg>
+      <div className="lms-trend-range">E range (last {history.length} steps)</div>
       <div className="lms-trend-axis">
-        <span>{minVal.toFixed(2)}</span>
-        <span>{maxVal.toFixed(2)}</span>
+        <span>Min E: {minVal.toFixed(2)}</span>
+        <span>Max E: {maxVal.toFixed(2)}</span>
       </div>
     </div>
   );
 }
 
-function LmsRow({ step, index, stepCount }: { step: LmsStep; index: number; stepCount: number }) {
+function LmsRow({
+  step,
+  index,
+  stepCount,
+  onHover,
+  onLeave,
+  firstStepNumber,
+}: {
+  step: LmsStep;
+  index: number;
+  stepCount: number;
+  onHover: (payload: { visible: boolean; text: string; x: number; y: number }) => void;
+  onLeave: () => void;
+  firstStepNumber: number;
+}) {
   const correct = step.y * step.y_hat > 0;
-  const displayStep = stepCount > 0 ? Math.max(stepCount - index, 1) : index + 1;
+  const displayStep = firstStepNumber + index;
+  const eta = step.lr;
+  const [x1, x2] = step.x;
+  const w1 = step.w_before[0];
+  const w2 = step.w_before[1];
+  const s = step.y_hat;
+  const e = step.error;
+  const tooltip = [
+    `Step ${displayStep}`,
+    `ŷ = w1*x1 + w2*x2 + b`,
+    `= (${w1.toFixed(2)}*${x1.toFixed(0)}) + (${w2.toFixed(2)}*${x2.toFixed(0)}) + ${step.b_before.toFixed(2)}`,
+    `= ${s.toFixed(2)}`,
+    `e = y - ŷ = ${step.y.toFixed(0)} - ${s.toFixed(2)} = ${e.toFixed(2)}`,
+    `Δw1 = η·e·x1 = ${eta.toFixed(2)}·${e.toFixed(2)}·${x1.toFixed(0)} = ${(eta * e * x1).toFixed(2)}`,
+    `Δw2 = η·e·x2 = ${eta.toFixed(2)}·${e.toFixed(2)}·${x2.toFixed(0)} = ${(eta * e * x2).toFixed(2)}`,
+    `Δb = η·e = ${eta.toFixed(2)}·${e.toFixed(2)} = ${(eta * e).toFixed(2)}`,
+    `E = e² = ${(e * e).toFixed(3)}`,
+  ].join("\n");
   return (
-    <tr>
+    <tr
+      onMouseMove={(event) => {
+        const padding = 12;
+        const boxWidth = 320;
+        const boxHeight = 190;
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
+        const flipX = event.clientX + padding + boxWidth > viewportW;
+        const flipY = event.clientY + padding + boxHeight > viewportH;
+        const x = Math.max(8, Math.min(viewportW - boxWidth - 8, event.clientX + (flipX ? -boxWidth - padding : padding)));
+        const y = Math.max(8, Math.min(viewportH - boxHeight - 8, event.clientY + (flipY ? -boxHeight - padding : padding)));
+        onHover({
+          visible: true,
+          text: tooltip,
+          x,
+          y,
+        });
+      }}
+      onMouseLeave={onLeave}
+    >
       <td>{displayStep}</td>
       <td>{step.x[0].toFixed(0)}</td>
       <td>{step.x[1].toFixed(0)}</td>
@@ -98,14 +175,36 @@ function LmsRow({ step, index, stepCount }: { step: LmsStep; index: number; step
   );
 }
 
-export function LmsPage({ apiBase }: LmsPageProps) {
-  const { state, history, stepCount, error, loading, loadState, step, reset } = useLmsApi(apiBase);
+export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: LmsPageProps) {
+  const { state, history, stepCount, error, loading, step, reset, resetWithOptions } = useLmsApi(apiBase);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; x: number; y: number }>({
+    visible: false,
+    text: "",
+    x: 0,
+    y: 0,
+  });
+  const [lmsLr, setLmsLr] = useState(0.1);
+  const datasetRows = useMemo(() => datasetForLms(datasetName, customConfig), [datasetName, customConfig]);
+  const datasetDim = datasetName === "custom" ? customConfig.rows * customConfig.cols : 2;
+  const canUseCustom = datasetName !== "custom" || (customApplied && datasetDim === 2);
+  const points = useMemo(
+    () =>
+      pointsForDataset(datasetName, datasetDim, customConfig),
+    [datasetName, datasetDim, customConfig],
+  );
+  const w = state?.w ?? [0, 0];
+  const b = state?.b ?? 0;
+  const firstStepNumber = stepCount > history.length ? stepCount - history.length + 1 : 1;
 
   useEffect(() => {
-    void loadState();
-  }, [loadState]);
+    if (!canUseCustom) {
+      return;
+    }
+    void resetWithOptions({ datasetName, customConfig, customApplied, lr: lmsLr });
+  }, [resetWithOptions, datasetName, customConfig, customApplied, canUseCustom, lmsLr]);
 
-  useHotkeys({ onStep: step, onReset: reset, enabled: true });
+  useHotkeys({ onStep: step, onReset: reset, enabled: canUseCustom });
 
   return (
     <section className="panel lms-panel">
@@ -117,16 +216,17 @@ export function LmsPage({ apiBase }: LmsPageProps) {
           </p>
         </div>
         <div className="lms-actions">
-          <button type="button" onClick={step} disabled={loading}>
+          <button type="button" onClick={step} disabled={loading || !canUseCustom}>
             Step
           </button>
-          <button type="button" onClick={reset} disabled={loading}>
+          <button type="button" onClick={reset} disabled={loading || !canUseCustom}>
             Reset
           </button>
         </div>
       </div>
 
       <div className="lms-grid">
+        <BoundaryPanel w={w} b={b} points={points} show={true} canvasRef={canvasRef} />
         <div className="lms-math">
           <h3>Update rule</h3>
           <p><strong>Prediction:</strong> ŷ = w·x + b</p>
@@ -136,8 +236,23 @@ export function LmsPage({ apiBase }: LmsPageProps) {
         </div>
         <div className="lms-math">
           <h3>Dataset</h3>
+          <p><strong>Active:</strong> {datasetName.toUpperCase()}</p>
+          <label className="lms-label" aria-label="Learning rate">
+            <span>Learning rate (η)</span>
+            <input
+              type="number"
+              min="0.01"
+              step="0.05"
+              value={lmsLr}
+              onChange={(event) => setLmsLr(Number(event.target.value))}
+              disabled={!canUseCustom}
+            />
+          </label>
+          {datasetName === "custom" && datasetDim !== 2 && (
+            <p className="diag-note">LMS supports only 2D custom datasets (1×2 grid).</p>
+          )}
           <ul>
-            {DATASET.map((row, idx) => (
+            {datasetRows.map((row, idx) => (
               <li key={idx}>
                 x = [{row.x[0]}, {row.x[1]}], y = {row.y}
               </li>
@@ -191,10 +306,24 @@ export function LmsPage({ apiBase }: LmsPageProps) {
               </tr>
             )}
             {history.map((row, index) => (
-              <LmsRow key={`${row.idx}-${index}`} step={row} index={index} stepCount={stepCount} />
+              <LmsRow
+                key={`${row.idx}-${index}`}
+                step={row}
+                index={index}
+                stepCount={stepCount}
+                firstStepNumber={firstStepNumber}
+                onHover={(payload) => setTooltip(payload)}
+                onLeave={() => setTooltip((prev) => ({ ...prev, visible: false }))}
+              />
             ))}
           </tbody>
         </table>
+      </div>
+      <div
+        className={`lms-tooltip ${tooltip.visible ? "visible" : ""}`}
+        style={{ left: tooltip.x, top: tooltip.y }}
+      >
+        {tooltip.text}
       </div>
     </section>
   );
