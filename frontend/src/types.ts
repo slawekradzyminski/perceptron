@@ -27,6 +27,32 @@ export type TooltipState = {
   y: number;
 };
 
+export type LmsState = {
+  w: number[];
+  b: number;
+  idx: number;
+  lr: number;
+  x: number[];
+  y: number;
+  sample_count: number;
+};
+
+export type LmsStep = {
+  x: number[];
+  y: number;
+  w_before: number[];
+  b_before: number;
+  y_hat: number;
+  error: number;
+  grad_w1: number;
+  grad_w2: number;
+  grad_b: number;
+  w_after: number[];
+  b_after: number;
+  idx: number;
+  lr: number;
+};
+
 export type ErrorSurfaceResponse = {
   dataset: string;
   grid_rows: number;

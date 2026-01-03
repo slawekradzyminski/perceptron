@@ -43,3 +43,8 @@ test("hides training controls on diagnostics view", () => {
   expect(screen.queryByRole("button", { name: "Step" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Reset" })).toBeNull();
 });
+
+test("shows LMS tab", () => {
+  render(<Header {...baseProps} />);
+  expect(screen.getByRole("tab", { name: "LMS" })).toBeInTheDocument();
+});

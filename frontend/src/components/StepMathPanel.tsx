@@ -24,6 +24,8 @@ export function StepMathPanel({
 }: StepMathPanelProps) {
   const nextX = nextInput?.x ?? fallbackInput;
   const nextY = nextInput?.y ?? -1;
+  const biasInput = 1;
+  const nextAugmented = [...nextX, biasInput];
 
   return (
     <section className="panel calc-panel step-math-panel">
@@ -42,6 +44,8 @@ export function StepMathPanel({
         <div className="calc-grid">
           <div><span>Input x</span><strong>{formatVec(nextX)}</strong></div>
           <div><span>Label y</span><strong>{nextY === 1 ? "+1" : "-1"}</strong></div>
+          <div><span>Bias input x_b</span><strong>{biasInput}</strong></div>
+          <div><span>Augmented x̃</span><strong>{formatVec(nextAugmented)}</strong></div>
         </div>
       </div>
       {lastStep && (
@@ -50,6 +54,8 @@ export function StepMathPanel({
           <div className="calc-grid">
             <div><span>Input x</span><strong>{formatVec(lastStep.x)}</strong></div>
             <div><span>Label y</span><strong>{lastStep.y === 1 ? "+1" : "-1"}</strong></div>
+            <div><span>Bias input x_b</span><strong>{biasInput}</strong></div>
+            <div><span>Augmented x̃</span><strong>{formatVec([...lastStep.x, biasInput])}</strong></div>
             <div><span>Weights (after)</span><strong>{formatVec(w)}</strong></div>
             <div><span>Bias (after)</span><strong>{b.toFixed(2)}</strong></div>
             <div><span>Score s</span><strong>{lastStep.score.toFixed(2)}</strong></div>

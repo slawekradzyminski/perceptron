@@ -17,6 +17,9 @@ test("renders step math without last step", () => {
   render(<StepMathPanel {...baseProps} />);
   expect(screen.getByText("Step math")).toBeInTheDocument();
   expect(screen.getByText("Current state")).toBeInTheDocument();
+  expect(screen.getByText("Next input (what we expect)")).toBeInTheDocument();
+  expect(screen.getAllByText("Bias input x_b").length).toBeGreaterThan(0);
+  expect(screen.getAllByText("Augmented x̃").length).toBeGreaterThan(0);
 });
 
 test("renders last step calculation", () => {

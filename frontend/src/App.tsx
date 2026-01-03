@@ -6,6 +6,7 @@ import { CustomModal } from "./components/CustomModal";
 import { ErrorSurfacePanel } from "./components/ErrorSurfacePanel";
 import { ExplanationPanel } from "./components/ExplanationPanel";
 import { Header } from "./components/Header";
+import { LmsPage } from "./components/LmsPage";
 import { MlpInternalsPanel } from "./components/MlpInternalsPanel";
 import { StepMathPanel } from "./components/StepMathPanel";
 import { SwitchboardPanel } from "./components/SwitchboardPanel";
@@ -24,7 +25,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "diagnostics";
+type AppRoute = "main" | "diagnostics" | "lms";
 
 export default function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
@@ -33,7 +34,8 @@ export default function App() {
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const route: AppRoute = location.pathname === "/diagnostics" ? "diagnostics" : "main";
+  const route: AppRoute =
+    location.pathname === "/diagnostics" ? "diagnostics" : location.pathname === "/lms" ? "lms" : "main";
   const [errorSurfaceConfig, setErrorSurfaceConfig] = useState({
     steps: 25,
     wMin: -2,
@@ -269,7 +271,7 @@ export default function App() {
         onLrChange={setLr}
         onOpenCustom={() => setCustomModalOpen(true)}
         onRouteChange={(next) => {
-          navigate(next === "diagnostics" ? "/diagnostics" : "/");
+          navigate(next === "diagnostics" ? "/diagnostics" : next === "lms" ? "/lms" : "/");
         }}
       />
 
@@ -324,7 +326,7 @@ export default function App() {
 
             <ExplanationPanel />
           </>
-        ) : (
+        ) : route === "diagnostics" ? (
           <>
             <ErrorSurfacePanel
               data={diagnostics.errorSurface}
@@ -350,6 +352,8 @@ export default function App() {
               }}
             />
           </>
+        ) : (
+          <LmsPage apiBase={apiBase} />
         )}
       </main>
 

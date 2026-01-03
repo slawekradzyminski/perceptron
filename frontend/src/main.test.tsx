@@ -496,3 +496,47 @@ test("apply custom dataset posts custom payload", async () => {
   expect(body.grid_cols).toBe(2);
   expect(body.samples?.length).toBe(1);
 });
+
+test("renders LMS route", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async (url: RequestInfo) => {
+    const target = typeof url === "string" ? url : url.url;
+    if (target.endsWith("/lms/state")) {
+      return {
+        ok: true,
+        json: async () => ({
+          w: [0, 0],
+          b: 0,
+          idx: 0,
+          lr: 0.1,
+          x: [-1, -1],
+          y: -1,
+          sample_count: 4,
+        }),
+      } as Response;
+    }
+    return {
+      ok: true,
+      json: async () => ({
+        w: [0, 0],
+        b: 0,
+        idx: 0,
+        dataset: "or",
+        next_x: [-1, -1],
+        next_y: -1,
+        grid_rows: 1,
+        grid_cols: 2,
+        sample_count: 4,
+      }),
+    } as Response;
+  }) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(
+    <MemoryRouter initialEntries={["/lms"]}>
+      <App />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => expect(screen.getByText("LMS (Widrow–Hoff) Exercise")).toBeInTheDocument());
+});

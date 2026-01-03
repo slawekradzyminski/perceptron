@@ -1,35 +1,19 @@
-import json
-import threading
-import urllib.request
+from fastapi.testclient import TestClient
 
-from backend.api_server import create_server
+from backend.api_app import app
 
 
-def _request_json(url: str, method: str = "GET", data: dict | None = None):
-    payload = None
-    headers = {}
-    if data is not None:
-        payload = json.dumps(data).encode("utf-8")
-        headers["Content-Type"] = "application/json"
-    req = urllib.request.Request(url, data=payload, headers=headers, method=method)
-    with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+client = TestClient(app)
 
 
 def test_api_state_and_step():
-    server = create_server("127.0.0.1", 0)
-    host, port = server.server_address
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-
-    base = f"http://{host}:{port}"
-    state = _request_json(f"{base}/state")
+    state = client.get("/state").json()
     assert state["dataset"] == "or"
     assert "next_x" in state and "next_y" in state
     assert state["grid_rows"] == 1
     assert state["grid_cols"] == 2
 
-    step = _request_json(f"{base}/step", method="POST", data={"lr": 0.5})
+    step = client.post("/step", json={"lr": 0.5}).json()
     assert "w" in step and "b" in step
     assert step["x"] in ([-1, -1], [-1, 1], [1, -1], [1, 1])
     assert step["y"] in (-1, 1)
@@ -39,17 +23,16 @@ def test_api_state_and_step():
     assert step["grid_rows"] == 1
     assert step["grid_cols"] == 2
 
-    reset = _request_json(f"{base}/reset", method="POST", data={"dataset": "xor", "lr": 1.2})
+    reset = client.post("/reset", json={"dataset": "xor", "lr": 1.2}).json()
     assert reset["dataset"] == "xor"
     assert reset["lr"] == 1.2
     assert "next_x" in reset and "next_y" in reset
     assert reset["grid_rows"] == 1
     assert reset["grid_cols"] == 2
 
-    custom = _request_json(
-        f"{base}/reset",
-        method="POST",
-        data={
+    custom = client.post(
+        "/reset",
+        json={
             "dataset": "custom",
             "grid_rows": 2,
             "grid_cols": 2,
@@ -58,28 +41,18 @@ def test_api_state_and_step():
                 {"grid": [[1, 1], [1, 1]], "y": -1},
             ],
         },
-    )
+    ).json()
     assert custom["dataset"] == "custom"
     assert custom["grid_rows"] == 2
     assert custom["grid_cols"] == 2
     assert custom["sample_count"] == 2
 
-    server.shutdown()
-    server.server_close()
-
 
 def test_api_error_surface_and_mlp_internals():
-    server = create_server("127.0.0.1", 0)
-    host, port = server.server_address
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-
-    base = f"http://{host}:{port}"
-    surface = _request_json(
-        f"{base}/error-surface",
-        method="POST",
-        data={"dataset": "or", "steps": 5, "w_min": -1.0, "w_max": 1.0, "b": 0.0},
-    )
+    surface = client.post(
+        "/error-surface",
+        json={"dataset": "or", "steps": 5, "w_min": -1.0, "w_max": 1.0, "b": 0.0},
+    ).json()
     assert surface["dataset"] == "or"
     assert surface["steps"] == 5
     assert surface["grid_rows"] == 1
@@ -88,11 +61,10 @@ def test_api_error_surface_and_mlp_internals():
     assert len(surface["grid"]) == 5
     assert all(len(row) == 5 for row in surface["grid"])
 
-    internals = _request_json(
-        f"{base}/mlp-internals",
-        method="POST",
-        data={"dataset": "xor", "hidden_dim": 3, "sample_index": 2, "lr": 0.5, "seed": 1},
-    )
+    internals = client.post(
+        "/mlp-internals",
+        json={"dataset": "xor", "hidden_dim": 3, "sample_index": 2, "lr": 0.5, "seed": 1},
+    ).json()
     assert internals["dataset"] == "xor"
     assert internals["grid_rows"] == 1
     assert internals["grid_cols"] == 2
@@ -112,5 +84,18 @@ def test_api_error_surface_and_mlp_internals():
     assert len(gradients["hidden_W"][0]) == 2
     assert len(gradients["templates"]) == 3
 
-    server.shutdown()
-    server.server_close()
+
+
+def test_api_lms_step_and_state():
+    state = client.get("/lms/state").json()
+    assert state["w"] == [0.0, 0.0]
+    assert state["b"] == 0.0
+    assert state["sample_count"] == 4
+
+    step = client.post("/lms/step", json={}).json()
+    assert "w_before" in step and "w_after" in step
+    assert "y_hat" in step and "error" in step
+    assert "grad_w1" in step and "grad_w2" in step and "grad_b" in step
+
+    reset = client.post("/lms/reset", json={}).json()
+    assert reset["w"] == [0.0, 0.0]
