@@ -4,6 +4,7 @@ import { useMlpTrainerApi } from "../hooks/useMlpTrainerApi";
 import { TemplateGrid } from "./TemplateGrid";
 import { formatVec } from "../utils/visuals";
 import { useHotkeys } from "../hooks/useHotkeys";
+import { MlpBoundaryPanel } from "./MlpBoundaryPanel";
 
 export type MlpTrainerPageProps = {
   apiBase: string;
@@ -227,6 +228,7 @@ export function MlpTrainerPage({ apiBase, datasetName, customConfig, customAppli
           </div>
         </div>
 
+        <MlpBoundaryPanel snapshot={snapshot} />
         {snapshot && <NetworkDiagram snapshot={snapshot} />}
         <div className="mlp-side">
           {snapshot && (

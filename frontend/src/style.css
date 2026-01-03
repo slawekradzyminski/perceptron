@@ -199,8 +199,7 @@ h1 {
   grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(260px, 320px);
   grid-template-areas:
     "controls diagram side"
-    "controls diagram side"
-    "controls diagram side"
+    "controls boundary side"
     "templates templates preds";
   gap: 16px;
   align-items: start;
@@ -214,6 +213,49 @@ h1 {
 
 .mlp-diagram {
   grid-area: diagram;
+}
+
+.mlp-boundary {
+  grid-area: boundary;
+}
+
+.mlp-boundary .plot-canvas {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  display: block;
+  margin: 0 auto;
+}
+
+.mlp-boundary-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.legend-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-line::before {
+  content: "";
+  width: 26px;
+  height: 0;
+  border-top: 2px solid #1c1b19;
+  display: inline-block;
+}
+
+.legend-line.h1::before {
+  border-top: 2px dashed #2a7b8f;
+}
+
+.legend-line.h2::before {
+  border-top: 2px dashed #2f7d4f;
 }
 
 .mlp-side {
@@ -352,6 +394,7 @@ h1 {
     grid-template-columns: 1fr;
     grid-template-areas:
       "controls"
+      "boundary"
       "summary"
       "diagram"
       "weights"

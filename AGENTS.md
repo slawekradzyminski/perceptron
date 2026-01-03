@@ -5,6 +5,11 @@
 - Always run tests after code changes.
 - Prefer small, incremental changes with clear verification.
 
+## Read First (required)
+- Skim `docs/overview.md` to understand the core UX, routes, and terminology.
+- Read `docs/features.md` and `docs/api.md` before changing UI or backend logic.
+- Check `docs/operations.md` for expected workflows and scripts.
+
 ## Scripts (preferred)
 - Restart app + health checks: `scripts/restart_app.sh`
 - Verify app (start + health checks): `scripts/verify_app.sh`

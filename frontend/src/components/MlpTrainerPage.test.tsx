@@ -10,7 +10,11 @@ function mockCanvas() {
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
+    strokeRect: vi.fn(),
     stroke: vi.fn(),
+    setLineDash: vi.fn(),
+    arc: vi.fn(),
+    fill: vi.fn(),
   })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 }
 
