@@ -117,3 +117,21 @@ def test_api_lms_step_and_state():
     ).json()
     assert custom["dataset"] == "custom"
     assert custom["sample_count"] == 2
+
+
+def test_api_mlp_step_and_state():
+    state = client.get("/mlp/state").json()
+    assert state["dataset"] in ("xor", "or")
+    assert state["hidden_dim"] == 2
+    assert state["sample_count"] == 4
+
+    reset = client.post("/mlp/reset", json={"dataset": "or", "hidden_dim": 3, "lr": 0.4, "seed": 1}).json()
+    assert reset["dataset"] == "or"
+    assert reset["hidden_dim"] == 3
+    assert reset["lr"] == 0.4
+    assert len(reset["hidden"]["templates"]) == 3
+
+    step = client.post("/mlp/step", json={}).json()
+    assert "step" in step
+    assert step["step"]["dataset"] == "or"
+    assert step["step"]["hidden_dim"] == 3

@@ -3,14 +3,12 @@ import { useLocation, useNavigate } from "react-router";
 import { AfterUpdatePanel } from "./components/AfterUpdatePanel";
 import { BoundaryPanel } from "./components/BoundaryPanel";
 import { CustomModal } from "./components/CustomModal";
-import { ErrorSurfacePanel } from "./components/ErrorSurfacePanel";
 import { ExplanationPanel } from "./components/ExplanationPanel";
 import { Header } from "./components/Header";
 import { LmsPage } from "./components/LmsPage";
-import { MlpInternalsPanel } from "./components/MlpInternalsPanel";
+import { MlpTrainerPage } from "./components/MlpTrainerPage";
 import { StepMathPanel } from "./components/StepMathPanel";
 import { SwitchboardPanel } from "./components/SwitchboardPanel";
-import { useDiagnosticsApi } from "./hooks/useDiagnosticsApi";
 import { usePerceptronApi } from "./hooks/usePerceptronApi";
 import { useHotkeys } from "./hooks/useHotkeys";
 import type { TooltipState } from "./types";
@@ -25,7 +23,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "diagnostics" | "lms";
+type AppRoute = "main" | "lms" | "mlp";
 
 export default function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
@@ -35,17 +33,11 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const route: AppRoute =
-    location.pathname === "/diagnostics" ? "diagnostics" : location.pathname === "/lms" ? "lms" : "main";
-  const [errorSurfaceConfig, setErrorSurfaceConfig] = useState({
-    steps: 25,
-    wMin: -2,
-    wMax: 2,
-    bias: 0,
-  });
-  const [mlpHiddenDim, setMlpHiddenDim] = useState(2);
-  const [mlpSampleIndex, setMlpSampleIndex] = useState(0);
-  const [mlpLr, setMlpLr] = useState(0.5);
-  const [mlpSeed, setMlpSeed] = useState(0);
+    location.pathname === "/lms"
+      ? "lms"
+      : location.pathname === "/mlp"
+        ? "mlp"
+        : "main";
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -79,7 +71,6 @@ export default function App() {
     [state.datasetName, dim, customConfig],
   );
   const showBoundary = dim === 2;
-  const canFetchDiagnostics = state.datasetName !== "custom" || state.customApplied;
   const showTrainingControls = route === "main";
   const fallbackInput = useMemo(() => Array.from({ length: dim }, () => -1), [dim]);
 
@@ -114,17 +105,6 @@ export default function App() {
     lr,
     customConfig,
   }), [apiBase, lr, customConfig]);
-
-  const diagnostics = useDiagnosticsApi(apiBase, state.datasetName, customConfig);
-  const mlpConfig = useMemo(
-    () => ({
-      hiddenDim: mlpHiddenDim,
-      sampleIndex: mlpSampleIndex,
-      lr: mlpLr,
-      seed: mlpSeed,
-    }),
-    [mlpHiddenDim, mlpSampleIndex, mlpLr, mlpSeed],
-  );
 
   const handleDatasetChange = (value: string) => {
     setState((prev) => ({ ...prev, datasetName: value, apiError: null }));
@@ -240,21 +220,6 @@ export default function App() {
   }, []);
 
 
-  useEffect(() => {
-    if (!canFetchDiagnostics) return;
-    if (dim !== 2) return;
-    void diagnostics.fetchErrorSurface(errorSurfaceConfig);
-  }, [canFetchDiagnostics, diagnostics.fetchErrorSurface, errorSurfaceConfig, dim]);
-
-  useEffect(() => {
-    if (!canFetchDiagnostics) return;
-    void diagnostics.fetchMlpInternals(mlpConfig);
-  }, [canFetchDiagnostics, diagnostics.fetchMlpInternals, mlpConfig]);
-
-  useEffect(() => {
-    setMlpSampleIndex(0);
-  }, [state.datasetName, state.gridRows, state.gridCols]);
-
   return (
     <div id="app">
       <Header
@@ -271,7 +236,13 @@ export default function App() {
         onLrChange={setLr}
         onOpenCustom={() => setCustomModalOpen(true)}
         onRouteChange={(next) => {
-          navigate(next === "diagnostics" ? "/diagnostics" : next === "lms" ? "/lms" : "/");
+          navigate(
+            next === "lms"
+              ? "/lms"
+              : next === "mlp"
+                ? "/mlp"
+                : "/",
+          );
         }}
       />
 
@@ -326,34 +297,15 @@ export default function App() {
 
             <ExplanationPanel />
           </>
-        ) : route === "diagnostics" ? (
-          <>
-            <ErrorSurfacePanel
-              data={diagnostics.errorSurface}
-              loading={diagnostics.errorSurfaceLoading}
-              error={diagnostics.errorSurfaceError}
-              config={errorSurfaceConfig}
-              canShow={dim === 2}
-              canFetch={canFetchDiagnostics}
-              onConfigChange={setErrorSurfaceConfig}
-            />
-
-            <MlpInternalsPanel
-              data={diagnostics.mlpInternals}
-              loading={diagnostics.mlpInternalsLoading}
-              error={diagnostics.mlpInternalsError}
-              config={mlpConfig}
-              canFetch={canFetchDiagnostics}
-              onConfigChange={(next) => {
-                setMlpHiddenDim(next.hiddenDim);
-                setMlpSampleIndex(next.sampleIndex);
-                setMlpLr(next.lr);
-                setMlpSeed(next.seed);
-              }}
-            />
-          </>
-        ) : (
+        ) : route === "lms" ? (
           <LmsPage
+            apiBase={apiBase}
+            datasetName={state.datasetName}
+            customConfig={customConfig}
+            customApplied={state.customApplied}
+          />
+        ) : (
+          <MlpTrainerPage
             apiBase={apiBase}
             datasetName={state.datasetName}
             customConfig={customConfig}

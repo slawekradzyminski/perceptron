@@ -103,3 +103,37 @@ export type MlpInternalsResponse = {
     templates: number[][][];
   };
 };
+
+export type MlpTrainerEval = {
+  x: number[];
+  y: number;
+  p_hat: number;
+  pred: number;
+};
+
+export type MlpTrainerSnapshot = {
+  dataset: string;
+  grid_rows: number;
+  grid_cols: number;
+  hidden_dim: number;
+  lr: number;
+  seed: number;
+  idx: number;
+  sample_count: number;
+  next_x: number[];
+  next_y: number;
+  hidden: {
+    weights: number[][];
+    bias: number[];
+    templates: number[][][];
+  };
+  output: {
+    weights: number[][];
+    bias: number[];
+  };
+  evals: MlpTrainerEval[];
+};
+
+export type MlpTrainerResponse = MlpTrainerSnapshot & {
+  step?: MlpInternalsResponse;
+};

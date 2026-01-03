@@ -38,13 +38,15 @@ test("shows customize button when enabled", () => {
   expect(baseProps.onOpenCustom).toHaveBeenCalled();
 });
 
-test("hides training controls on diagnostics view", () => {
-  render(<Header {...baseProps} showTrainingControls={false} route="diagnostics" />);
+test("hides training controls on non-perceptron view", () => {
+  render(<Header {...baseProps} showTrainingControls={false} route="lms" />);
   expect(screen.queryByRole("button", { name: "Step" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Reset" })).toBeNull();
 });
 
-test("shows LMS tab", () => {
+test("shows LMS and MLP tabs", () => {
   render(<Header {...baseProps} />);
+  expect(screen.getByRole("tab", { name: "Perceptron" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "LMS" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "MLP" })).toBeInTheDocument();
 });
