@@ -67,6 +67,7 @@ Proposed frontend changes
   - Gradient Compass (vector arrow)
   - Loss Comparison (L1 vs CE curve)
   - Slice Explorer (alpha/beta landscape)
+  - Token Loss Tables (for exercises 2.7-2.17)
 
 Implementation steps
 1) Backend math primitives
@@ -85,7 +86,13 @@ Implementation steps
 5) Cross-entropy panel
    - L1 vs CE plot
    - Show current p(correct) and loss values
-6) Slice explorer
+6) Token table exercises (2.7-2.17)
+   - Two modes:
+     - Static tables: load p(correct) values from fixtures copied from the PDF
+     - Live tables: run Llama via Ollama in Docker and compute p(correct)
+   - Compute per-token -ln(p) and mean loss
+   - Highlight highest/lowest loss rows
+7) Slice explorer
    - Sample u, v
    - Compute contour grid and update after steps
    - Optional batch switch
@@ -95,7 +102,15 @@ Acceptance criteria
 - Users can see the difference between L1 and cross-entropy penalty curves
 - Users can see a GD path moving downhill on a 2D surface
 - Users can see a loss slice change after parameter updates
-- Exercises 2.1 through 2.6 can be answered using the UI
+- Users can complete Exercises 2.1 through 2.18 using the UI
+
+Notes on running Llama via Ollama (Docker)
+- The exercises 2.7-2.17 can be computed from the PDF tables, but if you want
+  live values you can run Llama via Ollama in Docker and query token
+  probabilities.
+- This avoids a local GPU requirement and keeps the lab reproducible.
+- Implementation detail: wrap Ollama calls behind a backend adapter so the UI
+  can switch between "static table" and "live model" modes.
 
 Open questions
 - Should the new features be a new route (/gd) or added to /lms?

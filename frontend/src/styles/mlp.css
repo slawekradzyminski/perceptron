@@ -1,0 +1,198 @@
+.mlp-train {
+  grid-column: 1 / -1;
+}
+.mlp-actions {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.mlp-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-areas:
+    "controls diagram side"
+    "controls boundary side"
+    "templates templates preds";
+  gap: 16px;
+  align-items: start;
+}
+.mlp-controls {
+  grid-area: controls;
+  display: grid;
+  gap: 12px;
+}
+.mlp-diagram {
+  grid-area: diagram;
+}
+.mlp-boundary {
+  grid-area: boundary;
+}
+.mlp-boundary .plot-canvas {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  display: block;
+  margin: 0 auto;
+}
+.mlp-boundary-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.mlp-side {
+  grid-area: side;
+  display: grid;
+  gap: 12px;
+}
+.mlp-templates {
+  grid-area: templates;
+}
+.mlp-preds {
+  grid-area: preds;
+}
+.mlp-diagram {
+  border: 1px solid var(--grid);
+  border-radius: 16px;
+  padding: 12px;
+  background: #fffdf8;
+}
+.mlp-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.mlp-node {
+  fill: #fffdf8;
+  stroke: #c7b299;
+  stroke-width: 2;
+}
+.mlp-node.hidden {
+  stroke: #1f7a6a;
+}
+.mlp-node.output {
+  stroke: #6b3fa0;
+}
+.mlp-weight-text {
+  font-size: 10px;
+  fill: #5a4733;
+}
+.mlp-bias-text {
+  font-size: 10px;
+  fill: #7c6a58;
+}
+.mlp-diagram line {
+  stroke: #8a7562;
+  stroke-width: 1.5;
+}
+.mlp-equations {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #4a3b2b;
+  display: grid;
+  gap: 4px;
+}
+.mlp-weights {
+  border: 1px dashed var(--grid);
+  border-radius: 16px;
+  padding: 12px;
+  background: #fff9f2;
+  display: grid;
+  gap: 8px;
+}
+.mlp-weight-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  color: #4a3b2b;
+}
+.mlp-weight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+}
+.mlp-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+.mlp-summary div {
+  background: #fff9f2;
+  border: 1px solid var(--grid);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #4a3b2b;
+}
+.mlp-eval {
+  margin-top: 16px;
+}
+.mlp-eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.mlp-eval-row {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--grid);
+  background: #fffdf8;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  color: #4a3b2b;
+}
+@media (max-width: 980px) {
+  .mlp-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "controls"
+      "boundary"
+      "summary"
+      "diagram"
+      "weights"
+      "math"
+      "templates"
+      "preds";
+  }
+}
+.mlp-top {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+.mlp-math {
+  border: 1px dashed var(--grid);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff9f2;
+  font-size: 0.9rem;
+  color: #4a3b2b;
+  display: grid;
+  gap: 6px;
+}
+.mlp-math h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+.mlp-math p {
+  margin: 0;
+}
+@media (max-width: 1300px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .step-math-panel,
+  .mlp-panel {
+    grid-column: span 1;
+  }
+}
