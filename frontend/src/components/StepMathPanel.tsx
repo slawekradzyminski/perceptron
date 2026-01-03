@@ -26,7 +26,7 @@ export function StepMathPanel({
   const nextY = nextInput?.y ?? -1;
 
   return (
-    <section className="panel calc-panel">
+    <section className="panel calc-panel step-math-panel">
       <h2>Step math</h2>
       <div className="calc-section">
         <h3>Current state</h3>

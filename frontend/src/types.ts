@@ -26,3 +26,53 @@ export type TooltipState = {
   x: number;
   y: number;
 };
+
+export type ErrorSurfaceResponse = {
+  dataset: string;
+  grid_rows: number;
+  grid_cols: number;
+  steps: number;
+  w_range: [number, number];
+  bias: number;
+  sample_count: number;
+  grid: number[][];
+};
+
+export type MlpInternalsResponse = {
+  dataset: string;
+  grid_rows: number;
+  grid_cols: number;
+  hidden_dim: number;
+  sample_index: number;
+  sample_count: number;
+  x: number[];
+  y: number;
+  y01: number;
+  loss: number;
+  p_hat: number;
+  hidden: {
+    weights_before: number[][];
+    bias_before: number[];
+    weights_after: number[][];
+    bias_after: number[];
+    z: number[];
+    a: number[];
+    templates_before: number[][][];
+    templates_after: number[][][];
+  };
+  output: {
+    weights_before: number[][];
+    bias_before: number[];
+    weights_after: number[][];
+    bias_after: number[];
+    z: number;
+    a: number;
+  };
+  gradients: {
+    hidden_W: number[][];
+    hidden_b: number[];
+    out_W: number[][];
+    out_b: number[];
+    templates: number[][][];
+  };
+};

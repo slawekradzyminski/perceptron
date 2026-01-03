@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { SwitchboardPanel } from "../components/SwitchboardPanel";
+import { AfterUpdatePanel } from "./AfterUpdatePanel";
 
 function mockCanvas() {
   HTMLCanvasElement.prototype.getContext = () =>
@@ -19,35 +19,27 @@ function mockCanvas() {
     }) as unknown as CanvasRenderingContext2D;
 }
 
-test("renders score and shows tooltip on hover", () => {
+test("renders bias after and triggers tooltip", () => {
   mockCanvas();
-  const inputRef = { current: document.createElement("canvas") } as React.RefObject<HTMLCanvasElement>;
-  const weightsBeforeRef = { current: document.createElement("canvas") } as React.RefObject<HTMLCanvasElement>;
-  const contribRef = { current: document.createElement("canvas") } as React.RefObject<HTMLCanvasElement>;
+  const weightsAfterRef = { current: document.createElement("canvas") } as React.RefObject<HTMLCanvasElement>;
   const onTooltipChange = vi.fn();
   const onTooltipHide = vi.fn();
 
   render(
-    <SwitchboardPanel
+    <AfterUpdatePanel
       gridRows={1}
       gridCols={2}
-      inputGrid={[[-1, 1]]}
-      weightsBefore={[[0, 0]]}
-      contribGrid={[[0, 0]]}
-      biasBefore={0}
-      displayScore={0}
-      inputRef={inputRef}
-      weightsBeforeRef={weightsBeforeRef}
-      contribRef={contribRef}
-      tooltip={{ visible: false, text: "", x: 0, y: 0 }}
+      weightsAfter={[[1, -1]]}
+      biasAfter={1}
+      lastDeltaW={[0, 0]}
+      weightsAfterRef={weightsAfterRef}
       onTooltipChange={onTooltipChange}
       onTooltipHide={onTooltipHide}
     />,
   );
 
-  expect(screen.getByTestId("score-value")).toHaveTextContent("0.00");
-  const inputBlock = screen.getByText("Input").parentElement;
-  const canvas = inputBlock?.querySelector("canvas");
+  expect(screen.getByText("Bias (after)")).toBeInTheDocument();
+  const canvas = screen.getByText("Weights (after)").parentElement?.querySelector("canvas");
   if (!canvas) throw new Error("Canvas missing");
   Object.defineProperty(canvas, "getBoundingClientRect", {
     value: () => ({ left: 0, top: 0, width: 100, height: 50 }),

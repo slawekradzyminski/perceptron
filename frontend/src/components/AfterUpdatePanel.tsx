@@ -50,7 +50,7 @@ export function AfterUpdatePanel({
   };
 
   return (
-    <section className="panel">
+    <section className="panel after-update-panel">
       <h2>After update</h2>
       <div className="switchboard">
         <div className="switch-row">

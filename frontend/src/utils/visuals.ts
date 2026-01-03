@@ -68,6 +68,73 @@ export function drawGrid(canvas: HTMLCanvasElement, grid: Grid, palette: (v: num
   }
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function interpolateColor(start: string, end: string, t: number) {
+  const s = start.replace("#", "");
+  const e = end.replace("#", "");
+  const sr = parseInt(s.slice(0, 2), 16);
+  const sg = parseInt(s.slice(2, 4), 16);
+  const sb = parseInt(s.slice(4, 6), 16);
+  const er = parseInt(e.slice(0, 2), 16);
+  const eg = parseInt(e.slice(2, 4), 16);
+  const eb = parseInt(e.slice(4, 6), 16);
+  const r = Math.round(sr + (er - sr) * t);
+  const g = Math.round(sg + (eg - sg) * t);
+  const b = Math.round(sb + (eb - sb) * t);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+export function heatColor(value: number, minValue: number, maxValue: number) {
+  if (maxValue <= minValue) return "#fff6e8";
+  const t = clamp((value - minValue) / (maxValue - minValue), 0, 1);
+  return interpolateColor("#fff6e8", "#c9574c", t);
+}
+
+export function setHeatmapCanvasSize(canvas: HTMLCanvasElement, rows: number, cols: number) {
+  const cellSize = 12;
+  canvas.width = cols * cellSize;
+  canvas.height = rows * cellSize;
+  canvas.style.aspectRatio = `${cols} / ${rows}`;
+}
+
+export function drawHeatmap(
+  canvas: HTMLCanvasElement,
+  grid: number[][],
+  minValue: number,
+  maxValue: number,
+) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const cellW = canvas.width / cols;
+  const cellH = canvas.height / rows;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = heatColor(grid[r][c], minValue, maxValue);
+      ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+    }
+  }
+  ctx.strokeStyle = "#e2cfba";
+  ctx.lineWidth = 1;
+  for (let r = 0; r <= rows; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * cellH);
+    ctx.lineTo(canvas.width, r * cellH);
+    ctx.stroke();
+  }
+  for (let c = 0; c <= cols; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * cellW, 0);
+    ctx.lineTo(c * cellW, canvas.height);
+    ctx.stroke();
+  }
+}
+
 export function drawBoundary(ctx: CanvasRenderingContext2D, w: number[], b: number) {
   if (w.length < 2) {
     return;

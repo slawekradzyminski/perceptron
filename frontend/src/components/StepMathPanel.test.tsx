@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { StepMathPanel } from "../components/StepMathPanel";
+import { StepMathPanel } from "./StepMathPanel";
 
 const baseProps = {
   datasetName: "or",

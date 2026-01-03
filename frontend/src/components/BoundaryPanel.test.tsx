@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { BoundaryPanel } from "../components/BoundaryPanel";
+import { BoundaryPanel } from "./BoundaryPanel";
 
 vi.mock("../utils/visuals", () => ({
   drawBoundary: vi.fn(),

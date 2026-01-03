@@ -4,6 +4,20 @@ This document outlines how we extend the current perceptron demo to include
 explicit error calculations and multi-layer networks (MLP). The goal is to keep
 the “lab bench” feel while making the math visible and testable.
 
+## UI Entry Points (Implemented)
+- **Error Surface panel**: Visualizes MSE across a (w₁, w₂) grid for 2D inputs.
+  - Controls: steps, weight range, bias.
+  - Helps connect loss landscapes to parameter choices.
+- **MLP Internals panel**: Shows hidden layer templates, gradients, and post-update weights.
+  - Controls: hidden units, sample index, learning rate, seed.
+  - Helps connect gradient signals to weight changes.
+
+## How to Access
+- Start the app with `scripts/restart_app.sh`.
+- Use the main page panels:
+  - “Error Surface” (2D inputs only).
+  - “MLP Internals” (available for OR/XOR and custom datasets once applied).
+
 ## 0) Key Ideas
 
 ### A) Error / Loss (what you minimize)

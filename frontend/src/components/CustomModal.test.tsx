@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { CustomModal } from "../components/CustomModal";
+import { CustomModal } from "./CustomModal";
 
 const baseProps = {
   isOpen: true,

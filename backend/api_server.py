@@ -7,6 +7,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any, Dict, Iterable, List, Tuple
 
 from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
+from backend.nn.grid_mlp import GridMlp, reshape_template
+from backend.nn.mlp import MlpInternals
+from backend.viz.viz_error_surface import mse_surface
 from backend.perceptron import Perceptron
 
 
@@ -56,6 +59,71 @@ def _normalize_samples(
     if not normalized:
         raise ValueError("samples must be non-empty")
     return normalized
+
+
+def _load_samples_from_body(body: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]], Tuple[int, int]]:
+    dataset = body.get("dataset", "or")
+    if dataset == "or":
+        return "or", make_or_dataset_pm1(), (1, 2)
+    if dataset == "xor":
+        return "xor", make_xor_dataset_pm1(), (1, 2)
+    if dataset == "custom":
+        rows, cols = _validate_grid_shape(body.get("grid_rows"), body.get("grid_cols"))
+        samples = _normalize_samples(body.get("samples", []), rows, cols)
+        return "custom", samples, (rows, cols)
+    raise ValueError("dataset must be 'or', 'xor', or 'custom'")
+
+
+def _build_mlp_payload(
+    internals: MlpInternals,
+    rows: int,
+    cols: int,
+    hidden_dim: int,
+    sample_index: int,
+    sample_count: int,
+    dataset: str,
+) -> Dict[str, Any]:
+    templates_before = [reshape_template(row, rows, cols) for row in internals.hidden_W_before]
+    templates_after = [reshape_template(row, rows, cols) for row in internals.hidden_W_after]
+    gradient_templates = [reshape_template(row, rows, cols) for row in internals.grad_hidden_W]
+    return {
+        "dataset": dataset,
+        "grid_rows": rows,
+        "grid_cols": cols,
+        "hidden_dim": hidden_dim,
+        "sample_index": sample_index,
+        "sample_count": sample_count,
+        "x": internals.x,
+        "y": internals.y,
+        "y01": internals.y01,
+        "loss": internals.loss,
+        "p_hat": internals.output_a,
+        "hidden": {
+            "weights_before": internals.hidden_W_before,
+            "bias_before": internals.hidden_b_before,
+            "weights_after": internals.hidden_W_after,
+            "bias_after": internals.hidden_b_after,
+            "z": internals.hidden_z,
+            "a": internals.hidden_a,
+            "templates_before": templates_before,
+            "templates_after": templates_after,
+        },
+        "output": {
+            "weights_before": internals.out_W_before,
+            "bias_before": internals.out_b_before,
+            "weights_after": internals.out_W_after,
+            "bias_after": internals.out_b_after,
+            "z": internals.output_z,
+            "a": internals.output_a,
+        },
+        "gradients": {
+            "hidden_W": internals.grad_hidden_W,
+            "hidden_b": internals.grad_hidden_b,
+            "out_W": internals.grad_out_W,
+            "out_b": internals.grad_out_b,
+            "templates": gradient_templates,
+        },
+    }
 
 
 class PerceptronService:
@@ -194,6 +262,78 @@ class RequestHandler(BaseHTTPRequestHandler):
                     self._send_json({"error": str(exc)}, status=400)
                     return
             self._send_json(self.service.reset())
+            return
+        if self.path == "/error-surface":
+            try:
+                dataset, samples, grid_shape = _load_samples_from_body(body)
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+                return
+            rows, cols = grid_shape
+            if rows * cols != 2:
+                self._send_json({"error": "error surface requires 2D inputs (grid_rows * grid_cols == 2)"}, status=400)
+                return
+            try:
+                steps = int(body.get("steps", 25))
+                w_min = float(body.get("w_min", -2.0))
+                w_max = float(body.get("w_max", 2.0))
+                b = float(body.get("b", 0.0))
+            except (TypeError, ValueError):
+                self._send_json({"error": "steps, w_min, w_max, and b must be numeric"}, status=400)
+                return
+            try:
+                grid = mse_surface(samples, (w_min, w_max), steps=steps, b=b)
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+                return
+            self._send_json(
+                {
+                    "dataset": dataset,
+                    "grid_rows": rows,
+                    "grid_cols": cols,
+                    "steps": steps,
+                    "w_range": [w_min, w_max],
+                    "bias": b,
+                    "sample_count": len(samples),
+                    "grid": grid,
+                }
+            )
+            return
+        if self.path == "/mlp-internals":
+            try:
+                dataset, samples, grid_shape = _load_samples_from_body(body)
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+                return
+            rows, cols = grid_shape
+            try:
+                hidden_dim = int(body.get("hidden_dim", 2))
+                lr = float(body.get("lr", 0.5))
+                seed = body.get("seed")
+                seed_value = int(seed) if seed is not None else 0
+                sample_index = int(body.get("sample_index", 0))
+            except (TypeError, ValueError):
+                self._send_json({"error": "hidden_dim, lr, seed, and sample_index must be numeric"}, status=400)
+                return
+            if hidden_dim <= 0:
+                self._send_json({"error": "hidden_dim must be positive"}, status=400)
+                return
+            if not samples:
+                self._send_json({"error": "samples must be non-empty"}, status=400)
+                return
+            sample = samples[sample_index % len(samples)]
+            model = GridMlp(rows=rows, cols=cols, hidden_dim=hidden_dim, lr=lr, seed=seed_value)
+            internals = model.model.inspect_step(sample["x"], sample["y"])
+            payload = _build_mlp_payload(
+                internals=internals,
+                rows=rows,
+                cols=cols,
+                hidden_dim=hidden_dim,
+                sample_index=sample_index % len(samples),
+                sample_count=len(samples),
+                dataset=dataset,
+            )
+            self._send_json(payload)
             return
         if self.path == "/step":
             dataset = body.get("dataset")

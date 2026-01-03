@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { AfterUpdatePanel } from "./components/AfterUpdatePanel";
 import { BoundaryPanel } from "./components/BoundaryPanel";
 import { CustomModal } from "./components/CustomModal";
+import { ErrorSurfacePanel } from "./components/ErrorSurfacePanel";
 import { ExplanationPanel } from "./components/ExplanationPanel";
 import { Header } from "./components/Header";
+import { MlpInternalsPanel } from "./components/MlpInternalsPanel";
 import { StepMathPanel } from "./components/StepMathPanel";
 import { SwitchboardPanel } from "./components/SwitchboardPanel";
+import { useDiagnosticsApi } from "./hooks/useDiagnosticsApi";
 import { usePerceptronApi } from "./hooks/usePerceptronApi";
 import { useHotkeys } from "./hooks/useHotkeys";
 import type { TooltipState } from "./types";
@@ -20,11 +24,26 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
+type AppRoute = "main" | "diagnostics";
+
 export default function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
   const [lr, setLr] = useState(1);
   const [customConfig, setCustomConfig] = useState(defaultCustomConfig());
   const [customModalOpen, setCustomModalOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const route: AppRoute = location.pathname === "/diagnostics" ? "diagnostics" : "main";
+  const [errorSurfaceConfig, setErrorSurfaceConfig] = useState({
+    steps: 25,
+    wMin: -2,
+    wMax: 2,
+    bias: 0,
+  });
+  const [mlpHiddenDim, setMlpHiddenDim] = useState(2);
+  const [mlpSampleIndex, setMlpSampleIndex] = useState(0);
+  const [mlpLr, setMlpLr] = useState(0.5);
+  const [mlpSeed, setMlpSeed] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -58,6 +77,8 @@ export default function App() {
     [state.datasetName, dim, customConfig],
   );
   const showBoundary = dim === 2;
+  const canFetchDiagnostics = state.datasetName !== "custom" || state.customApplied;
+  const showTrainingControls = route === "main";
   const fallbackInput = useMemo(() => Array.from({ length: dim }, () => -1), [dim]);
 
   const sample = state.lastStep?.x ?? state.nextInput?.x ?? fallbackInput;
@@ -92,6 +113,17 @@ export default function App() {
     customConfig,
   }), [apiBase, lr, customConfig]);
 
+  const diagnostics = useDiagnosticsApi(apiBase, state.datasetName, customConfig);
+  const mlpConfig = useMemo(
+    () => ({
+      hiddenDim: mlpHiddenDim,
+      sampleIndex: mlpSampleIndex,
+      lr: mlpLr,
+      seed: mlpSeed,
+    }),
+    [mlpHiddenDim, mlpSampleIndex, mlpLr, mlpSeed],
+  );
+
   const handleDatasetChange = (value: string) => {
     setState((prev) => ({ ...prev, datasetName: value, apiError: null }));
     if (value === "custom") {
@@ -108,10 +140,16 @@ export default function App() {
     void reset(apiConfig, value);
   };
 
-  const handleStep = () => void step(apiConfig);
-  const handleReset = () => void reset(apiConfig, state.datasetName);
+  const handleStep = () => {
+    if (!showTrainingControls) return;
+    void step(apiConfig);
+  };
+  const handleReset = () => {
+    if (!showTrainingControls) return;
+    void reset(apiConfig, state.datasetName);
+  };
 
-  useHotkeys({ onStep: handleStep, onReset: handleReset });
+  useHotkeys({ onStep: handleStep, onReset: handleReset, enabled: showTrainingControls });
 
   const updateCustomRows = (rows: number) => {
     setState((prev) => ({ ...prev, customApplied: false }));
@@ -199,6 +237,22 @@ export default function App() {
     void reset(apiConfig, state.datasetName);
   }, []);
 
+
+  useEffect(() => {
+    if (!canFetchDiagnostics) return;
+    if (dim !== 2) return;
+    void diagnostics.fetchErrorSurface(errorSurfaceConfig);
+  }, [canFetchDiagnostics, diagnostics.fetchErrorSurface, errorSurfaceConfig, dim]);
+
+  useEffect(() => {
+    if (!canFetchDiagnostics) return;
+    void diagnostics.fetchMlpInternals(mlpConfig);
+  }, [canFetchDiagnostics, diagnostics.fetchMlpInternals, mlpConfig]);
+
+  useEffect(() => {
+    setMlpSampleIndex(0);
+  }, [state.datasetName, state.gridRows, state.gridCols]);
+
   return (
     <div id="app">
       <Header
@@ -206,64 +260,97 @@ export default function App() {
         gridRows={state.gridRows}
         gridCols={state.gridCols}
         lr={lr}
-        apiBase={apiBase}
         showCustomButton={state.datasetName === "custom"}
+        route={route}
+        showTrainingControls={showTrainingControls}
         onDatasetChange={handleDatasetChange}
         onStep={handleStep}
         onReset={handleReset}
         onLrChange={setLr}
-        onApiBaseChange={setApiBase}
         onOpenCustom={() => setCustomModalOpen(true)}
+        onRouteChange={(next) => {
+          navigate(next === "diagnostics" ? "/diagnostics" : "/");
+        }}
       />
 
       <main className="grid">
-        <BoundaryPanel
-          w={state.w}
-          b={state.b}
-          points={points}
-          show={showBoundary}
-          canvasRef={plotRef}
-        />
+        {route === "main" ? (
+          <>
+            <BoundaryPanel
+              w={state.w}
+              b={state.b}
+              points={points}
+              show={showBoundary}
+              canvasRef={plotRef}
+            />
 
-        <SwitchboardPanel
-          gridRows={state.gridRows}
-          gridCols={state.gridCols}
-          inputGrid={inputGrid}
-          weightsBefore={weightsBefore}
-          contribGrid={contribGrid}
-          biasBefore={biasBefore}
-          displayScore={displayScore}
-          inputRef={inputRef}
-          weightsBeforeRef={weightsBeforeRef}
-          contribRef={contribRef}
-          tooltip={tooltip}
-          onTooltipChange={setTooltip}
-          onTooltipHide={() => setTooltip((prev) => ({ ...prev, visible: false }))}
-        />
+            <SwitchboardPanel
+              gridRows={state.gridRows}
+              gridCols={state.gridCols}
+              inputGrid={inputGrid}
+              weightsBefore={weightsBefore}
+              contribGrid={contribGrid}
+              biasBefore={biasBefore}
+              displayScore={displayScore}
+              inputRef={inputRef}
+              weightsBeforeRef={weightsBeforeRef}
+              contribRef={contribRef}
+              tooltip={tooltip}
+              onTooltipChange={setTooltip}
+              onTooltipHide={() => setTooltip((prev) => ({ ...prev, visible: false }))}
+            />
 
-        <AfterUpdatePanel
-          gridRows={state.gridRows}
-          gridCols={state.gridCols}
-          weightsAfter={weightsAfter}
-          biasAfter={state.b}
-          lastDeltaW={state.lastStep?.deltaW ?? null}
-          weightsAfterRef={weightsAfterRef}
-          onTooltipChange={setTooltip}
-          onTooltipHide={() => setTooltip((prev) => ({ ...prev, visible: false }))}
-        />
+            <AfterUpdatePanel
+              gridRows={state.gridRows}
+              gridCols={state.gridCols}
+              weightsAfter={weightsAfter}
+              biasAfter={state.b}
+              lastDeltaW={state.lastStep?.deltaW ?? null}
+              weightsAfterRef={weightsAfterRef}
+              onTooltipChange={setTooltip}
+              onTooltipHide={() => setTooltip((prev) => ({ ...prev, visible: false }))}
+            />
 
-        <StepMathPanel
-          datasetName={state.datasetName}
-          w={state.w}
-          b={state.b}
-          sampleIdx={state.sampleIdx}
-          nextInput={state.nextInput}
-          fallbackInput={fallbackInput}
-          lastStep={state.lastStep}
-          apiError={state.apiError}
-        />
+            <StepMathPanel
+              datasetName={state.datasetName}
+              w={state.w}
+              b={state.b}
+              sampleIdx={state.sampleIdx}
+              nextInput={state.nextInput}
+              fallbackInput={fallbackInput}
+              lastStep={state.lastStep}
+              apiError={state.apiError}
+            />
 
-        <ExplanationPanel />
+            <ExplanationPanel />
+          </>
+        ) : (
+          <>
+            <ErrorSurfacePanel
+              data={diagnostics.errorSurface}
+              loading={diagnostics.errorSurfaceLoading}
+              error={diagnostics.errorSurfaceError}
+              config={errorSurfaceConfig}
+              canShow={dim === 2}
+              canFetch={canFetchDiagnostics}
+              onConfigChange={setErrorSurfaceConfig}
+            />
+
+            <MlpInternalsPanel
+              data={diagnostics.mlpInternals}
+              loading={diagnostics.mlpInternalsLoading}
+              error={diagnostics.mlpInternalsError}
+              config={mlpConfig}
+              canFetch={canFetchDiagnostics}
+              onConfigChange={(next) => {
+                setMlpHiddenDim(next.hiddenDim);
+                setMlpSampleIndex(next.sampleIndex);
+                setMlpLr(next.lr);
+                setMlpSeed(next.seed);
+              }}
+            />
+          </>
+        )}
       </main>
 
       <CustomModal

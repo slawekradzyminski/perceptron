@@ -1,40 +1,45 @@
-# Implementation Plan — Error + Multi‑Layer Network
+# Implementation Plan — UI for Error Surfaces + Multi‑Layer Network
 
-Last updated: 2026-01-01
+Last updated: 2026-01-02
 
-## Phases
+## Goal
+Expose the backend error/loss and multi‑layer network capabilities in the UI with clear, testable panels and deterministic data flows.
 
-### Phase 1 — Error/Loss Foundations (done)
-Goal: make error calculations explicit and testable.
-- Add activation functions + derivatives.
-- Add loss functions (perceptron, MSE, BCE) + gradients.
-- Unit tests for all math primitives.
+## Phase 1 — API + Data Contracts
+- Add backend endpoints that expose:
+  - Error surface grid (MSE/BCE) for a chosen model and fixed dataset.
+  - MLP internals (layer weights, activations, gradients, decision boundary).
+- Define frontend TypeScript types mirroring response payloads.
+- Add unit tests for endpoint outputs and schema validation.
 
-### Phase 2 — Logistic Neuron + Adaline (done)
-Goal: replace hard-step with differentiable units.
-- Logistic neuron model (sigmoid + BCE).
-- Adaline model (linear + MSE).
-- Training runner for loss curves.
-- Unit tests for models + runner.
+## Phase 2 — UI Panels
+- Add a new “Error Surface” panel:
+  - Model selector, loss selector, grid resolution.
+  - Heatmap rendering + legend.
+- Add a new “MLP Internals” panel:
+  - Layer tabs (weights, activations, gradients).
+  - Clear labels for pre‑update vs post‑update.
+- Wire panels to API via a dedicated hook.
+- Add RTL tests for panel rendering and state transitions.
 
-### Phase 3 — 2‑Layer MLP (XOR) (done)
-Goal: demonstrate multi-layer learning.
-- Dense layers + backprop.
-- Hidden activations heatmaps (planned).
-- Decision boundary visualization (planned).
+## Phase 3 — UX + Layout Integration
+- Integrate panels into the main layout without breaking current perceptron flow.
+- Add loading/empty/error states.
+- Ensure keyboard shortcuts and reset flow still work.
+- Add Playwright MCP click‑through test script for the new UI.
 
-### Phase 4 — Grid‑shape MLP (done)
-Goal: apply multi-layer learning to grid inputs.
-- Flattened grid input.
-- Visualize weight templates per neuron.
-- Gradient maps for learning intuition (planned).
+## Phase 4 — Polish + Documentation
+- Add legend/explanation text for error surfaces and gradients.
+- Document endpoints in `context.md`.
+- Update `ERROR_MULTI_LAYERS.md` with UI entry points and screenshots.
 
-## Progress
-- [x] Phase 1 — Error/Loss Foundations
-- [x] Phase 2 — Logistic Neuron + Adaline
-- [x] Phase 3 — 2‑Layer MLP (XOR)
-- [x] Phase 4 — Grid‑shape MLP
+## Progress Tracker
+- [x] Phase 1 — API + Data Contracts
+- [x] Phase 2 — UI Panels
+- [x] Phase 3 — UX + Layout Integration
+- [x] Phase 4 — Polish + Documentation
 
-## Notes
-- Keep code deterministic and unit-tested (pytest).
-- Frontend remains visualization-only; backend is the single source of truth.
+## Testing
+- Backend: pytest for endpoints + math.
+- Frontend: RTL for panels + hooks.
+- E2E: Playwright MCP click‑through for main flows and new panels.

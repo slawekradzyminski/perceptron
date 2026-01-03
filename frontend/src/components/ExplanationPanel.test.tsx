@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
-import { ExplanationPanel } from "../components/ExplanationPanel";
+import { ExplanationPanel } from "./ExplanationPanel";
 
 test("renders explanation panel", () => {
   render(<ExplanationPanel />);

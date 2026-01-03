@@ -3,10 +3,12 @@ import { useEffect } from "react";
 type HotkeysConfig = {
   onStep: () => void;
   onReset: () => void;
+  enabled?: boolean;
 };
 
-export function useHotkeys({ onStep, onReset }: HotkeysConfig) {
+export function useHotkeys({ onStep, onReset, enabled = true }: HotkeysConfig) {
   useEffect(() => {
+    if (!enabled) return () => undefined;
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName?.toLowerCase();

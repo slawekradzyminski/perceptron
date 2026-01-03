@@ -45,3 +45,23 @@ Perceptron learning rule (mistake-driven):
 ## Deliverables
 - Python core (perceptron, datasets, metrics)
 - TypeScript frontend for interactive visualization (if needed)
+
+## Backend API
+- Entrypoint: `perceptron-api` (`backend/api_server.py`)
+- Core endpoints:
+  - `GET /state` — current perceptron state.
+  - `POST /step` — advance one training step.
+  - `POST /reset` — reset state and/or swap dataset.
+  - `POST /error-surface` — MSE surface for 2D inputs (grid_rows * grid_cols == 2).
+  - `POST /mlp-internals` — 2-layer MLP internals (weights, activations, gradients).
+
+### Diagnostics Endpoints
+`POST /error-surface`
+- Request fields: `dataset` (or/xor/custom), `steps`, `w_min`, `w_max`, `b`.
+- Custom datasets require `grid_rows`, `grid_cols`, `samples`.
+- Response: `{ dataset, grid_rows, grid_cols, steps, w_range, bias, sample_count, grid }`.
+
+`POST /mlp-internals`
+- Request fields: `dataset`, `hidden_dim`, `sample_index`, `lr`, `seed`.
+- Custom datasets require `grid_rows`, `grid_cols`, `samples`.
+- Response: `{ dataset, grid_rows, grid_cols, hidden_dim, sample_index, sample_count, x, y, y01, loss, p_hat, hidden, output, gradients }`.

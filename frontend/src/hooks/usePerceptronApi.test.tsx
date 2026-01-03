@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { usePerceptronApi } from "../hooks/usePerceptronApi";
+import { usePerceptronApi } from "./usePerceptronApi";
 
 function mockFetchOnce(payload: any) {
   return vi.fn(async () => ({

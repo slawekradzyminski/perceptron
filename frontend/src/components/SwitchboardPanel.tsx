@@ -62,7 +62,7 @@ export function SwitchboardPanel({
   };
 
   return (
-    <section className="panel">
+    <section className="panel switchboard-panel">
       <h2>Switchboard</h2>
       <div className="switchboard">
         <div className="switch-row">
