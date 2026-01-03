@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 from typing import Dict, List
 
-from backend.datasets import make_and_dataset_pm1, make_or_dataset_pm1, make_xor_dataset_pm1
-from backend.metrics import accuracy, count_mistakes
-from backend.perceptron import Perceptron
+from backend.core.datasets import make_and_dataset_pm1, make_or_dataset_pm1, make_xor_dataset_pm1
+from backend.core.metrics import accuracy, count_mistakes
+from backend.core.perceptron import Perceptron
 
 
 DATASETS = {

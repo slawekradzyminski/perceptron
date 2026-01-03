@@ -1,4 +1,4 @@
-from backend.datasets import make_shape_dataset
+from backend.core.datasets import make_shape_dataset
 from backend.nn.grid_mlp import GridMlp, reshape_template
 
 

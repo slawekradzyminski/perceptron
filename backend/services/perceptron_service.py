@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
-from backend.perceptron import Perceptron
+from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
+from backend.core.perceptron import Perceptron
 
 
 class PerceptronService:

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.datasets import make_or_dataset_pm1
+from backend.core.datasets import make_or_dataset_pm1
 from backend.viz.viz_error_surface import mse_surface, plot_surface
 
 

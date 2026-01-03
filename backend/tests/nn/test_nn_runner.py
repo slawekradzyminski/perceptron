@@ -1,4 +1,4 @@
-from backend.datasets import make_or_dataset_pm1
+from backend.core.datasets import make_or_dataset_pm1
 from backend.nn.runner import train_adaline, train_logistic
 
 

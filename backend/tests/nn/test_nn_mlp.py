@@ -1,4 +1,4 @@
-from backend.datasets import make_xor_dataset_pm1
+from backend.core.datasets import make_xor_dataset_pm1
 from backend.nn.mlp import MlpTwoLayer
 
 

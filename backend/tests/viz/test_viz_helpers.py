@@ -1,7 +1,7 @@
 import pytest
 
-from backend.viz_2d import decision_boundary_points
-from backend.viz_grid import contribution_grid, score_from_grid
+from backend.viz.viz_2d import decision_boundary_points
+from backend.viz.viz_grid import contribution_grid, score_from_grid
 
 
 def test_decision_boundary_points_basic():

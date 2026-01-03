@@ -1,7 +1,7 @@
 import math
 import pytest
 
-from backend.perceptron import Perceptron
+from backend.core.perceptron import Perceptron
 
 
 def test_predict_score_and_label_zero_init():

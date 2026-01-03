@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from backend.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
+from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 
 
 class LmsService:

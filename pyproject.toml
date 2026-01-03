@@ -17,12 +17,21 @@ uvicorn = "^0.34.0"
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.2"
 httpx = "^0.28.1"
+pytest-cov = "^7.0.0"
 
 [tool.poetry.scripts]
 perceptron-api = "backend.api_app:run"
 perceptron-runner = "backend.runner:main"
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q --cov=backend --cov-report=term-missing:skip-covered --cov-report=xml"
 testpaths = ["backend/tests"]
 pythonpath = ["."]
+
+[tool.coverage.run]
+branch = true
+source = ["backend"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

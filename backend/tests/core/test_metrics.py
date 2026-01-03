@@ -1,4 +1,4 @@
-from backend.metrics import accuracy, count_mistakes, margin, margins
+from backend.core.metrics import accuracy, count_mistakes, margin, margins
 
 
 def test_count_mistakes():
