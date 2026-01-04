@@ -12,14 +12,14 @@ type HeaderProps = {
   gridCols: number;
   lr: number;
   showCustomButton: boolean;
-  route: "main" | "lms" | "mlp" | "gd";
+  route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression";
   showTrainingControls: boolean;
   onDatasetChange: (value: string) => void;
   onStep: () => void;
   onReset: () => void;
   onLrChange: (value: number) => void;
   onOpenCustom: () => void;
-  onRouteChange: (route: "main" | "lms" | "mlp" | "gd") => void;
+  onRouteChange: (route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression") => void;
 };
 
 export function Header({
@@ -44,9 +44,7 @@ export function Header({
   return (
     <header className="hero">
       <div>
-        <p className="eyebrow">Perceptron Visual Lab</p>
-        <h1>Make the decision boundary move.</h1>
-        <p className="subhead">A hands-on view of weights, mistakes, and linearly separable data.</p>
+        <h1>AI Learning Lab</h1>
       </div>
       <div className="controls">
         <div className="view-toggle" role="tablist" aria-label="View">
@@ -86,8 +84,26 @@ export function Header({
           >
             GD
           </button>
+          <button
+            type="button"
+            className={route === "tinygps" ? "active" : ""}
+            onClick={() => onRouteChange("tinygps")}
+            role="tab"
+            aria-selected={route === "tinygps"}
+          >
+            TinyGPS
+          </button>
+          <button
+            type="button"
+            className={route === "regression" ? "active" : ""}
+            onClick={() => onRouteChange("regression")}
+            role="tab"
+            aria-selected={route === "regression"}
+          >
+            Regression
+          </button>
         </div>
-        {route !== "gd" && (
+        {route !== "gd" && route !== "tinygps" && route !== "regression" && (
           <>
             <label>
               <span>Dataset</span>
@@ -105,7 +121,7 @@ export function Header({
             </div>
           </>
         )}
-        {showCustomButton && (
+        {showCustomButton && route !== "tinygps" && route !== "regression" && (
           <button type="button" className="ghost" onClick={onOpenCustom}>
             Customize
           </button>

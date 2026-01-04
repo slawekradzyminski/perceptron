@@ -36,4 +36,7 @@
 ## After changes (required)
 1) Run backend tests.
 2) Run frontend tests.
-3) If UI-related, restart app with `scripts/restart_app.sh`.
+3) If backend-related, restart app with `scripts/restart_app.sh`.
+4) Frontend changes are hot-reloaded and do not require a restart.
+
+Do not use Playwright MCP unless explicitly requested

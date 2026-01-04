@@ -1,0 +1,61 @@
+.regression-panel {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #eef7ff 0%, #f6fff2 100%);
+}
+
+.regression-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.regression-panel .backprop-card {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.backprop-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: #6a5a4a;
+}
+
+.regression-bottom {
+  margin-top: 16px;
+}
+
+.regression-grid .backprop-card:nth-child(2) {
+  grid-column: span 2;
+}
+
+.regression-grid .backprop-card:nth-child(3) {
+  grid-column: span 2;
+}
+
+@media (min-width: 1200px) {
+  .regression-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .regression-grid .backprop-card:nth-child(1) {
+    grid-column: span 3;
+  }
+
+  .regression-grid .backprop-card:nth-child(2) {
+    grid-column: span 4;
+  }
+
+  .regression-grid .backprop-card:nth-child(3) {
+    grid-column: span 5;
+  }
+
+  .regression-grid .backprop-card:nth-child(4) {
+    grid-column: span 4;
+  }
+
+  .regression-grid .backprop-card:nth-child(5) {
+    grid-column: span 4;
+  }
+}

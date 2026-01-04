@@ -3,3 +3,6 @@
 @import "./mlp.css";
 @import "./modal.css";
 @import "./gd.css";
+@import "./backprop-common.css";
+@import "./tinygps.css";
+@import "./regression.css";

@@ -179,6 +179,58 @@ export const mockMlpSnapshot = (overrides: Partial<ReturnType<typeof baseMlpSnap
   return { ...base, ...overrides };
 };
 
+export const mockBackpropState = () => ({
+  tinygps: {
+    dataset: "madrid-paris-berlin",
+    mode: "1d",
+    cities: ["madrid", "paris", "berlin"],
+    idx: 0,
+    lr: 0.1,
+    sample_count: 15,
+    feature_order: ["lon"],
+    sample_order: Array.from({ length: 15 }, (_, i) => i),
+    params: { m: [0, 0, 0], b: [0, 0, 0], M: [] },
+    next_sample: { x: [-3.7033], y: 0, city: "madrid", lat: 40.4167, lon: -3.7033 },
+    samples: [
+      { x: [-3.7033], y: 0, city: "madrid", lat: 40.4167, lon: -3.7033 },
+      { x: [2.3514], y: 1, city: "paris", lat: 48.8575, lon: 2.3514 },
+    ],
+  },
+  regression: {
+    loss: "mse",
+    idx: 0,
+    lr: 0.1,
+    sample_count: 4,
+    params: { m: 0, b: 0 },
+    next_sample: { x: 1, y: 3 },
+    samples: [
+      { x: 1, y: 3 },
+      { x: 2, y: 5 },
+      { x: 3, y: 7 },
+      { x: 4, y: 9 },
+    ],
+    sample_order: [0, 1, 2, 3],
+  },
+  tinygps_datasets: [
+    "paris-berlin",
+    "paris-madrid",
+    "paris-berlin-4",
+    "paris-madrid-4",
+    "madrid-paris-berlin",
+    "four-cities",
+  ],
+  tinygps_city_coords: {
+    madrid: [
+      [40.4167, -3.7033],
+      [40.4153, -3.6835],
+    ],
+    paris: [
+      [48.8575, 2.3514],
+      [48.8584, 2.2945],
+    ],
+  },
+});
+
 const baseMlpSnapshot = () => ({
   dataset: "xor",
   grid_rows: 1,

@@ -45,6 +45,21 @@ def l1_loss_prob(p_correct: float) -> float:
     return 1.0 - p_correct
 
 
+def l1_loss(y: float, y_hat: float) -> float:
+    """Absolute error loss for a single sample."""
+    return abs(y_hat - y)
+
+
+def l1_grad(y: float, y_hat: float) -> float:
+    """Subgradient of L1 loss with respect to y_hat."""
+    diff = y_hat - y
+    if diff > 0:
+        return 1.0
+    if diff < 0:
+        return -1.0
+    return 0.0
+
+
 def cross_entropy_prob(p_correct: float, eps: float = 1e-12) -> float:
     """Cross-entropy loss expressed in terms of p(correct)."""
     if not 0.0 <= p_correct <= 1.0:

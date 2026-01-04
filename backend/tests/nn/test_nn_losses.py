@@ -4,6 +4,8 @@ from backend.nn.losses import (
     bce_grad_wrt_logit,
     bce_loss,
     cross_entropy_prob,
+    l1_grad,
+    l1_loss,
     l1_loss_prob,
     mse_grad,
     mse_loss,
@@ -39,6 +41,14 @@ def test_prob_losses():
     assert cross_entropy_prob(1.0) == pytest.approx(0.0)
     assert cross_entropy_prob(0.5) == pytest.approx(0.693147, rel=1e-5)
     assert cross_entropy_prob(0.1) > cross_entropy_prob(0.5)
+
+
+def test_l1_loss_and_grad():
+    assert l1_loss(3.0, 3.0) == pytest.approx(0.0)
+    assert l1_loss(3.0, 2.5) == pytest.approx(0.5)
+    assert l1_grad(3.0, 2.5) == pytest.approx(-1.0)
+    assert l1_grad(3.0, 3.5) == pytest.approx(1.0)
+    assert l1_grad(3.0, 3.0) == pytest.approx(0.0)
 
 
 def test_pm1_to_01():

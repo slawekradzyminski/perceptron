@@ -44,16 +44,30 @@ test("hides training controls on non-perceptron view", () => {
   expect(screen.queryByRole("button", { name: "Reset" })).toBeNull();
 });
 
-test("shows LMS and MLP tabs", () => {
+test("shows LMS, MLP, and Backprop tabs", () => {
   render(<Header {...baseProps} />);
   expect(screen.getByRole("tab", { name: "Perceptron" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "LMS" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "MLP" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "GD" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "TinyGPS" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "Regression" })).toBeInTheDocument();
 });
 
 test("hides dataset controls on GD view", () => {
   render(<Header {...baseProps} route="gd" showTrainingControls={false} />);
+  expect(screen.queryByLabelText("Dataset")).toBeNull();
+  expect(screen.queryByText("Switchboard")).toBeNull();
+});
+
+test("hides dataset controls on TinyGPS view", () => {
+  render(<Header {...baseProps} route="tinygps" showTrainingControls={false} />);
+  expect(screen.queryByLabelText("Dataset")).toBeNull();
+  expect(screen.queryByText("Switchboard")).toBeNull();
+});
+
+test("hides dataset controls on Regression view", () => {
+  render(<Header {...baseProps} route="regression" showTrainingControls={false} />);
   expect(screen.queryByLabelText("Dataset")).toBeNull();
   expect(screen.queryByText("Switchboard")).toBeNull();
 });

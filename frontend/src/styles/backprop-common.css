@@ -1,0 +1,132 @@
+.backprop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.backprop-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backprop-card {
+  display: grid;
+  gap: 12px;
+}
+
+.backprop-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.backprop-controls textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--grid);
+  font-family: "IBM Plex Mono", monospace;
+  background: #fffdf8;
+}
+
+.backprop-inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.backprop-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.backprop-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a5a4a;
+  margin-bottom: 4px;
+}
+
+.backprop-mono {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+
+.backprop-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.backprop-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.backprop-table th,
+.backprop-table td {
+  text-align: left;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--grid);
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+}
+
+.backprop-table thead th {
+  font-weight: 700;
+  color: #6a5a4a;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.backprop-coords {
+  display: grid;
+  gap: 12px;
+}
+
+.backprop-coords ul {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+
+.book-table-wrap {
+  position: relative;
+  overflow-x: auto;
+}
+
+.book-table-hover {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: #fffdf8;
+  border: 1px solid var(--grid);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  max-width: 480px;
+  min-width: 260px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  white-space: pre-wrap;
+  z-index: 20;
+}
+
+.book-table-hover-below {
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 980px) {
+  .backprop-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

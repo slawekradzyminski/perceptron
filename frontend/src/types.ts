@@ -194,3 +194,85 @@ export type PromptLogitsResponse = {
   tokens: PromptLogitsToken[];
   warning?: string;
 };
+
+export type TinyGpsSample = {
+  x: number[];
+  y: number;
+  city: string;
+  lat: number;
+  lon: number;
+};
+
+export type TinyGpsParams = {
+  m: number[];
+  b: number[];
+  M: number[][];
+};
+
+export type TinyGpsState = {
+  dataset: string;
+  mode: "1d" | "2d";
+  cities: string[];
+  idx: number;
+  lr: number;
+  sample_count: number;
+  feature_order: string[];
+  sample_order: number[];
+  params: TinyGpsParams;
+  next_sample: TinyGpsSample;
+  samples: TinyGpsSample[];
+};
+
+export type RegressionState = {
+  loss: "mse" | "l1";
+  idx: number;
+  lr: number;
+  sample_count: number;
+  params: { m: number; b: number };
+  next_sample: { x: number; y: number };
+  samples: { x: number; y: number }[];
+  sample_order: number[];
+};
+
+export type BackpropState = {
+  tinygps: TinyGpsState;
+  regression: RegressionState;
+  tinygps_datasets: string[];
+  tinygps_city_coords: Record<string, [number, number][]>;
+};
+
+export type TinyGpsStep = {
+  dataset: string;
+  mode: "1d" | "2d";
+  cities: string[];
+  idx: number;
+  sample_idx: number;
+  lr: number;
+  feature_order: string[];
+  sample: TinyGpsSample;
+  logits: number[];
+  probs: number[];
+  loss: number;
+  pred: number;
+  correct: boolean;
+  grads: { m?: number[]; M?: number[][]; b: number[] };
+  params_before: TinyGpsParams;
+  params_after: TinyGpsParams;
+  metrics_after: { loss: number; accuracy: number };
+  sample_count: number;
+};
+
+export type RegressionStep = {
+  loss: "mse" | "l1";
+  idx: number;
+  sample_idx: number;
+  lr: number;
+  sample: { x: number; y: number };
+  y_hat: number;
+  loss_value: number;
+  grads: { m: number; b: number };
+  params_before: { m: number; b: number };
+  params_after: { m: number; b: number };
+  mean_loss: number;
+  sample_count: number;
+};

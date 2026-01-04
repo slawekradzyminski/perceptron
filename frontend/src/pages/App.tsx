@@ -10,6 +10,8 @@ import { Header } from "../components/common/Header";
 import { LmsPage } from "./LmsPage";
 import { MlpTrainerPage } from "./MlpTrainerPage";
 import { GdPage } from "./GdPage";
+import { RegressionPage } from "./RegressionPage";
+import { TinyGpsPage } from "./TinyGpsPage";
 import { usePerceptronApi } from "../hooks/perceptron/usePerceptronApi";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 import type { TooltipState } from "../types";
@@ -24,7 +26,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "lms" | "mlp" | "gd";
+type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression";
 
 export default function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
@@ -40,7 +42,11 @@ export default function App() {
         ? "mlp"
         : location.pathname === "/gd"
           ? "gd"
-          : "main";
+          : location.pathname === "/backprop/regression"
+            ? "regression"
+            : location.pathname === "/backprop/tinygps"
+              ? "tinygps"
+              : "main";
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -246,7 +252,11 @@ export default function App() {
                 ? "/mlp"
                 : next === "gd"
                   ? "/gd"
-                  : "/",
+                  : next === "tinygps"
+                    ? "/backprop/tinygps"
+                    : next === "regression"
+                      ? "/backprop/regression"
+                    : "/",
           );
         }}
       />
@@ -316,6 +326,10 @@ export default function App() {
             customConfig={customConfig}
             customApplied={state.customApplied}
           />
+        ) : route === "tinygps" ? (
+          <TinyGpsPage apiBase={apiBase} />
+        ) : route === "regression" ? (
+          <RegressionPage apiBase={apiBase} />
         ) : (
           <GdPage apiBase={apiBase} />
         )}

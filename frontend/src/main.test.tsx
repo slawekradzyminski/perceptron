@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router";
 import App from "./pages/App";
 import { mockCanvas } from "./testutils/canvas";
 import {
+  mockBackpropState,
   mockErrorSurface,
   mockLmsReset,
   mockMlpInternals,
@@ -410,4 +411,44 @@ test("renders GD route", async () => {
   );
 
   await waitFor(() => expect(screen.getByText("Gradient Descent Exercises")).toBeInTheDocument());
+});
+
+test("renders TinyGPS route", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async (url: RequestInfo) => {
+    const target = typeof url === "string" ? url : url.url;
+    if (target.endsWith("/backprop/state")) {
+      return { ok: true, json: async () => mockBackpropState() } as Response;
+    }
+    return { ok: true, json: async () => mockPerceptronState() } as Response;
+  }) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(
+    <MemoryRouter initialEntries={["/backprop/tinygps"]}>
+      <App />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => expect(screen.getByText("Backprop Lab (Chapter 3)")).toBeInTheDocument());
+});
+
+test("renders Regression route", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async (url: RequestInfo) => {
+    const target = typeof url === "string" ? url : url.url;
+    if (target.endsWith("/backprop/state")) {
+      return { ok: true, json: async () => mockBackpropState() } as Response;
+    }
+    return { ok: true, json: async () => mockPerceptronState() } as Response;
+  }) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(
+    <MemoryRouter initialEntries={["/backprop/regression"]}>
+      <App />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => expect(screen.getByText("Backprop Lab (Chapter 3)")).toBeInTheDocument());
 });
