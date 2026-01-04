@@ -1,20 +1,20 @@
 # Ollama API (Docker) - Llama 3.2 1B
 
 Status check (verified)
-- Date: 2026-01-03
+- Date: 2026-01-04
 - Container: `ollama-llama`
 - Model: `llama3.2:1b` pulled and responding on port `11434`
 
 Quick start (run locally)
 ```bash
 # 1) Pull Ollama image
-docker pull ollama/ollama:0.13.2
+docker pull ollama/ollama:0.13.5
 
 # 2) Start server
 docker run -d --name ollama-llama \
   -p 11434:11434 \
   -v ollama-llama:/root/.ollama \
-  ollama/ollama:0.13.2
+  ollama/ollama:0.13.5
 
 # 3) Pull the model
 docker exec ollama-llama ollama pull llama3.2:1b
@@ -35,9 +35,10 @@ docker stop ollama-llama
 ```
 
 Using Ollama in the lab
-- The Chapter 2 exercises (2.7-2.17) can be computed from static PDF tables.
-- If you want live values, point the backend adapter at the Ollama server on
-  `http://localhost:11434` and request logits or next-token probabilities.
+- The Chapter 2 exercises (2.7-2.17) are computed live via Ollama.
+- The app uses `scripts/restart_app.sh` to start the container and pull
+  `llama3.2:1b` automatically.
+- Point the backend at `http://localhost:11434` (default).
 
 Build a custom Llama image (like awesome-localstack)
 - The `awesome-localstack/ollama` folder contains a reusable Dockerfile and

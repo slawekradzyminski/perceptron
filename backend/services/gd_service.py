@@ -353,7 +353,8 @@ class GdService:
             for row in example["rows"]:
                 prompt = row["prompt"]
                 correct_token = row["correct_token"]
-                stats = self._client.next_token_stats(prompt)
+                prompt_for_stats = prompt if prompt else " "
+                stats = self._client.next_token_stats(prompt_for_stats)
                 top_token = stats.top_token
                 top_prob = stats.top_prob
                 p_correct = self._match_prob(stats, correct_token)
@@ -403,14 +404,15 @@ class GdService:
                 "examples": [],
                 "warning": "custom_prompt_empty",
             }
-        tokens = prompt.split(" ")
+        tokens = prompt.split()
         rows = []
         l1_losses = []
         ce_losses = []
         missing = 0
         for idx, token in enumerate(tokens):
             prefix = " ".join(tokens[:idx]).strip()
-            stats = self._client.next_token_stats(prefix)
+            prompt_for_stats = prefix if prefix else " "
+            stats = self._client.next_token_stats(prompt_for_stats)
             p_correct = self._match_prob(stats, token)
             if p_correct == 0.0:
                 missing += 1

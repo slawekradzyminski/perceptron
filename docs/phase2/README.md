@@ -8,16 +8,11 @@ thesis from Chapter 2 is:
 parameter space. Many confusing pictures (local minima, wormholes) are artifacts
 of looking at low-dimensional slices of a high-dimensional loss surface."
 
-Running Llama (optional)
-- The Chapter 2 token-loss exercises (2.7-2.17) can be completed from the PDF
-  tables alone, but you can also compute them live.
-- We can run Llama locally via Ollama (Docker) and query next-token
-  probabilities from its logprob output.
-- The implementation plan describes a backend adapter to switch between
-  "static table" and "live model" modes.
-  - Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` (default: `llama3.2:1b`) and choose
-    "Ollama (live)" on `/gd`.
-  - See `ollamaapi.md` for Docker commands and model pull steps.
+Running Llama (live via Ollama)
+- The Chapter 2 token-loss exercises (2.7-2.17) are computed live via Ollama.
+- Run Llama locally in Docker and query next-token probabilities from logprobs.
+- Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` (default: `llama3.2:1b`) and use `/gd`.
+- See `ollamaapi.md` for Docker commands and model pull steps.
 
 Contents
 - chapter2_findings.md: distilled takeaways from Chapter 2

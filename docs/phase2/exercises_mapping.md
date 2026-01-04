@@ -1,9 +1,8 @@
 # Chapter 2 Exercises Mapping
 
 This maps every exercise in Chapter 2 to concrete lab features. The second
-half (2.7-2.18) relies on token-level cross-entropy tables; these can be
-reproduced from the PDF tables or computed live using Llama via
-Ollama if you want dynamic values.
+half (2.7-2.18) relies on token-level cross-entropy tables computed live via
+Ollama logprobs.
 
 2.1 Local minima and early concerns
 - Feature: 2D loss surface with multiple minima + GD path
@@ -46,7 +45,7 @@ Ollama if you want dynamic values.
 - Outcome: identify which predictions were most confident and correct
 
 2.11 L1 loss alternative (France/Paris)
-- Feature: toggle L1 vs CE and compare per-token contributions
+- Feature: show L1 and CE columns side-by-side
 - Outcome: show L1 compresses extremes; CE amplifies low p(correct)
 
 2.12 Fill in missing cross-entropy values (apple/day table)
@@ -66,7 +65,7 @@ Ollama if you want dynamic values.
 - Outcome: identify which predictions were most confident and correct
 
 2.16 L1 loss alternative (apple/day)
-- Feature: toggle L1 vs CE and compare per-token contributions
+- Feature: show L1 and CE columns side-by-side
 - Outcome: show L1 flattens differences vs CE
 
 2.17 Mixed-sentence table ("I had a perfectly wonderful evening, but this wasn't it")
@@ -74,5 +73,5 @@ Ollama if you want dynamic values.
 - Outcome: identify highest/lowest loss tokens and explain why
 
 2.18 Compute a loss landscape for a model other than Llama-3.2-1B
-- Feature: use the loss-slice explorer on a small model (MLP/XOR)
-- Outcome: produce a contour plot and describe what it shows
+- Feature: compare next-token logits across models via Ollama API
+- Outcome: show how distributions differ (e.g., 1B vs 3B) and interpret entropy

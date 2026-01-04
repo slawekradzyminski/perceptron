@@ -10,7 +10,7 @@ FE_LOG="/tmp/perceptron_frontend.log"
 API_URL="http://127.0.0.1:8000/state"
 FE_URL="http://127.0.0.1:5173/"
 OLLAMA_CONTAINER="ollama-llama"
-OLLAMA_IMAGE="ollama/ollama:0.13.2"
+OLLAMA_IMAGE="ollama/ollama:0.13.5"
 OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 
@@ -78,6 +78,14 @@ start_ollama() {
 
   if ! docker image inspect "$OLLAMA_IMAGE" >/dev/null 2>&1; then
     docker pull "$OLLAMA_IMAGE"
+  fi
+
+  if docker ps -a --format '{{.Names}}' | grep -q "^${OLLAMA_CONTAINER}$"; then
+    local current_image
+    current_image="$(docker inspect -f '{{.Config.Image}}' "$OLLAMA_CONTAINER")"
+    if [[ "$current_image" != "$OLLAMA_IMAGE" ]]; then
+      docker rm -f "$OLLAMA_CONTAINER" >/dev/null
+    fi
   fi
 
   if ! docker ps -a --format '{{.Names}}' | grep -q "^${OLLAMA_CONTAINER}$"; then
