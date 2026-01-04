@@ -137,3 +137,35 @@ export type MlpTrainerSnapshot = {
 export type MlpTrainerResponse = MlpTrainerSnapshot & {
   step?: MlpInternalsResponse;
 };
+
+export type GdLossPoint = {
+  p: number;
+  l1: number;
+  ce: number;
+};
+
+export type GdLossCurvesResponse = {
+  points: GdLossPoint[];
+};
+
+export type TokenLossRow = {
+  context: string;
+  correct_token: string;
+  p_correct: number;
+  top_token: string;
+  top_prob: number;
+  l1_loss: number;
+  ce_loss: number;
+};
+
+export type TokenLossExample = {
+  id: string;
+  title: string;
+  description: string;
+  average: { l1: number; ce: number };
+  rows: TokenLossRow[];
+};
+
+export type TokenLossResponse = {
+  examples: TokenLossExample[];
+};

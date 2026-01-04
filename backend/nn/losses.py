@@ -38,6 +38,21 @@ def bce_grad_wrt_logit(p_hat: float, y: float) -> float:
     return p_hat - y
 
 
+def l1_loss_prob(p_correct: float) -> float:
+    """L1 loss expressed in terms of p(correct)."""
+    if not 0.0 <= p_correct <= 1.0:
+        raise ValueError("p_correct must be within [0, 1]")
+    return 1.0 - p_correct
+
+
+def cross_entropy_prob(p_correct: float, eps: float = 1e-12) -> float:
+    """Cross-entropy loss expressed in terms of p(correct)."""
+    if not 0.0 <= p_correct <= 1.0:
+        raise ValueError("p_correct must be within [0, 1]")
+    p = min(max(p_correct, eps), 1.0 - eps)
+    return -math.log(p)
+
+
 def pm1_to_01(y: int) -> int:
     """Map labels from {-1, +1} to {0, 1}."""
     if y not in (-1, 1):

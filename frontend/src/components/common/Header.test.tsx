@@ -49,4 +49,5 @@ test("shows LMS and MLP tabs", () => {
   expect(screen.getByRole("tab", { name: "Perceptron" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "LMS" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "MLP" })).toBeInTheDocument();
+  expect(screen.getByRole("tab", { name: "GD" })).toBeInTheDocument();
 });

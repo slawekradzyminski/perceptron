@@ -303,3 +303,60 @@ test("renders MLP route", async () => {
 
   await waitFor(() => expect(screen.getByText("MLP (2-layer) training")).toBeInTheDocument());
 });
+
+test("renders GD route", async () => {
+  mockCanvas();
+  const fetchMock = vi.fn(async (url: RequestInfo) => {
+    const target = typeof url === "string" ? url : url.url;
+    if (target.endsWith("/gd/loss-curves")) {
+      return {
+        ok: true,
+        json: async () => ({
+          points: [
+            { p: 0.1, l1: 0.9, ce: 2.3026 },
+            { p: 0.9, l1: 0.1, ce: 0.1053 },
+          ],
+        }),
+      } as Response;
+    }
+    if (target.endsWith("/gd/token-losses")) {
+      return {
+        ok: true,
+        json: async () => ({
+          examples: [
+            {
+              id: "example",
+              title: "Example sentence",
+              description: "Example description.",
+              average: { l1: 0.5, ce: 1.0 },
+              rows: [
+                {
+                  context: "<begin_of_text>",
+                  correct_token: "The",
+                  p_correct: 0.5,
+                  top_token: "The",
+                  top_prob: 0.5,
+                  l1_loss: 0.5,
+                  ce_loss: 0.6931,
+                },
+              ],
+            },
+          ],
+        }),
+      } as Response;
+    }
+    return {
+      ok: true,
+      json: async () => mockPerceptronState(),
+    } as Response;
+  }) as typeof fetch;
+  global.fetch = fetchMock;
+
+  render(
+    <MemoryRouter initialEntries={["/gd"]}>
+      <App />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => expect(screen.getByText("Gradient Descent Exercises")).toBeInTheDocument());
+});

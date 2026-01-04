@@ -12,14 +12,14 @@ type HeaderProps = {
   gridCols: number;
   lr: number;
   showCustomButton: boolean;
-  route: "main" | "lms" | "mlp";
+  route: "main" | "lms" | "mlp" | "gd";
   showTrainingControls: boolean;
   onDatasetChange: (value: string) => void;
   onStep: () => void;
   onReset: () => void;
   onLrChange: (value: number) => void;
   onOpenCustom: () => void;
-  onRouteChange: (route: "main" | "lms" | "mlp") => void;
+  onRouteChange: (route: "main" | "lms" | "mlp" | "gd") => void;
 };
 
 export function Header({
@@ -76,6 +76,15 @@ export function Header({
             aria-selected={route === "mlp"}
           >
             MLP
+          </button>
+          <button
+            type="button"
+            className={route === "gd" ? "active" : ""}
+            onClick={() => onRouteChange("gd")}
+            role="tab"
+            aria-selected={route === "gd"}
+          >
+            GD
           </button>
         </div>
         <label>

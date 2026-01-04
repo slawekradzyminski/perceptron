@@ -9,6 +9,7 @@ import { CustomModal } from "../components/common/CustomModal";
 import { Header } from "../components/common/Header";
 import { LmsPage } from "./LmsPage";
 import { MlpTrainerPage } from "./MlpTrainerPage";
+import { GdPage } from "./GdPage";
 import { usePerceptronApi } from "../hooks/perceptron/usePerceptronApi";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 import type { TooltipState } from "../types";
@@ -23,7 +24,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "lms" | "mlp";
+type AppRoute = "main" | "lms" | "mlp" | "gd";
 
 export default function App() {
   const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
@@ -37,7 +38,9 @@ export default function App() {
       ? "lms"
       : location.pathname === "/mlp"
         ? "mlp"
-        : "main";
+        : location.pathname === "/gd"
+          ? "gd"
+          : "main";
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -241,7 +244,9 @@ export default function App() {
               ? "/lms"
               : next === "mlp"
                 ? "/mlp"
-                : "/",
+                : next === "gd"
+                  ? "/gd"
+                  : "/",
           );
         }}
       />
@@ -304,13 +309,15 @@ export default function App() {
             customConfig={customConfig}
             customApplied={state.customApplied}
           />
-        ) : (
+        ) : route === "mlp" ? (
           <MlpTrainerPage
             apiBase={apiBase}
             datasetName={state.datasetName}
             customConfig={customConfig}
             customApplied={state.customApplied}
           />
+        ) : (
+          <GdPage apiBase={apiBase} />
         )}
       </main>
 
