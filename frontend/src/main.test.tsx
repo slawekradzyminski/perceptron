@@ -34,6 +34,56 @@ test("renders and steps through backend", async () => {
         json: async () => mockMlpInternals(),
       } as Response;
     }
+    if (target.endsWith("/gd/loss-curves")) {
+      return {
+        ok: true,
+        json: async () => ({
+          points: [
+            { p: 0.1, l1: 0.9, ce: 2.3026 },
+            { p: 0.9, l1: 0.1, ce: 0.1053 },
+          ],
+        }),
+      } as Response;
+    }
+    if (target.includes("/gd/token-losses")) {
+      return {
+        ok: true,
+        json: async () => ({
+          source: "ollama",
+          examples: [
+            {
+              id: "example",
+              title: "Example sentence",
+              description: "Example description.",
+              average: { l1: 0.5, ce: 1.0 },
+              rows: [
+                {
+                  context: "<begin_of_text>",
+                  correct_token: "The",
+                  p_correct: 0.5,
+                  top_token: "The",
+                  top_prob: 0.5,
+                  l1_loss: 0.5,
+                  ce_loss: 0.6931,
+                },
+              ],
+            },
+          ],
+        }),
+      } as Response;
+    }
+    if (target.endsWith("/gd/ollama-status")) {
+      return {
+        ok: true,
+        json: async () => ({
+          ok: true,
+          model: "llama3.2:1b",
+          base_url: "http://127.0.0.1:11434",
+          last_latency_ms: 12.5,
+          models: ["llama3.2:1b"],
+        }),
+      } as Response;
+    }
     if (target.endsWith("/step") || target.endsWith("/reset")) {
       return {
         ok: true,
@@ -319,10 +369,11 @@ test("renders GD route", async () => {
         }),
       } as Response;
     }
-    if (target.endsWith("/gd/token-losses")) {
+    if (target.startsWith("http://127.0.0.1:8000/gd/token-losses")) {
       return {
         ok: true,
         json: async () => ({
+          source: "static",
           examples: [
             {
               id: "example",

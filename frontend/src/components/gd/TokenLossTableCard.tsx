@@ -1,14 +1,13 @@
 import { useMemo, useState } from "react";
 
-type LossMetric = "cross-entropy" | "l1";
-
 type ComputedRow = {
   context: string;
   correctToken: string;
   pCorrect: number;
   topToken: string;
   topProb: number;
-  loss: number;
+  ceLoss: number;
+  l1Loss: number;
 };
 
 type TokenLossRow = {
@@ -35,21 +34,29 @@ function formatProb(value: number) {
   return value.toFixed(6);
 }
 
-function computeLoss(row: TokenLossRow, metric: LossMetric) {
-  return metric === "l1" ? row.l1_loss : row.ce_loss;
-}
-
 type TokenLossTableCardProps = {
+  apiBase: string;
   examples: TokenLossExample[];
 };
 
-export function TokenLossTableCard({ examples }: TokenLossTableCardProps) {
+export function TokenLossTableCard({ apiBase, examples }: TokenLossTableCardProps) {
+  const [localExamples, setLocalExamples] = useState(examples);
   const [exampleId, setExampleId] = useState(examples[0]?.id ?? "");
-  const [metric, setMetric] = useState<LossMetric>("cross-entropy");
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [customError, setCustomError] = useState<string | null>(null);
+  const [customLoading, setCustomLoading] = useState(false);
   const example = useMemo(
-    () => examples.find((item) => item.id === exampleId) ?? examples[0],
-    [examples, exampleId],
+    () => localExamples.find((item) => item.id === exampleId) ?? localExamples[0],
+    [localExamples, exampleId],
   );
+  if (!example) {
+    return (
+      <div className="lms-math lms-token-loss">
+        <h3>Token loss table</h3>
+        <p className="lms-empty">No token loss examples available.</p>
+      </div>
+    );
+  }
   const rows = useMemo<ComputedRow[]>(
     () =>
       example.rows.map((row) => ({
@@ -58,26 +65,27 @@ export function TokenLossTableCard({ examples }: TokenLossTableCardProps) {
         pCorrect: row.p_correct,
         topToken: row.top_token,
         topProb: row.top_prob,
-        loss: computeLoss(row, metric),
+        ceLoss: row.ce_loss,
+        l1Loss: row.l1_loss,
       })),
-    [example.rows, metric],
+    [example.rows],
   );
-  const losses = rows.map((row) => row.loss);
-  const minLoss = Math.min(...losses);
-  const maxLoss = Math.max(...losses);
-  const avgLoss = losses.reduce((acc, val) => acc + val, 0) / losses.length;
+  const ceLosses = rows.map((row) => row.ceLoss);
+  const minLoss = Math.min(...ceLosses);
+  const maxLoss = Math.max(...ceLosses);
+  const avgCeLoss = ceLosses.reduce((acc, val) => acc + val, 0) / ceLosses.length;
+  const avgL1Loss = rows.reduce((acc, row) => acc + row.l1Loss, 0) / rows.length;
 
   return (
     <div className="lms-math lms-token-loss">
       <div className="lms-token-head">
         <div>
           <h3>Token loss table</h3>
-          <p>{example.description}</p>
         </div>
         <label className="lms-token-select">
           Example
           <select value={exampleId} onChange={(event) => setExampleId(event.target.value)}>
-            {examples.map((item) => (
+            {localExamples.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.title}
               </option>
@@ -85,23 +93,53 @@ export function TokenLossTableCard({ examples }: TokenLossTableCardProps) {
           </select>
         </label>
       </div>
-      <div className="lms-token-controls" role="group" aria-label="Loss metric">
+      <div className="gd-prompt-form">
+        <label className="gd-prompt-label">
+          Custom prompt
+          <input
+            type="text"
+            value={customPrompt}
+            onChange={(event) => setCustomPrompt(event.target.value)}
+            placeholder="Enter a custom prompt..."
+          />
+        </label>
         <button
           type="button"
-          className={metric === "cross-entropy" ? "active" : ""}
-          onClick={() => setMetric("cross-entropy")}
+          disabled={customLoading || customPrompt.trim().length === 0}
+          onClick={async () => {
+            setCustomLoading(true);
+            setCustomError(null);
+            try {
+              const res = await fetch(
+                `${apiBase}/gd/token-losses?source=ollama&example_id=custom&prompt=${encodeURIComponent(customPrompt)}`,
+              );
+              if (!res.ok) throw new Error("Failed to load custom prompt");
+              const data = (await res.json()) as { examples: TokenLossExample[] };
+              const customExample = data.examples?.[0];
+              if (customExample) {
+                setLocalExamples((prev) => {
+                  const next = prev.filter((item) => item.id !== "custom");
+                  return [...next, customExample];
+                });
+                setExampleId("custom");
+              }
+            } catch (err) {
+              setCustomError(err instanceof Error ? err.message : "Failed to load custom prompt");
+            } finally {
+              setCustomLoading(false);
+            }
+          }}
         >
-          Cross-entropy
+          {customLoading ? "Loading..." : "Load"}
         </button>
-        <button
-          type="button"
-          className={metric === "l1" ? "active" : ""}
-          onClick={() => setMetric("l1")}
-        >
-          L1 loss
-        </button>
+      </div>
+      {customError && <p className="diag-error">{customError}</p>}
+      <div className="lms-token-controls" role="group" aria-label="Loss summary">
         <div className="lms-token-average">
-          Average {metric}: <strong>{avgLoss.toFixed(4)}</strong>
+          Average cross-entropy: <strong>{avgCeLoss.toFixed(4)}</strong>
+        </div>
+        <div className="lms-token-average">
+          Average L1: <strong>{avgL1Loss.toFixed(4)}</strong>
         </div>
       </div>
       <div className="lms-table-wrap lms-token-table">
@@ -113,13 +151,14 @@ export function TokenLossTableCard({ examples }: TokenLossTableCardProps) {
               <th>P(top)</th>
               <th>Correct token</th>
               <th>P(correct)</th>
-              <th>Loss</th>
+              <th>CE loss</th>
+              <th>L1 loss</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => {
-              const isMin = row.loss === minLoss;
-              const isMax = row.loss === maxLoss;
+              const isMin = row.ceLoss === minLoss;
+              const isMax = row.ceLoss === maxLoss;
               return (
                 <tr key={`${row.context}-${row.correctToken}`}>
                   <td>{row.context}</td>
@@ -127,7 +166,22 @@ export function TokenLossTableCard({ examples }: TokenLossTableCardProps) {
                   <td>{row.topProb ? formatProb(row.topProb) : "-"}</td>
                   <td>{row.correctToken}</td>
                   <td>{formatProb(row.pCorrect)}</td>
-                  <td className={isMax ? "bad" : isMin ? "ok" : ""}>{row.loss.toFixed(4)}</td>
+                  <td className={isMax ? "bad" : isMin ? "ok" : ""}>
+                    <span
+                      className="gd-tooltip"
+                      data-tooltip={`CE = -ln(p) = -ln(${row.pCorrect.toFixed(6)})`}
+                    >
+                      {row.ceLoss.toFixed(4)}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className="gd-tooltip"
+                      data-tooltip={`L1 = 1 - p = 1 - ${row.pCorrect.toFixed(6)}`}
+                    >
+                      {row.l1Loss.toFixed(4)}
+                    </span>
+                  </td>
                 </tr>
               );
             })}

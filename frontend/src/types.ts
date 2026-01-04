@@ -168,4 +168,29 @@ export type TokenLossExample = {
 
 export type TokenLossResponse = {
   examples: TokenLossExample[];
+  source?: string;
+  warning?: string;
+};
+
+export type OllamaStatusResponse = {
+  ok: boolean;
+  model?: string;
+  base_url?: string;
+  version?: string;
+  models?: string[];
+  last_latency_ms?: number | null;
+  error?: string;
+};
+
+export type PromptLogitsToken = {
+  token: string;
+  prob: number;
+  logprob: number;
+  rank: number;
+};
+
+export type PromptLogitsResponse = {
+  prompt: string;
+  tokens: PromptLogitsToken[];
+  warning?: string;
 };

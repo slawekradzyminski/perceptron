@@ -2,8 +2,8 @@
 
 This maps every exercise in Chapter 2 to concrete lab features. The second
 half (2.7-2.18) relies on token-level cross-entropy tables; these can be
-reproduced from the PDF tables or computed live using Llama via Ollama
-(Docker) if you want dynamic values.
+reproduced from the PDF tables or computed live using Llama via
+Ollama if you want dynamic values.
 
 2.1 Local minima and early concerns
 - Feature: 2D loss surface with multiple minima + GD path

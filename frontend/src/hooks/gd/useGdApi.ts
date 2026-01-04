@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import type { GdLossCurvesResponse, TokenLossResponse } from "../../types";
+import type { TokenLossResponse, OllamaStatusResponse } from "../../types";
 
 export function useGdApi(apiBase: string) {
-  const [lossCurves, setLossCurves] = useState<GdLossCurvesResponse | null>(null);
   const [tokenLosses, setTokenLosses] = useState<TokenLossResponse | null>(null);
+  const [status, setStatus] = useState<OllamaStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -13,17 +13,16 @@ export function useGdApi(apiBase: string) {
       setLoading(true);
       setError(null);
       try {
-        const curvesRes = await fetch(`${apiBase}/gd/loss-curves`);
-        if (!curvesRes.ok) throw new Error("Failed to load loss curves");
-        const curvesData = (await curvesRes.json()) as GdLossCurvesResponse;
-
-        const tokenRes = await fetch(`${apiBase}/gd/token-losses`);
+        const tokenRes = await fetch(`${apiBase}/gd/token-losses?source=ollama`);
         if (!tokenRes.ok) throw new Error("Failed to load token losses");
         const tokenData = (await tokenRes.json()) as TokenLossResponse;
 
+        const statusRes = await fetch(`${apiBase}/gd/ollama-status`);
+        const statusData = statusRes.ok ? ((await statusRes.json()) as OllamaStatusResponse) : null;
+
         if (mounted) {
-          setLossCurves(curvesData);
           setTokenLosses(tokenData);
+          setStatus(statusData);
         }
       } catch (err) {
         if (mounted) {
@@ -39,5 +38,5 @@ export function useGdApi(apiBase: string) {
     };
   }, [apiBase]);
 
-  return { lossCurves, tokenLosses, error, loading };
+  return { tokenLosses, status, error, loading };
 }

@@ -87,20 +87,24 @@ export function Header({
             GD
           </button>
         </div>
-        <label>
-          <span>Dataset</span>
-          <select value={datasetName} onChange={handleDataset} aria-label="Dataset">
-            {DATASET_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="static-field">
-          <span>Switchboard</span>
-          <strong>{gridRows}×{gridCols}</strong>
-        </div>
+        {route !== "gd" && (
+          <>
+            <label>
+              <span>Dataset</span>
+              <select value={datasetName} onChange={handleDataset} aria-label="Dataset">
+                {DATASET_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="static-field">
+              <span>Switchboard</span>
+              <strong>{gridRows}×{gridCols}</strong>
+            </div>
+          </>
+        )}
         {showCustomButton && (
           <button type="button" className="ghost" onClick={onOpenCustom}>
             Customize

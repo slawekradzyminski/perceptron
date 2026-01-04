@@ -89,7 +89,7 @@ Implementation steps
 6) Token table exercises (2.7-2.17)
    - Two modes:
      - Static tables: load p(correct) values from fixtures copied from the PDF
-     - Live tables: run Llama via Ollama in Docker and compute p(correct)
+     - Live tables: run Llama via Ollama and compute p(correct)
    - Compute per-token -ln(p) and mean loss
    - Highlight highest/lowest loss rows
 7) Slice explorer
@@ -104,11 +104,12 @@ Acceptance criteria
 - Users can see a loss slice change after parameter updates
 - Users can complete Exercises 2.1 through 2.18 using the UI
 
-Notes on running Llama via Ollama (Docker)
+Notes on running Llama via Ollama
 - The exercises 2.7-2.17 can be computed from the PDF tables, but if you want
-  live values you can run Llama via Ollama in Docker and query token
-  probabilities.
-- This avoids a local GPU requirement and keeps the lab reproducible.
+  live values you can run Llama via the local Ollama Docker container and
+  query top-k logprobs for the next token.
+- This avoids gated Hugging Face models while still giving stable logprob
+  outputs for the exercises.
 - Implementation detail: wrap Ollama calls behind a backend adapter so the UI
   can switch between "static table" and "live model" modes.
 

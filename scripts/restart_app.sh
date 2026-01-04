@@ -9,6 +9,10 @@ API_LOG="/tmp/perceptron_api.log"
 FE_LOG="/tmp/perceptron_frontend.log"
 API_URL="http://127.0.0.1:8000/state"
 FE_URL="http://127.0.0.1:5173/"
+OLLAMA_CONTAINER="ollama-llama"
+OLLAMA_IMAGE="ollama/ollama:0.13.2"
+OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
+OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 
 stop_pid() {
   local pid_file="$1"
@@ -64,13 +68,45 @@ wait_for_url() {
 require_cmd poetry
 require_cmd npm
 require_cmd curl
+require_cmd docker
+
+start_ollama() {
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker is not running. Start Docker before running this script." >&2
+    exit 1
+  fi
+
+  if ! docker image inspect "$OLLAMA_IMAGE" >/dev/null 2>&1; then
+    docker pull "$OLLAMA_IMAGE"
+  fi
+
+  if ! docker ps -a --format '{{.Names}}' | grep -q "^${OLLAMA_CONTAINER}$"; then
+    docker run -d --name "$OLLAMA_CONTAINER" \
+      -p 11434:11434 \
+      -v ollama-llama:/root/.ollama \
+      "$OLLAMA_IMAGE"
+  elif ! docker ps --format '{{.Names}}' | grep -q "^${OLLAMA_CONTAINER}$"; then
+    docker start "$OLLAMA_CONTAINER" >/dev/null
+  fi
+
+  docker exec "$OLLAMA_CONTAINER" ollama pull "$OLLAMA_MODEL" >/dev/null
+}
 
 stop_pid "$API_PID_FILE"
 stop_pid "$FRONTEND_PID_FILE"
 stop_port 8000
 stop_port 5173
 
-(cd "$ROOT_DIR" && poetry run perceptron-api >"$API_LOG" 2>&1 & echo $! >"$API_PID_FILE")
+start_ollama
+
+(
+  cd "$ROOT_DIR"
+  GD_TOKEN_SOURCE=ollama \
+  OLLAMA_BASE_URL="$OLLAMA_BASE_URL" \
+  OLLAMA_MODEL="$OLLAMA_MODEL" \
+  OLLAMA_TIMEOUT_S="${OLLAMA_TIMEOUT_S:-120}" \
+  poetry run perceptron-api >"$API_LOG" 2>&1 & echo $! >"$API_PID_FILE"
+)
 (cd "$FRONTEND_DIR" && npm run dev -- --host 127.0.0.1 --port 5173 >"$FE_LOG" 2>&1 & echo $! >"$FRONTEND_PID_FILE")
 
 if ! wait_for_url "$API_URL"; then

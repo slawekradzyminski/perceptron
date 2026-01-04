@@ -51,3 +51,9 @@ test("shows LMS and MLP tabs", () => {
   expect(screen.getByRole("tab", { name: "MLP" })).toBeInTheDocument();
   expect(screen.getByRole("tab", { name: "GD" })).toBeInTheDocument();
 });
+
+test("hides dataset controls on GD view", () => {
+  render(<Header {...baseProps} route="gd" showTrainingControls={false} />);
+  expect(screen.queryByLabelText("Dataset")).toBeNull();
+  expect(screen.queryByText("Switchboard")).toBeNull();
+});

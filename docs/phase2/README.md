@@ -11,12 +11,15 @@ of looking at low-dimensional slices of a high-dimensional loss surface."
 Running Llama (optional)
 - The Chapter 2 token-loss exercises (2.7-2.17) can be completed from the PDF
   tables alone, but you can also compute them live.
-- We can run Llama via Ollama in Docker to avoid local GPU constraints.
+- We can run Llama locally via Ollama (Docker) and query next-token
+  probabilities from its logprob output.
 - The implementation plan describes a backend adapter to switch between
   "static table" and "live model" modes.
+  - Set `OLLAMA_BASE_URL` and `OLLAMA_MODEL` (default: `llama3.2:1b`) and choose
+    "Ollama (live)" on `/gd`.
+  - See `ollamaapi.md` for Docker commands and model pull steps.
 
 Contents
 - chapter2_findings.md: distilled takeaways from Chapter 2
 - exercises_mapping.md: how the lab features answer Exercises 2.1-2.18
 - implementation_plan.md: build plan for the new gradient descent features
-- ollamaapi.md: Docker + Ollama instructions (Llama 3.2 1B)

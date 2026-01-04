@@ -5,21 +5,11 @@ import { GdPage } from "./GdPage";
 test("renders GD page with backend data", async () => {
   const fetchMock = vi.fn(async (url: RequestInfo) => {
     const target = typeof url === "string" ? url : url.url;
-    if (target.endsWith("/gd/loss-curves")) {
+    if (target.startsWith("http://127.0.0.1:8000/gd/token-losses")) {
       return {
         ok: true,
         json: async () => ({
-          points: [
-            { p: 0.1, l1: 0.9, ce: 2.3026 },
-            { p: 0.9, l1: 0.1, ce: 0.1053 },
-          ],
-        }),
-      } as Response;
-    }
-    if (target.endsWith("/gd/token-losses")) {
-      return {
-        ok: true,
-        json: async () => ({
+          source: "ollama",
           examples: [
             {
               id: "example",
@@ -42,6 +32,18 @@ test("renders GD page with backend data", async () => {
         }),
       } as Response;
     }
+    if (target.endsWith("/gd/ollama-status")) {
+      return {
+        ok: true,
+        json: async () => ({
+          ok: true,
+          model: "llama3.2:1b",
+          base_url: "http://127.0.0.1:11434",
+          last_latency_ms: 12.5,
+          models: ["llama3.2:1b"],
+        }),
+      } as Response;
+    }
     return { ok: false } as Response;
   }) as typeof fetch;
   global.fetch = fetchMock;
@@ -50,6 +52,8 @@ test("renders GD page with backend data", async () => {
 
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
   expect(screen.getByText("Gradient Descent Exercises")).toBeInTheDocument();
+  expect(screen.getByText("Ollama connected")).toBeInTheDocument();
   expect(screen.getByText("Token loss table")).toBeInTheDocument();
-  expect(screen.getByText("Loss penalty vs p(correct)")).toBeInTheDocument();
+  expect(screen.getByText("Next-token logits")).toBeInTheDocument();
+  expect(screen.getByText("Fetch logits")).toBeInTheDocument();
 });
