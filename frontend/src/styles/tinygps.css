@@ -1,12 +1,56 @@
 .tinygps-panel {
   grid-column: 1 / -1;
   background: linear-gradient(135deg, #fff6e6 0%, #fff0f6 100%);
+  max-width: 100%;
+  margin: 0;
 }
 
 .tinygps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
+}
+
+.tinygps-grid-secondary {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tinygps-grid-secondary .backprop-card {
+  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  grid-column: span 1;
+}
+
+.tinygps-loss-card {
+  grid-column: span 4;
+}
+
+@media (max-width: 900px) {
+  .tinygps-grid-secondary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tinygps-grid-secondary {
+  width: 100%;
+}
+
+.tinygps-backprop-row {
+  margin-top: 16px;
+}
+
+.tinygps-backprop-row .backprop-card {
+  width: 100%;
+  display: block;
+}
+
+.tinygps-map-card svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .tinygps-panel .backprop-card {
@@ -47,6 +91,32 @@
   line-height: 1.4;
 }
 
+.tinygps-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.tinygps-loss-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.tinygps-backprop-pulse {
+  stroke-dasharray: 6 6;
+  animation: tinygps-backprop-pulse 1.4s linear infinite;
+}
+
+@keyframes tinygps-backprop-pulse {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -24;
+  }
+}
+
 @media (min-width: 1200px) {
   .tinygps-grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -57,18 +127,10 @@
   }
 
   .tinygps-grid .backprop-card:nth-child(2) {
-    grid-column: span 4;
+    grid-column: span 5;
   }
 
   .tinygps-grid .backprop-card:nth-child(3) {
-    grid-column: span 3;
-  }
-
-  .tinygps-grid .backprop-card:nth-child(4) {
-    grid-column: span 2;
-  }
-
-  .tinygps-grid .backprop-card:nth-child(5) {
-    grid-column: span 2;
+    grid-column: span 4;
   }
 }

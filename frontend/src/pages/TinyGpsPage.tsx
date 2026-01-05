@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useBackpropApi } from "../hooks/backprop/useBackpropApi";
 import { BackpropHeader } from "../components/backprop/common/BackpropHeader";
 import { TinyGpsControls } from "../components/backprop/tinygps/TinyGpsControls";
-import { TinyGpsMapCard } from "../components/backprop/tinygps/TinyGpsMapCard";
 import { TinyGpsBookTable } from "../components/backprop/tinygps/TinyGpsBookTable";
+import { TinyGpsBackpropDiagram } from "../components/backprop/tinygps/TinyGpsBackpropDiagram";
+import { TinyGpsCityMap } from "../components/backprop/tinygps/TinyGpsCityMap";
+import { TinyGpsLossTrendCard } from "../components/backprop/tinygps/TinyGpsLossTrendCard";
 import { TinyGpsStepSetupCard } from "../components/backprop/tinygps/TinyGpsStepSetupCard";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 
@@ -20,6 +22,7 @@ export function TinyGpsPage({ apiBase }: { apiBase: string }) {
   } = useBackpropApi(apiBase);
   const [dataset, setDataset] = useState("madrid-paris-berlin");
   const [lr, setLr] = useState(DEFAULT_LR);
+  const step = tinygpsHistory.length ? tinygpsHistory[tinygpsHistory.length - 1] : null;
 
   useEffect(() => {
     if (!state) return;
@@ -83,7 +86,12 @@ export function TinyGpsPage({ apiBase }: { apiBase: string }) {
           onApply={(params, order) => resetTinygps(dataset, lr, params, order)}
         />
 
-        <TinyGpsMapCard />
+        <TinyGpsLossTrendCard history={tinygpsHistory} />
+      </div>
+
+      <div className="tinygps-grid tinygps-grid-secondary">
+        <TinyGpsBackpropDiagram step={step} />
+        <TinyGpsCityMap state={state?.tinygps ?? null} />
       </div>
 
       <div className="tinygps-history">
