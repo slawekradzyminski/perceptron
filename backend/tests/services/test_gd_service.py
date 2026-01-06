@@ -5,6 +5,16 @@ import math
 import pytest
 
 from backend.services.gd_service import GdService, _read_config
+from backend.services.ollama_client import NextTokenStats
+
+
+class DummyOllamaClient:
+    def __init__(self, stats_sequence: list[NextTokenStats]) -> None:
+        self._stats_sequence = list(stats_sequence)
+
+    def next_token_stats(self, _prompt: str) -> NextTokenStats:
+        assert self._stats_sequence, "No more stats available"
+        return self._stats_sequence.pop(0)
 
 
 class TestGdConfig:
@@ -191,3 +201,105 @@ class TestGdServiceExampleIds:
         for example in result["examples"]:
             assert len(example["rows"]) >= 1
 
+
+class TestGdServiceOllama:
+    def test_token_loss_examples_ollama_rows(self) -> None:
+        service = GdService()
+        example = next(ex for ex in service._examples if ex["id"] == "france-paris")
+        stats = [
+            NextTokenStats(
+                top_token=row["correct_token"],
+                top_prob=0.5,
+                probs={f" {row['correct_token']}": 0.5},
+                latency_ms=1.0,
+            )
+            for row in example["rows"]
+        ]
+        service._client = DummyOllamaClient(stats)
+
+        result = service.token_loss_examples(source_override="ollama", example_id="france-paris")
+        assert result["source"] == "ollama"
+        rows = result["examples"][0]["rows"]
+        assert len(rows) == len(example["rows"])
+        assert all(row["p_correct"] == pytest.approx(0.5) for row in rows)
+        assert "warning" not in result
+
+    def test_token_loss_examples_ollama_missing_warning(self) -> None:
+        service = GdService()
+        example = next(ex for ex in service._examples if ex["id"] == "france-paris")
+        stats = [
+            NextTokenStats(top_token="X", top_prob=0.9, probs={}, latency_ms=1.0),
+        ]
+        for row in example["rows"][1:]:
+            stats.append(
+                NextTokenStats(
+                    top_token=row["correct_token"],
+                    top_prob=0.5,
+                    probs={row["correct_token"]: 0.5},
+                    latency_ms=1.0,
+                )
+            )
+        service._client = DummyOllamaClient(stats)
+
+        result = service.token_loss_examples(source_override="ollama", example_id="france-paris")
+        assert "warning" in result
+        assert "correct_token_missing_in_top_logprobs: 1" in result["warning"]
+
+    def test_token_loss_custom_ollama_empty_prompt(self) -> None:
+        service = GdService()
+        service._client = DummyOllamaClient([])
+        result = service.token_loss_examples(source_override="ollama", example_id="custom", prompt="  ")
+        assert result["examples"] == []
+        assert result["warning"] == "custom_prompt_empty"
+
+    def test_token_loss_custom_ollama_rows(self) -> None:
+        service = GdService()
+        stats = [
+            NextTokenStats(top_token="hello", top_prob=0.2, probs={" hello": 0.2}, latency_ms=1.0),
+            NextTokenStats(top_token="world", top_prob=0.4, probs={"world": 0.4}, latency_ms=1.0),
+        ]
+        service._client = DummyOllamaClient(stats)
+
+        result = service.token_loss_examples(source_override="ollama", example_id="custom", prompt="hello world")
+        rows = result["examples"][0]["rows"]
+        assert len(rows) == 2
+        assert rows[0]["p_correct"] == pytest.approx(0.2)
+        assert rows[1]["p_correct"] == pytest.approx(0.4)
+        assert "tokenization_simple_split" in result["warning"]
+
+    def test_next_token_logprobs_warns_on_empty(self) -> None:
+        service = GdService()
+        stats = [NextTokenStats(top_token="hi", top_prob=0.7, probs={}, latency_ms=1.0)]
+        service._client = DummyOllamaClient(stats)
+
+        result = service.next_token_logprobs("test", limit=2)
+        assert result["warning"] == "top_logprobs_unavailable"
+        assert result["tokens"][0]["token"] == "hi"
+        assert result["tokens"][0]["prob"] == pytest.approx(0.7)
+
+    def test_next_token_logprobs_sorted(self) -> None:
+        service = GdService()
+        stats = [
+            NextTokenStats(
+                top_token="a",
+                top_prob=0.3,
+                probs={"b": 0.1, "a": 0.3, "c": 0.2},
+                latency_ms=1.0,
+            )
+        ]
+        service._client = DummyOllamaClient(stats)
+
+        result = service.next_token_logprobs("test", limit=2)
+        tokens = result["tokens"]
+        assert [token["token"] for token in tokens] == ["a", "c"]
+
+    def test_match_prob_variants(self) -> None:
+        service = GdService()
+        stats = NextTokenStats(
+            top_token="token",
+            top_prob=0.5,
+            probs={" token": 0.25},
+            latency_ms=1.0,
+        )
+        prob = service._match_prob(stats, "token")
+        assert prob == pytest.approx(0.25)
