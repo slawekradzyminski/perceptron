@@ -1,4 +1,5 @@
 from backend.api.backprop_routes import router as backprop_router
+from backend.api.deep_routes import router as deep_router
 from backend.api.diagnostics_routes import router as diagnostics_router
 from backend.api.gd_routes import router as gd_router
 from backend.api.lms_routes import router as lms_router
@@ -12,4 +13,5 @@ __all__ = [
     "mlp_router",
     "perceptron_router",
     "backprop_router",
+    "deep_router",
 ]

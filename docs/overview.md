@@ -6,6 +6,11 @@ This project is an educational, step-by-step visualization of perceptron learnin
 - `/` Main lab view: perceptron step-by-step learning with the switchboard panels, score, and step math.
 - `/diagnostics` Diagnostics: Error Surface + MLP Internals.
 - `/lms` LMS view: least-mean-squares update table with gradients.
+- `/mlp` MLP Trainer: 2-layer MLP with hidden templates.
+- `/gd` Gradient Descent: loss function comparisons.
+- `/backprop/tinygps` TinyGPS: multi-class classification.
+- `/backprop/regression` Regression: line fitting with backprop.
+- `/deep` Deep Learning Lab: variable-depth networks and region counting.
 
 ## Keyboard shortcuts
 - `S`: Step

@@ -1,0 +1,635 @@
+/* Deep Learning Lab Styles - Chapter 4 (Unified with project aesthetic) */
+
+.deep-panel {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #f0f9ff 0%, #fef3c7 50%, #fff7ed 100%);
+  max-width: 100%;
+  margin: 0;
+}
+
+.deep-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.deep-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, #1c1b19 0%, #4a3b2b 60%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.deep-header .subtitle {
+  color: #6a5a4a;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Main grid layout */
+.deep-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Controls panel */
+.deep-controls {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  overflow: visible;
+}
+
+.deep-controls:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.deep-controls h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6a5a4a;
+}
+
+.deep-controls label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5c4a39;
+}
+
+.deep-controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.deep-controls input[type="number"],
+.deep-controls select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--grid);
+  background: #fffdf8;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.deep-controls input[type="number"]:focus,
+.deep-controls select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 106, 61, 0.1);
+}
+
+.deep-controls .value-display {
+  display: inline-block;
+  min-width: 2em;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.arch-preview-wrapper {
+  position: relative;
+}
+
+.arch-preview {
+  background: rgba(255, 246, 232, 0.9);
+  border: 2px dashed var(--grid);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  color: #4a3b2b;
+  font-size: 0.9rem;
+}
+
+.arch-preview-hoverable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arch-preview-hoverable .hover-hint {
+  font-size: 0.7rem;
+  color: #8a7562;
+  font-family: "Space Grotesk", sans-serif;
+  opacity: 0.7;
+}
+
+.arch-preview-hoverable:hover {
+  background: rgba(255, 236, 210, 1);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.arch-preview-hoverable:hover .hover-hint {
+  opacity: 0;
+}
+
+/* Network diagram popup - inline version */
+.network-popup-inline {
+  position: absolute;
+  left: calc(100% + 16px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.99);
+  border: 2px solid var(--grid);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(78, 52, 24, 0.15);
+  overflow: hidden;
+  animation: popup-slide-in 0.2s ease-out;
+  white-space: nowrap;
+}
+
+@keyframes popup-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.network-popup-header {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #fef3c7 100%);
+  border-bottom: 1px solid var(--grid);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #4a3b2b;
+  text-align: center;
+}
+
+.network-popup-canvas {
+  display: block;
+  background: linear-gradient(180deg, #fffdf8 0%, #fff8f0 100%);
+}
+
+.network-popup-footer {
+  padding: 10px 20px;
+  background: rgba(255, 253, 248, 0.95);
+  border-top: 1px solid var(--grid);
+  font-size: 0.85rem;
+  color: #5c4a39;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* Main content area */
+.deep-main {
+  display: grid;
+  gap: 16px;
+}
+
+.deep-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.deep-actions button {
+  padding: 10px 20px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.deep-actions button:first-child {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: var(--ink);
+  box-shadow: 0 4px 12px rgba(255, 106, 61, 0.25);
+}
+
+.deep-actions button:first-child:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 106, 61, 0.35);
+}
+
+.deep-actions button:not(:first-child):not(.reset-btn) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed var(--grid);
+}
+
+.deep-actions button:not(:first-child):not(.reset-btn):hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #a89278;
+}
+
+.deep-actions .reset-btn {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+.deep-actions .reset-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--danger);
+}
+
+.deep-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.deep-panel .view-toggle {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: #6a5a4a;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.deep-panel .view-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.deep-panel .view-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* Boundary canvas */
+.deep-boundary {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.deep-boundary:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.boundary-canvas {
+  border-radius: 12px;
+  border: 3px solid var(--grid);
+  background: #fffdf8;
+}
+
+.boundary-legend {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: #6a5a4a;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--grid);
+}
+
+.legend-dot.belgium {
+  background: #fbbf24;
+}
+
+.legend-dot.netherlands {
+  background: #60a5fa;
+}
+
+.legend-dot.class-0 {
+  background: #3b82f6;
+}
+
+.legend-dot.class-1 {
+  background: #ef4444;
+}
+
+.legend-note {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Stats panel */
+.deep-side {
+  display: grid;
+  gap: 16px;
+}
+
+.deep-stats {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.deep-stats:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.deep-stats h3 {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6a5a4a;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  background: rgba(255, 253, 248, 0.9);
+  border: 2px solid var(--grid);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a7562;
+}
+
+.stat-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stat-value.highlight {
+  color: var(--accent);
+  font-size: 1.3rem;
+}
+
+.stat-item.accuracy .stat-value {
+  color: var(--success);
+}
+
+.stat-item.regions .stat-value {
+  color: var(--cool);
+}
+
+/* Loss chart */
+.deep-chart {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.deep-chart:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.deep-chart.empty {
+  text-align: center;
+  color: #8a7562;
+  font-size: 0.9rem;
+  padding: 30px 16px;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.legend-loss {
+  color: var(--danger);
+}
+
+.legend-acc {
+  color: var(--success);
+}
+
+.deep-chart canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Comparison actions */
+.comparison-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.comparison-actions button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--cool) 0%, #6366f1 100%);
+  color: white;
+  border: 2px solid #4338ca;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(61, 90, 241, 0.25);
+}
+
+.comparison-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(61, 90, 241, 0.35);
+}
+
+.comparison-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Comparison table */
+.deep-comparison {
+  margin-top: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.deep-comparison:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.deep-comparison.empty {
+  text-align: center;
+}
+
+.deep-comparison.empty .hint {
+  color: #8a7562;
+  font-size: 0.9rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.deep-comparison h3 {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #4a3b2b;
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.comparison-header h3 {
+  margin: 0;
+}
+
+.clear-btn {
+  padding: 6px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--danger);
+}
+
+.deep-comparison table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deep-comparison th,
+.deep-comparison td {
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.deep-comparison th {
+  color: #6a5a4a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  border-bottom: 2px solid var(--grid);
+}
+
+.deep-comparison td {
+  color: var(--ink);
+  font-family: "IBM Plex Mono", monospace;
+  border-bottom: 1px solid var(--grid);
+}
+
+.deep-comparison td.highlight {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.deep-comparison tr:hover td {
+  background: rgba(255, 246, 232, 0.5);
+}
+
+/* Error */
+.deep-error {
+  color: var(--danger);
+  text-align: center;
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .deep-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .deep-controls {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .deep-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deep-actions {
+    justify-content: center;
+  }
+
+  .deep-panel .view-toggle {
+    flex-direction: column;
+    align-items: center;
+  }
+}

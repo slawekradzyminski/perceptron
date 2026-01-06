@@ -49,7 +49,7 @@ The regression page includes:
 Same UI as MSE, with L1 gradients and the optional “book-literal” loss fix for the known table discrepancy.
 
 ### D) Optional: Map of Language (Exercise 3.30)
-The supporting demo remains in-repo and is documented at `docs/phase3/map_of_language.md`.
+The supporting demo remains in-repo and is documented at `docs/chapter3/map_of_language.md`.
 
 ## Practical “do I have enough already?” check
 From the repo snapshot, you already have:

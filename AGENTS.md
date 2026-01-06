@@ -4,6 +4,7 @@
 - Use project scripts proactively (don’t ask) for common tasks.
 - Always run tests after code changes.
 - Prefer small, incremental changes with clear verification.
+- Always add tests for new code (both backend and frontend).
 
 ## Read First (required)
 - Skim `docs/overview.md` to understand the core UX, routes, and terminology.

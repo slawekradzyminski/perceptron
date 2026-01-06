@@ -88,6 +88,69 @@
   font-size: 1rem;
 }
 
+/* Offline notice */
+.gd-offline-notice {
+  max-width: 500px;
+  margin: 60px auto;
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--grid);
+  border-radius: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.gd-offline-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  filter: grayscale(0.3);
+}
+
+.gd-offline-notice h3 {
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+  color: #1c1b19;
+}
+
+.gd-offline-notice > p {
+  margin: 0 0 24px;
+  color: #6a5a4a;
+  font-size: 1rem;
+}
+
+.gd-offline-instructions {
+  text-align: left;
+  background: rgba(255, 253, 248, 0.9);
+  border: 2px dashed var(--grid);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.gd-offline-instructions p {
+  margin: 0 0 12px;
+  color: #4a3b2b;
+}
+
+.gd-offline-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #5c4a39;
+}
+
+.gd-offline-instructions li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.gd-offline-instructions code {
+  background: rgba(61, 90, 241, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  color: var(--cool);
+}
+
 /* Exercises container - stacked rows */
 .gd-exercises {
   display: flex;

@@ -32,3 +32,19 @@ This file summarizes the user-facing features and how to interpret them.
 - A step-by-step LMS table with gradients and weight updates.
 - Shows up to 16 steps in the table for readability.
 - Includes a mini error trend sparkline for intuition.
+
+## Deep Learning Lab ("/deep")
+- **Architecture Controls**
+  - Depth: Number of hidden layers (1-6).
+  - Width: Neurons per hidden layer (4-64).
+  - Dataset: circles, spiral, xor, or baarle (Baarle-Hertog enclaves).
+- **Visualization**
+  - Decision Boundary: Shows predicted class regions.
+  - Region Tiling: Colors pixels by unique linear region (activation pattern).
+- **Region Analysis**
+  - Actual Regions: Count of unique ReLU activation signatures.
+  - Theoretical Max: Upper bound from Montufar et al. formula.
+  - Efficiency: ratio of actual to theoretical regions.
+- **Comparison Table**
+  - Collect results from different architectures for Exercise 4.9.
+  - Compares depth vs width trade-offs for region complexity.

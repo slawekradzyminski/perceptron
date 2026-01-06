@@ -17,4 +17,3 @@ Running Llama (live via Ollama)
 Contents
 - chapter2_findings.md: distilled takeaways from Chapter 2
 - exercises_mapping.md: how the lab features answer Exercises 2.1-2.18
-- implementation_plan.md: build plan for the new gradient descent features

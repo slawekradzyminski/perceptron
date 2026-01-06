@@ -5,7 +5,15 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api import backprop_router, diagnostics_router, gd_router, lms_router, mlp_router, perceptron_router
+from backend.api import (
+    backprop_router,
+    deep_router,
+    diagnostics_router,
+    gd_router,
+    lms_router,
+    mlp_router,
+    perceptron_router,
+)
 
 app = FastAPI(title="Perceptron Visual Lab API")
 app.add_middleware(
@@ -22,6 +30,7 @@ app.include_router(lms_router)
 app.include_router(mlp_router)
 app.include_router(gd_router)
 app.include_router(backprop_router)
+app.include_router(deep_router)
 
 
 def run(host: str = "127.0.0.1", port: int = 8000) -> None:

@@ -205,6 +205,123 @@ def make_tinygps_dataset_1d_from_coords(
     return samples
 
 
+def make_baarle_hertog_dataset(
+    n_samples: int = 1000,
+    seed: int = 42,
+    image_path: str | None = None,
+) -> list[Sample]:
+    """Generate 2D classification dataset from Baarle-Hertog map.
+
+    Yellow regions = class 1 (Hertog/Belgium)
+    Cream/background = class 0 (Nassau/Netherlands)
+
+    If the image cannot be loaded, falls back to pre-computed samples.
+    Returns samples with x=[x1, x2] normalized to [-1, 1].
+    """
+    import random
+
+    rng = random.Random(seed)
+
+    # Try to load image with PIL (more common than cv2)
+    samples: list[Sample] = []
+    loaded_from_image = False
+
+    if image_path:
+        try:
+            from PIL import Image
+
+            img = Image.open(image_path).convert("RGB")
+            width, height = img.size
+            pixels = img.load()
+
+            # Collect yellow and cream pixels
+            yellow_points: list[tuple[int, int]] = []
+            cream_points: list[tuple[int, int]] = []
+
+            for y in range(height):
+                for x in range(width):
+                    r, g, b = pixels[x, y]
+                    # Yellow: high R, high G, low B (the enclave regions)
+                    if r > 200 and g > 200 and b < 100:
+                        yellow_points.append((x, y))
+                    # Cream/beige background: high R, high-ish G, medium B
+                    elif r > 230 and g > 220 and b > 180 and b < 240:
+                        cream_points.append((x, y))
+
+            if yellow_points and cream_points:
+                n_per_class = n_samples // 2
+
+                # Sample from each class
+                yellow_sample = rng.sample(yellow_points, min(n_per_class, len(yellow_points)))
+                cream_sample = rng.sample(cream_points, min(n_per_class, len(cream_points)))
+
+                # Normalize to [-1, 1]
+                for px, py in yellow_sample:
+                    x1 = (px / width) * 2 - 1
+                    x2 = (py / height) * 2 - 1
+                    x2 = -x2  # Flip Y axis (image coords are top-down)
+                    samples.append({"x": [x1, x2], "y": 1})
+
+                for px, py in cream_sample:
+                    x1 = (px / width) * 2 - 1
+                    x2 = (py / height) * 2 - 1
+                    x2 = -x2
+                    samples.append({"x": [x1, x2], "y": 0})
+
+                loaded_from_image = True
+        except Exception:
+            pass  # Fall back to synthetic data
+
+    if not loaded_from_image:
+        # Fallback: Generate synthetic "enclave-like" data
+        # Create a complex pattern with multiple disconnected regions
+        n_per_class = n_samples // 2
+
+        # Class 1 (Hertog): Multiple circular/rectangular regions
+        enclave_centers = [
+            (-0.5, -0.4, 0.3),   # (x, y, radius) - main region
+            (0.3, 0.2, 0.25),    # upper right
+            (-0.2, 0.5, 0.15),   # small upper
+            (0.5, -0.3, 0.18),   # lower right
+            (-0.6, 0.3, 0.12),   # small left
+            (0.1, -0.6, 0.2),    # lower middle
+            (0.6, 0.5, 0.1),     # tiny upper right
+            (-0.3, -0.7, 0.15),  # lower left
+        ]
+
+        for _ in range(n_per_class):
+            # Pick a random enclave
+            cx, cy, radius = rng.choice(enclave_centers)
+            # Sample within the enclave (uniform in circle)
+            angle = rng.uniform(0, 2 * 3.14159)
+            r = radius * (rng.random() ** 0.5)  # sqrt for uniform area
+            x1 = cx + r * (angle / abs(angle + 0.001)) * rng.uniform(-1, 1) * 0.7
+            x2 = cy + r * rng.uniform(-1, 1) * 0.7
+            x1 = max(-1, min(1, cx + rng.uniform(-radius, radius)))
+            x2 = max(-1, min(1, cy + rng.uniform(-radius, radius)))
+            samples.append({"x": [x1, x2], "y": 1})
+
+        # Class 0 (Nassau): Points not in enclaves
+        attempts = 0
+        count = 0
+        while count < n_per_class and attempts < n_per_class * 10:
+            x1 = rng.uniform(-1, 1)
+            x2 = rng.uniform(-1, 1)
+            # Check if point is outside all enclaves
+            in_enclave = False
+            for cx, cy, radius in enclave_centers:
+                if (x1 - cx) ** 2 + (x2 - cy) ** 2 < radius ** 2:
+                    in_enclave = True
+                    break
+            if not in_enclave:
+                samples.append({"x": [x1, x2], "y": 0})
+                count += 1
+            attempts += 1
+
+    rng.shuffle(samples)
+    return samples
+
+
 def make_tinygps_dataset_2d(cities: Iterable[str]) -> list[Sample]:
     """Latitude+longitude TinyGPS dataset for multiple cities.
 

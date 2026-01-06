@@ -12,14 +12,14 @@ type HeaderProps = {
   gridCols: number;
   lr: number;
   showCustomButton: boolean;
-  route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression";
+  route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep";
   showTrainingControls: boolean;
   onDatasetChange: (value: string) => void;
   onStep: () => void;
   onReset: () => void;
   onLrChange: (value: number) => void;
   onOpenCustom: () => void;
-  onRouteChange: (route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression") => void;
+  onRouteChange: (route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep") => void;
 };
 
 export function Header({
@@ -101,8 +101,17 @@ export function Header({
           >
             Regression
           </button>
+          <button
+            type="button"
+            className={route === "deep" ? "active" : ""}
+            onClick={() => onRouteChange("deep")}
+            role="tab"
+            aria-selected={route === "deep"}
+          >
+            Deep
+          </button>
         </div>
-        {route !== "gd" && route !== "tinygps" && route !== "regression" && (
+        {route !== "gd" && route !== "tinygps" && route !== "regression" && route !== "deep" && (
           <>
             <label>
               <span>Dataset</span>

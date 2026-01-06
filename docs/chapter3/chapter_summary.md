@@ -79,4 +79,4 @@ The chapter includes supporting code snippets, including a simple forward pass t
 ## Lab implementation status (this repo)
 - TinyGPS and regression labs are implemented at `/backprop/tinygps` and `/backprop/regression`.
 - Book tables, step-by-step gradients, loss/accuracy tracking, and visuals (loss trend, backprop flow, city map) are wired to backend state.
-- Map of Language remains optional and is documented at `docs/phase3/map_of_language.md`.
+- Map of Language remains optional and is documented at `docs/chapter3/map_of_language.md`.

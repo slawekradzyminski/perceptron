@@ -33,3 +33,23 @@ Base URL: `http://127.0.0.1:8000`
   - Advances one LMS step and returns gradients and updated parameters.
 - `POST /lms/reset`
   - Resets LMS weights and sample index.
+
+## Deep Learning endpoints
+- `GET /deep/state`
+  - Returns current deep MLP state (architecture, metrics, samples).
+- `POST /deep/reset`
+  - Configure architecture and dataset. Body: `{hidden_dims, dataset, lr, seed}`.
+- `POST /deep/step`
+  - Train for one or more steps. Body: `{batch_size}`.
+- `POST /deep/epoch`
+  - Train for one full epoch.
+- `GET /deep/regions?resolution=50`
+  - Returns region count, theoretical max, and efficiency.
+- `GET /deep/boundary?resolution=50`
+  - Returns decision boundary and region tiling grids.
+- `POST /deep/comparison/add`
+  - Add current architecture to comparison table.
+- `GET /deep/comparison`
+  - Returns comparison table entries.
+- `POST /deep/comparison/clear`
+  - Clears the comparison table.

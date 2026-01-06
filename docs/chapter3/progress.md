@@ -17,4 +17,4 @@
 - Backend:
   - Backprop service + `/backprop` API routes for TinyGPS + regression.
   - Tests for TinyGPS/regression math, datasets, and API routes.
-- Map of Language: preserved in repo with docs at `docs/phase3/map_of_language.md`.
+- Map of Language: preserved in repo with docs at `docs/chapter3/map_of_language.md`.
