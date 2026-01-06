@@ -11,7 +11,8 @@
 - Check `docs/operations.md` for expected workflows and scripts.
 
 ## Scripts (preferred)
-- Restart app + health checks: `scripts/restart_app.sh`
+- Restart app + health checks (no docker): `scripts/restart_app.sh`
+- Restart app + health checks (docker): `scripts/restart_app.sh --docker`
 - Verify app (start + health checks): `scripts/verify_app.sh`
 - Stop app processes: `scripts/stop_app.sh`
 

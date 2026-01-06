@@ -13,6 +13,7 @@ OLLAMA_CONTAINER="ollama-llama"
 OLLAMA_IMAGE="ollama/ollama:0.13.5"
 OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
+USE_DOCKER=false
 
 stop_pid() {
   local pid_file="$1"
@@ -68,7 +69,19 @@ wait_for_url() {
 require_cmd poetry
 require_cmd npm
 require_cmd curl
-require_cmd docker
+
+for arg in "$@"; do
+  case "$arg" in
+    --docker)
+      USE_DOCKER=true
+      ;;
+    *)
+      echo "Unknown option: $arg" >&2
+      echo "Usage: $0 [--docker]" >&2
+      exit 1
+      ;;
+  esac
+done
 
 start_ollama() {
   if ! docker info >/dev/null 2>&1; then
@@ -105,11 +118,16 @@ stop_pid "$FRONTEND_PID_FILE"
 stop_port 8000
 stop_port 5173
 
-start_ollama
+if $USE_DOCKER; then
+  require_cmd docker
+  start_ollama
+else
+  GD_TOKEN_SOURCE=${GD_TOKEN_SOURCE:-none}
+fi
 
 (
   cd "$ROOT_DIR"
-  GD_TOKEN_SOURCE=ollama \
+  GD_TOKEN_SOURCE=${GD_TOKEN_SOURCE:-none} \
   OLLAMA_BASE_URL="$OLLAMA_BASE_URL" \
   OLLAMA_MODEL="$OLLAMA_MODEL" \
   OLLAMA_TIMEOUT_S="${OLLAMA_TIMEOUT_S:-120}" \

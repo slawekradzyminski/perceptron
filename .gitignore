@@ -12,6 +12,7 @@ __pycache__/
 node_modules/
 dist/
 .vite/
+frontend/tsconfig.tsbuildinfo
 
 # OS/editor
 .DS_Store
