@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from backend.nn.models import Adaline, LogisticNeuron
 
 
-def train_adaline(samples: Sequence[dict], epochs: int, lr: float) -> List[float]:
+def train_adaline(samples: Sequence[dict], epochs: int, lr: float) -> list[float]:
     model = Adaline(dim=len(samples[0]["x"]), lr=lr)
-    losses: List[float] = []
+    losses: list[float] = []
     for _ in range(epochs):
         epoch_loss = 0.0
         for sample in samples:
@@ -19,9 +19,9 @@ def train_adaline(samples: Sequence[dict], epochs: int, lr: float) -> List[float
     return losses
 
 
-def train_logistic(samples: Sequence[dict], epochs: int, lr: float) -> List[float]:
+def train_logistic(samples: Sequence[dict], epochs: int, lr: float) -> list[float]:
     model = LogisticNeuron(dim=len(samples[0]["x"]), lr=lr)
-    losses: List[float] = []
+    losses: list[float] = []
     for _ in range(epochs):
         epoch_loss = 0.0
         for sample in samples:

@@ -1,4 +1,4 @@
-import type { TinyGpsState } from "../../types";
+import type { TinyGpsState } from "../../../types";
 import { formatVec } from "../common/formatters";
 import { TinyGpsExerciseSetup } from "./TinyGpsExerciseSetup";
 

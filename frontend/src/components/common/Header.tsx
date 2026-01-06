@@ -31,8 +31,6 @@ export function Header({
   route,
   showTrainingControls,
   onDatasetChange,
-  onStep,
-  onReset,
   onLrChange,
   onOpenCustom,
   onRouteChange,
@@ -43,8 +41,9 @@ export function Header({
 
   return (
     <header className="hero">
-      <div>
+      <div className="hero-title">
         <h1>AI Learning Lab</h1>
+        <p className="keyboard-hint">Press <kbd>S</kbd> for step, <kbd>R</kbd> for reset</p>
       </div>
       <div className="controls">
         <div className="view-toggle" role="tablist" aria-label="View">
@@ -127,27 +126,20 @@ export function Header({
           </button>
         )}
         {showTrainingControls && (
-          <>
-            <button onClick={onStep}>Step</button>
-            <button onClick={onReset}>Reset</button>
-            <label>
-              <span>Learning rate</span>
-              <div className="lr-row">
-                <input
-                  type="range"
-                  min="0.1"
-                  max="2"
-                  step="0.1"
-                  value={lr}
-                  onChange={(event) => onLrChange(Number(event.target.value))}
-                />
-                <span>{lr.toFixed(1)}</span>
-              </div>
-            </label>
-          </>
-        )}
-        {showTrainingControls && (
-          <p className="hotkeys">Shortcuts: <strong>S</strong> step, <strong>R</strong> reset</p>
+          <label>
+            <span>Learning rate</span>
+            <div className="lr-row">
+              <input
+                type="range"
+                min="0.1"
+                max="2"
+                step="0.1"
+                value={lr}
+                onChange={(event) => onLrChange(Number(event.target.value))}
+              />
+              <span>{lr.toFixed(1)}</span>
+            </div>
+          </label>
         )}
       </div>
     </header>

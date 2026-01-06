@@ -76,4 +76,7 @@ The claim is that, mathematically, this is “not so different” from mapping c
 ## Supporting code
 The chapter includes supporting code snippets, including a simple forward pass through Llama 3.2 1B using Hugging Face Transformers to reproduce the “predict next token” setup.
 
-If you want, I can also produce a one-page “equations you must implement” cheat sheet for Chapter 3 (forward, loss, gradients, update) formatted exactly as a Codex agent spec.
+## Lab implementation status (this repo)
+- TinyGPS and regression labs are implemented at `/backprop/tinygps` and `/backprop/regression`.
+- Book tables, step-by-step gradients, loss/accuracy tracking, and visuals (loss trend, backprop flow, city map) are wired to backend state.
+- Map of Language remains optional and is documented at `docs/phase3/map_of_language.md`.

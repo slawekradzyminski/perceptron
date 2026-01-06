@@ -18,6 +18,7 @@ uvicorn = "^0.40.0"
 pytest = "^9.0.2"
 httpx = "^0.28.1"
 pytest-cov = "^7.0.0"
+ruff = "^0.14.10"
 
 [tool.poetry.scripts]
 perceptron-api = "backend.api_app:run"
@@ -35,3 +36,35 @@ source = ["backend"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults (needed for FastAPI Depends)
+    "B905",   # zip() without explicit strict= parameter
+    "ARG001", # unused function argument (common in route handlers)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List, Sequence, Tuple, Dict
-
+from collections.abc import Iterable, Sequence
 
 Sample = dict
 
@@ -12,11 +11,11 @@ def _pm1(val: int) -> int:
     return 1 if val > 0 else -1
 
 
-def _flatten(grid: Sequence[Sequence[int]]) -> List[int]:
+def _flatten(grid: Sequence[Sequence[int]]) -> list[int]:
     return [cell for row in grid for cell in row]
 
 
-def make_or_dataset_pm1() -> List[Sample]:
+def make_or_dataset_pm1() -> list[Sample]:
     # Inputs are in {-1, +1}. OR is positive if any input is +1.
     data = [
         ([-1, 1], 1),
@@ -27,7 +26,7 @@ def make_or_dataset_pm1() -> List[Sample]:
     return [{"x": x, "y": y} for x, y in data]
 
 
-def make_and_dataset_pm1() -> List[Sample]:
+def make_and_dataset_pm1() -> list[Sample]:
     # AND is positive only if both inputs are +1.
     data = [
         ([-1, 1], -1),
@@ -38,7 +37,7 @@ def make_and_dataset_pm1() -> List[Sample]:
     return [{"x": x, "y": y} for x, y in data]
 
 
-def make_xor_dataset_pm1() -> List[Sample]:
+def make_xor_dataset_pm1() -> list[Sample]:
     # XOR is positive if exactly one input is +1.
     data = [
         ([-1, 1], 1),
@@ -53,7 +52,7 @@ def generate_translations(
     shape_mask: Sequence[Sequence[int]],
     board_h: int,
     board_w: int,
-) -> List[Tuple[List[List[int]], Tuple[int, int]]]:
+) -> list[tuple[list[list[int]], tuple[int, int]]]:
     """Return all valid translations of a shape on a board.
 
     Cells belonging to the shape are +1, empty cells are -1.
@@ -66,7 +65,7 @@ def generate_translations(
     if board_h < shape_h or board_w < shape_w:
         raise ValueError("board must be at least as large as shape")
 
-    positions: List[Tuple[List[List[int]], Tuple[int, int]]] = []
+    positions: list[tuple[list[list[int]], tuple[int, int]]] = []
     for top in range(board_h - shape_h + 1):
         for left in range(board_w - shape_w + 1):
             grid = [[-1 for _ in range(board_w)] for _ in range(board_h)]
@@ -81,9 +80,9 @@ def generate_translations(
 def make_shape_dataset(
     good_mask: Sequence[Sequence[int]],
     bad_mask: Sequence[Sequence[int]],
-    board_size: Tuple[int, int],
+    board_size: tuple[int, int],
     translations: bool = True,
-) -> List[Sample]:
+) -> list[Sample]:
     """Create a dataset of good vs bad shapes on a grid.
 
     Each sample includes:
@@ -93,7 +92,7 @@ def make_shape_dataset(
     - pos: (top, left) if translations are used
     """
     board_h, board_w = board_size
-    samples: List[Sample] = []
+    samples: list[Sample] = []
 
     def _add(mask: Sequence[Sequence[int]], label: int) -> None:
         if translations:
@@ -157,22 +156,22 @@ CITY_COORDS_EXERCISE = {
 }
 
 
-def tinygps_city_coords() -> Dict[str, List[Tuple[float, float]]]:
+def tinygps_city_coords() -> dict[str, list[tuple[float, float]]]:
     """Return the TinyGPS city coordinate fixtures as (lat, lon)."""
     return CITY_COORDS
 
 
-def tinygps_city_coords_exercise() -> Dict[str, List[Tuple[float, float]]]:
+def tinygps_city_coords_exercise() -> dict[str, list[tuple[float, float]]]:
     """Return TinyGPS exercise-only coordinates (2 samples per city)."""
     return CITY_COORDS_EXERCISE
 
 
-def make_tinygps_dataset_1d(city_a: str, city_b: str) -> List[Sample]:
+def make_tinygps_dataset_1d(city_a: str, city_b: str) -> list[Sample]:
     """Longitude-only TinyGPS dataset for two cities."""
     return make_tinygps_dataset_1d_multi([city_a, city_b])
 
 
-def make_tinygps_dataset_1d_multi(cities: Iterable[str]) -> List[Sample]:
+def make_tinygps_dataset_1d_multi(cities: Iterable[str]) -> list[Sample]:
     """Longitude-only TinyGPS dataset for multiple cities.
 
     Returns samples with x=[lon] and y as the city index order.
@@ -183,31 +182,35 @@ def make_tinygps_dataset_1d_multi(cities: Iterable[str]) -> List[Sample]:
     for city in city_list:
         if city not in CITY_COORDS:
             raise ValueError("unknown city name for TinyGPS dataset")
-    samples: List[Sample] = []
+    samples: list[Sample] = []
     for label, city in enumerate(city_list):
         for lat, lon in CITY_COORDS[city]:
             samples.append({"x": [lon], "y": label, "city": city, "lat": lat, "lon": lon})
     return samples
 
 
-def make_tinygps_dataset_1d_from_coords(coords: Dict[str, List[Tuple[float, float]]], cities: Iterable[str]) -> List[Sample]:
+def make_tinygps_dataset_1d_from_coords(
+    coords: dict[str, list[tuple[float, float]]], cities: Iterable[str]
+) -> list[Sample]:
     city_list = list(cities)
     if not city_list:
         raise ValueError("cities must be non-empty")
     for city in city_list:
         if city not in coords:
             raise ValueError("unknown city name for TinyGPS dataset")
-    samples: List[Sample] = []
+    samples: list[Sample] = []
     for label, city in enumerate(city_list):
         for lat, lon in coords[city]:
             samples.append({"x": [lon], "y": label, "city": city, "lat": lat, "lon": lon})
     return samples
 
 
-def make_tinygps_dataset_2d(cities: Iterable[str]) -> List[Sample]:
+def make_tinygps_dataset_2d(cities: Iterable[str]) -> list[Sample]:
     """Latitude+longitude TinyGPS dataset for multiple cities.
 
-    Returns samples with x=[lat, lon] and y as the city index order.
+    Returns samples with x=[x1, x2] where x1=lon and x2=lat, normalized
+    by subtracting the center of Paris (as per the book).
+    y is the city index order.
     """
     city_list = list(cities)
     if not city_list:
@@ -215,8 +218,21 @@ def make_tinygps_dataset_2d(cities: Iterable[str]) -> List[Sample]:
     for city in city_list:
         if city not in CITY_COORDS:
             raise ValueError("unknown city name for TinyGPS dataset")
-    samples: List[Sample] = []
+
+    # Paris center for normalization (per the book)
+    paris_center_lat, paris_center_lon = 48.8575, 2.3514
+
+    samples: list[Sample] = []
     for label, city in enumerate(city_list):
         for lat, lon in CITY_COORDS[city]:
-            samples.append({"x": [lat, lon], "y": label, "city": city, "lat": lat, "lon": lon})
+            # x1 = normalized longitude, x2 = normalized latitude (book convention)
+            x1 = lon - paris_center_lon
+            x2 = lat - paris_center_lat
+            samples.append({
+                "x": [x1, x2],
+                "y": label,
+                "city": city,
+                "lat": lat,
+                "lon": lon,
+            })
     return samples

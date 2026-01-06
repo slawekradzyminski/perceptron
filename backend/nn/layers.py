@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, List, Sequence
 import random
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 
 
 @dataclass
 class DenseStep:
-    z: List[float]
-    a: List[float]
+    z: list[float]
+    a: list[float]
 
 
 class DenseLayer:
@@ -33,15 +33,15 @@ class DenseLayer:
         self.b = [0.0 for _ in range(output_dim)]
         self.activation = activation
         self.activation_prime_from_output = activation_prime_from_output
-        self.last_input: List[float] | None = None
-        self.last_output: List[float] | None = None
+        self.last_input: list[float] | None = None
+        self.last_output: list[float] | None = None
 
     def forward(self, x: Sequence[float]) -> DenseStep:
         if len(x) != self.input_dim:
             raise ValueError("x has wrong dimension")
         self.last_input = list(x)
-        z: List[float] = []
-        a: List[float] = []
+        z: list[float] = []
+        a: list[float] = []
         for i in range(self.output_dim):
             z_i = sum(self.W[i][j] * x[j] for j in range(self.input_dim)) + self.b[i]
             a_i = self.activation(z_i)
@@ -50,20 +50,19 @@ class DenseLayer:
         self.last_output = a
         return DenseStep(z=z, a=a)
 
-    def backward(self, grad_out: Sequence[float]) -> tuple[List[List[float]], List[float], List[float]]:
+    def backward(self, grad_out: Sequence[float]) -> tuple[list[list[float]], list[float], list[float]]:
         if self.last_input is None or self.last_output is None:
             raise ValueError("forward must be called before backward")
         if len(grad_out) != self.output_dim:
             raise ValueError("grad_out has wrong dimension")
-        grad_z: List[float] = []
+        grad_z: list[float] = []
         for i in range(self.output_dim):
             grad_z.append(grad_out[i] * self.activation_prime_from_output(self.last_output[i]))
-        grad_W: List[List[float]] = [
-            [grad_z[i] * self.last_input[j] for j in range(self.input_dim)]
-            for i in range(self.output_dim)
+        grad_W: list[list[float]] = [
+            [grad_z[i] * self.last_input[j] for j in range(self.input_dim)] for i in range(self.output_dim)
         ]
-        grad_b: List[float] = grad_z[:]
-        grad_x: List[float] = [0.0 for _ in range(self.input_dim)]
+        grad_b: list[float] = grad_z[:]
+        grad_x: list[float] = [0.0 for _ in range(self.input_dim)]
         for j in range(self.input_dim):
             grad_x[j] = sum(self.W[i][j] * grad_z[i] for i in range(self.output_dim))
         return grad_W, grad_b, grad_x

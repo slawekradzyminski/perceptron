@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Sequence
 
 from backend.nn.activations import sigmoid, sigmoid_prime_from_output, tanh, tanh_prime_from_output
 from backend.nn.layers import DenseLayer
@@ -15,31 +15,31 @@ class MlpStep:
     loss: float
     p_hat: float
     grad_norm: float
-    grad_hidden: List[List[float]] | None = None
+    grad_hidden: list[list[float]] | None = None
 
 
 @dataclass
 class MlpInternals:
-    x: List[float]
+    x: list[float]
     y: int
     y01: int
-    hidden_z: List[float]
-    hidden_a: List[float]
+    hidden_z: list[float]
+    hidden_a: list[float]
     output_z: float
     output_a: float
     loss: float
-    grad_hidden_W: List[List[float]]
-    grad_hidden_b: List[float]
-    grad_out_W: List[List[float]]
-    grad_out_b: List[float]
-    hidden_W_before: List[List[float]]
-    hidden_b_before: List[float]
-    out_W_before: List[List[float]]
-    out_b_before: List[float]
-    hidden_W_after: List[List[float]]
-    hidden_b_after: List[float]
-    out_W_after: List[List[float]]
-    out_b_after: List[float]
+    grad_hidden_W: list[list[float]]
+    grad_hidden_b: list[float]
+    grad_out_W: list[list[float]]
+    grad_out_b: list[float]
+    hidden_W_before: list[list[float]]
+    hidden_b_before: list[float]
+    out_W_before: list[list[float]]
+    out_b_before: list[float]
+    hidden_W_after: list[list[float]]
+    hidden_b_after: list[float]
+    out_W_after: list[list[float]]
+    out_b_after: list[float]
 
 
 class MlpTwoLayer:
@@ -65,7 +65,7 @@ class MlpTwoLayer:
             activation_prime_from_output=sigmoid_prime_from_output,
             seed=seed,
         )
-        self.last_grad_hidden: List[List[float]] | None = None
+        self.last_grad_hidden: list[list[float]] | None = None
 
     def forward(self, x: Sequence[float]) -> float:
         hidden = self.hidden.forward(x).a
@@ -127,8 +127,8 @@ class MlpTwoLayer:
             out_b_after=self.output.b[:],
         )
 
-    def train(self, samples: Sequence[dict], epochs: int) -> List[float]:
-        losses: List[float] = []
+    def train(self, samples: Sequence[dict], epochs: int) -> list[float]:
+        losses: list[float] = []
         for _ in range(epochs):
             epoch_loss = 0.0
             for sample in samples:

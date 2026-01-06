@@ -29,7 +29,7 @@ const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression";
 
 export default function App() {
-  const [apiBase, setApiBase] = useState(DEFAULT_API_BASE);
+  const [apiBase] = useState(DEFAULT_API_BASE);
   const [lr, setLr] = useState(1);
   const [customConfig, setCustomConfig] = useState(defaultCustomConfig());
   const [customModalOpen, setCustomModalOpen] = useState(false);
@@ -226,6 +226,7 @@ export default function App() {
 
   useEffect(() => {
     void reset(apiConfig, state.datasetName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

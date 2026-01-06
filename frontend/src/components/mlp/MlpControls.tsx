@@ -7,24 +7,19 @@ type MlpControlsProps = {
   onHiddenDimChange: (value: number) => void;
   onLrChange: (value: number) => void;
   onSeedChange: (value: number) => void;
-  onStep: () => void;
-  onReset: () => void;
 };
 
 export function MlpControls({
   hiddenDim,
   lr,
   seed,
-  loading,
-  disabled,
   onHiddenDimChange,
   onLrChange,
   onSeedChange,
-  onStep,
-  onReset,
 }: MlpControlsProps) {
   return (
     <div className="mlp-controls">
+      <h3>MLP Configuration</h3>
       <div className="diag-controls compact">
         <label>
           Hidden units
@@ -37,7 +32,7 @@ export function MlpControls({
           />
         </label>
         <label>
-          LR
+          Learning rate
           <input
             type="number"
             step="0.05"
@@ -50,14 +45,6 @@ export function MlpControls({
           Seed
           <input type="number" value={seed} onChange={(event) => onSeedChange(Number(event.target.value))} />
         </label>
-        <div className="mlp-actions">
-          <button type="button" onClick={onStep} disabled={loading || disabled}>
-            Step
-          </button>
-          <button type="button" onClick={onReset} disabled={loading || disabled}>
-            Reset
-          </button>
-        </div>
       </div>
     </div>
   );

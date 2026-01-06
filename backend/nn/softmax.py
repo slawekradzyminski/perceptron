@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable, List
+from collections.abc import Iterable
 
 
-def softmax(logits: Iterable[float]) -> List[float]:
+def softmax(logits: Iterable[float]) -> list[float]:
     """Stable softmax over a 1D iterable."""
     values = list(logits)
     if not values:
@@ -28,11 +28,11 @@ def cross_entropy_from_logits(logits: Iterable[float], target_index: int, eps: f
     return -math.log(p)
 
 
-def grad_logits_softmax_ce(logits: Iterable[float], target_index: int) -> List[float]:
+def grad_logits_softmax_ce(logits: Iterable[float], target_index: int) -> list[float]:
     """Gradient of softmax+cross-entropy with respect to logits."""
     probs = softmax(logits)
     if target_index < 0 or target_index >= len(probs):
         raise IndexError("target_index out of range")
-    grads = [p for p in probs]
+    grads = list(probs)
     grads[target_index] -= 1.0
     return grads

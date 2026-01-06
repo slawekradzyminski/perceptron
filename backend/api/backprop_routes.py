@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 
@@ -10,12 +10,12 @@ router = APIRouter(prefix="/backprop")
 
 
 @router.get("/state")
-def backprop_state() -> Dict[str, Any]:
+def backprop_state() -> dict[str, Any]:
     return backprop_service.state()
 
 
 @router.post("/tinygps/reset")
-def tinygps_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def tinygps_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     dataset = body.get("dataset")
     lr = body.get("lr")
     params = body.get("params")
@@ -36,12 +36,12 @@ def tinygps_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str
 
 
 @router.post("/tinygps/step")
-def tinygps_step() -> Dict[str, Any]:
+def tinygps_step() -> dict[str, Any]:
     return backprop_service.step_tinygps()
 
 
 @router.post("/regression/reset")
-def regression_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def regression_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     loss = body.get("loss")
     lr = body.get("lr")
     samples = body.get("samples")
@@ -65,5 +65,5 @@ def regression_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[
 
 
 @router.post("/regression/step")
-def regression_step() -> Dict[str, Any]:
+def regression_step() -> dict[str, Any]:
     return backprop_service.step_regression()

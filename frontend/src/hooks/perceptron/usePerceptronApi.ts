@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import type { LastStep } from "../types";
-import type { CustomConfig } from "../types";
+import type { LastStep } from "../../types";
+import type { CustomConfig } from "../../types";
 import { buildCustomPayload } from "../../utils/custom";
 
 export type ApiState = {

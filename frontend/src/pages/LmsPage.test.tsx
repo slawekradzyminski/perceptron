@@ -53,8 +53,8 @@ test("renders LMS page and loads state", async () => {
         dataset: "or",
       }),
     } as Response;
-  }) as typeof fetch;
-  global.fetch = fetchMock;
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
 
   render(
     <LmsPage
@@ -67,10 +67,10 @@ test("renders LMS page and loads state", async () => {
   expect(screen.getByText("LMS (Widrow–Hoff) Exercise")).toBeInTheDocument();
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
   const resetCall = fetchMock.mock.calls.find((call) =>
-    typeof call[0] === "string" ? call[0].endsWith("/lms/reset") : call[0].url.endsWith("/lms/reset"),
+    typeof call[0] === "string" ? call[0].endsWith("/lms/reset") : (call[0] as Request).url.endsWith("/lms/reset"),
   );
   expect(resetCall).toBeTruthy();
-  const resetBody = JSON.parse(resetCall?.[1]?.body as string);
+  const resetBody = JSON.parse((resetCall?.[1] as RequestInit)?.body as string);
   expect(resetBody.lr).toBe(0.1);
   expect(screen.getByText("Click Step to start filling the LMS table.")).toBeInTheDocument();
   expect(screen.getByText("Error trend (E = (y − ŷ)²)")).toBeInTheDocument();

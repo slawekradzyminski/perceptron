@@ -5,9 +5,9 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
-from backend.services.ollama_client import OllamaClient, NextTokenStats
+from backend.services.ollama_client import NextTokenStats, OllamaClient
 
 
 @dataclass(frozen=True)
@@ -259,18 +259,20 @@ class GdService:
             },
         ]
 
-    def loss_curves(self, points: int = 50, eps: float = 1e-3) -> Dict[str, Any]:
+    def loss_curves(self, points: int = 50, eps: float = 1e-3) -> dict[str, Any]:
         if points < 2:
             raise ValueError("points must be >= 2")
-        values: List[Dict[str, float]] = []
+        values: list[dict[str, float]] = []
         for idx in range(points):
             t = idx / (points - 1)
             p = eps + t * (1.0 - eps)
-            values.append({
-                "p": p,
-                "l1": 1.0 - p,
-                "ce": -math.log(p),
-            })
+            values.append(
+                {
+                    "p": p,
+                    "l1": 1.0 - p,
+                    "ce": -math.log(p),
+                }
+            )
         return {"points": values}
 
     def token_loss_examples(
@@ -278,7 +280,7 @@ class GdService:
         source_override: str | None = None,
         example_id: str | None = None,
         prompt: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         source = source_override or self._config.token_source
         if source == "ollama":
             if self._client is None:
@@ -298,7 +300,7 @@ class GdService:
                 return payload
         return self._token_loss_examples_static(example_id=example_id)
 
-    def _token_loss_examples_static(self, example_id: str | None = None) -> Dict[str, Any]:
+    def _token_loss_examples_static(self, example_id: str | None = None) -> dict[str, Any]:
         examples = []
         for example in self._examples:
             if example_id and example["id"] != example_id:
@@ -312,31 +314,35 @@ class GdService:
                 ce = -math.log(max(p_correct, 1e-12))
                 l1_losses.append(l1)
                 ce_losses.append(ce)
-                rows.append({
-                    "context": row["context"],
-                    "correct_token": row["correct_token"],
-                    "p_correct": p_correct,
-                    "top_token": row["top_token"],
-                    "top_prob": row["top_prob"],
-                    "l1_loss": l1,
-                    "ce_loss": ce,
-                })
+                rows.append(
+                    {
+                        "context": row["context"],
+                        "correct_token": row["correct_token"],
+                        "p_correct": p_correct,
+                        "top_token": row["top_token"],
+                        "top_prob": row["top_prob"],
+                        "l1_loss": l1,
+                        "ce_loss": ce,
+                    }
+                )
             l1_avg = sum(l1_losses) / len(l1_losses)
             ce_avg = sum(ce_losses) / len(ce_losses)
-            examples.append({
-                "id": example["id"],
-                "title": example["title"],
-                "description": example["description"],
-                "average": {"l1": l1_avg, "ce": ce_avg},
-                "rows": rows,
-            })
+            examples.append(
+                {
+                    "id": example["id"],
+                    "title": example["title"],
+                    "description": example["description"],
+                    "average": {"l1": l1_avg, "ce": ce_avg},
+                    "rows": rows,
+                }
+            )
         return {"source": "static", "examples": examples}
 
     def _token_loss_examples_ollama(
         self,
         example_id: str | None = None,
         prompt: str | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         examples = []
         warning = None
         if example_id == "custom":
@@ -364,15 +370,17 @@ class GdService:
                 ce = -math.log(max(p_correct, 1e-12))
                 l1_losses.append(l1)
                 ce_losses.append(ce)
-                rows.append({
-                    "context": row["context"],
-                    "correct_token": correct_token,
-                    "p_correct": p_correct,
-                    "top_token": top_token,
-                    "top_prob": top_prob,
-                    "l1_loss": l1,
-                    "ce_loss": ce,
-                })
+                rows.append(
+                    {
+                        "context": row["context"],
+                        "correct_token": correct_token,
+                        "p_correct": p_correct,
+                        "top_token": top_token,
+                        "top_prob": top_prob,
+                        "l1_loss": l1,
+                        "ce_loss": ce,
+                    }
+                )
             warnings = []
             if missing:
                 warnings.append(f"correct_token_missing_in_top_logprobs: {missing}")
@@ -380,13 +388,15 @@ class GdService:
                 warning = "; ".join(warnings)
             l1_avg = sum(l1_losses) / len(l1_losses)
             ce_avg = sum(ce_losses) / len(ce_losses)
-            examples.append({
-                "id": example["id"],
-                "title": example["title"],
-                "description": example["description"],
-                "average": {"l1": l1_avg, "ce": ce_avg},
-                "rows": rows,
-            })
+            examples.append(
+                {
+                    "id": example["id"],
+                    "title": example["title"],
+                    "description": example["description"],
+                    "average": {"l1": l1_avg, "ce": ce_avg},
+                    "rows": rows,
+                }
+            )
         payload = {"source": "ollama", "examples": examples}
         if warning:
             payload["warning"] = warning
@@ -396,7 +406,7 @@ class GdService:
             ) + "ollama_default_example: france-paris"
         return payload
 
-    def _token_loss_custom_ollama(self, prompt: str) -> Dict[str, Any]:
+    def _token_loss_custom_ollama(self, prompt: str) -> dict[str, Any]:
         prompt = prompt.strip()
         if not prompt:
             return {
@@ -421,26 +431,30 @@ class GdService:
             l1_losses.append(l1)
             ce_losses.append(ce)
             context = "<begin_of_text>" if not prefix else f"<begin_of_text> {prefix}"
-            rows.append({
-                "context": context,
-                "correct_token": token,
-                "p_correct": p_correct,
-                "top_token": stats.top_token,
-                "top_prob": stats.top_prob,
-                "l1_loss": l1,
-                "ce_loss": ce,
-            })
+            rows.append(
+                {
+                    "context": context,
+                    "correct_token": token,
+                    "p_correct": p_correct,
+                    "top_token": stats.top_token,
+                    "top_prob": stats.top_prob,
+                    "l1_loss": l1,
+                    "ce_loss": ce,
+                }
+            )
         l1_avg = sum(l1_losses) / len(l1_losses)
         ce_avg = sum(ce_losses) / len(ce_losses)
         payload = {
             "source": "ollama",
-            "examples": [{
-                "id": "custom",
-                "title": prompt,
-                "description": "Custom prompt",
-                "average": {"l1": l1_avg, "ce": ce_avg},
-                "rows": rows,
-            }],
+            "examples": [
+                {
+                    "id": "custom",
+                    "title": prompt,
+                    "description": "Custom prompt",
+                    "average": {"l1": l1_avg, "ce": ce_avg},
+                    "rows": rows,
+                }
+            ],
         }
         warnings = []
         if missing:
@@ -449,7 +463,7 @@ class GdService:
         payload["warning"] = "; ".join(warnings)
         return payload
 
-    def ollama_status(self) -> Dict[str, Any]:
+    def ollama_status(self) -> dict[str, Any]:
         if self._client is None:
             self._client = OllamaClient(
                 self._config.ollama_base_url,
@@ -460,7 +474,7 @@ class GdService:
             )
         return self._client.status()
 
-    def next_token_logprobs(self, prompt: str, limit: int | None = None) -> Dict[str, Any]:
+    def next_token_logprobs(self, prompt: str, limit: int | None = None) -> dict[str, Any]:
         if self._client is None:
             self._client = OllamaClient(
                 self._config.ollama_base_url,

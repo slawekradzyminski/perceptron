@@ -2,26 +2,20 @@ type TinyGpsControlsProps = {
   datasets: string[];
   dataset: string;
   lr: number;
-  loading: boolean;
-  hasState: boolean;
   coords: Array<[string, [number, number][]]>;
   onDatasetChange: (value: string) => void;
   onLrChange: (value: number) => void;
   onLrCommit?: () => void;
-  onReset: () => void;
 };
 
 export function TinyGpsControls({
   datasets,
   dataset,
   lr,
-  loading,
-  hasState,
   coords,
   onDatasetChange,
   onLrChange,
   onLrCommit,
-  onReset,
 }: TinyGpsControlsProps) {
   return (
     <div className="panel backprop-card">
@@ -52,9 +46,6 @@ export function TinyGpsControls({
             <span>{lr.toFixed(2)}</span>
           </div>
         </label>
-        <button type="button" className="ghost" onClick={onReset} disabled={loading || !hasState}>
-          Reset TinyGPS
-        </button>
         {coords.length > 0 && (
           <div className="tinygps-coords-inline">
             {coords.map(([city, points]) => (

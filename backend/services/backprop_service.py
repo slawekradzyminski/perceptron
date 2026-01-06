@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Sequence
+from typing import Any, Literal
 
 from backend.core.datasets import (
     make_tinygps_dataset_1d,
@@ -13,7 +13,9 @@ from backend.core.datasets import (
     tinygps_city_coords,
     tinygps_city_coords_exercise,
 )
-from backend.nn.regression import LossType, backward as reg_backward, forward as reg_forward
+from backend.nn.regression import LossType
+from backend.nn.regression import backward as reg_backward
+from backend.nn.regression import forward as reg_forward
 from backend.nn.tinygps import (
     backward_1d,
     backward_2d,
@@ -25,13 +27,38 @@ from backend.nn.tinygps import (
 
 TinyGpsMode = Literal["1d", "2d"]
 
-TINYGPS_DATASETS: Dict[str, Dict[str, Any]] = {
-    "paris-berlin": {"mode": "1d", "cities": ["paris", "berlin"]},
-    "paris-madrid": {"mode": "1d", "cities": ["paris", "madrid"]},
-    "paris-berlin-4": {"mode": "1d", "cities": ["paris", "berlin"], "exercise": True},
-    "paris-madrid-4": {"mode": "1d", "cities": ["paris", "madrid"], "exercise": True},
-    "madrid-paris-berlin": {"mode": "1d", "cities": ["madrid", "paris", "berlin"]},
-    "four-cities": {"mode": "2d", "cities": ["madrid", "paris", "berlin", "barcelona"]},
+TINYGPS_DATASETS: dict[str, dict[str, Any]] = {
+    "paris-berlin-4": {
+        "mode": "1d",
+        "cities": ["paris", "berlin"],
+        "exercise": True,
+        "default_m": [-1.0, 1.0],
+        "default_b": [0.0, 0.0],
+    },
+    "paris-madrid-4": {
+        "mode": "1d",
+        "cities": ["paris", "madrid"],
+        "exercise": True,
+        "default_m": [-1.0, 0.5],
+        "default_b": [0.0, 0.0],
+    },
+    "madrid-paris-berlin": {
+        "mode": "1d",
+        "cities": ["madrid", "paris", "berlin"],
+        "default_m": [1.0, 0.0, -1.0],
+        "default_b": [0.0, 0.0, 0.0],
+    },
+    "four-cities": {
+        "mode": "2d",
+        "cities": ["madrid", "paris", "berlin", "barcelona"],
+        "default_M": [
+            [-0.196, -0.622],  # Madrid
+            [0.229, 0.297],    # Paris
+            [0.677, 0.758],    # Berlin
+            [-0.51, 0.609],    # Barcelona
+        ],
+        "default_b": [-1.430, 1.406, -0.560, -0.200],
+    },
 }
 
 DEFAULT_REGRESSION_SAMPLES = [
@@ -46,20 +73,20 @@ DEFAULT_REGRESSION_SAMPLES = [
 class TinyGpsState:
     dataset: str
     mode: TinyGpsMode
-    samples: List[Dict[str, Any]]
-    sample_order: List[int]
+    samples: list[dict[str, Any]]
+    sample_order: list[int]
     idx: int
     lr: float
-    m: List[float]
-    b: List[float]
-    M: List[List[float]]
+    m: list[float]
+    b: list[float]
+    M: list[list[float]]
 
 
 @dataclass
 class RegressionState:
     loss: LossType
-    samples: List[Dict[str, float]]
-    sample_order: List[int]
+    samples: list[dict[str, float]]
+    sample_order: list[int]
     idx: int
     lr: float
     m: float
@@ -78,13 +105,18 @@ class BackpropService:
         config = TINYGPS_DATASETS[dataset]
         mode = config["mode"]
         cities = config["cities"]
+        k = len(cities)
+
+        # Use default params from config if available, otherwise zeros
+        default_m = config.get("default_m", [0.0] * k)
+        default_b = config.get("default_b", [0.0] * k)
+
         if mode == "1d":
             if config.get("exercise"):
                 samples = make_tinygps_dataset_1d_from_coords(tinygps_city_coords_exercise(), cities)
-                k = len(cities)
-                m = [0.0 for _ in range(k)]
-                b = [0.0 for _ in range(k)]
-                M: List[List[float]] = []
+                m = list(default_m)
+                b = list(default_b)
+                M: list[list[float]] = []
                 sample_order = list(range(len(samples)))
                 return TinyGpsState(
                     dataset=dataset,
@@ -101,16 +133,16 @@ class BackpropService:
                 samples = make_tinygps_dataset_1d(cities[0], cities[1])
             else:
                 samples = make_tinygps_dataset_1d_multi(cities)
-            k = len(cities)
-            m = [0.0 for _ in range(k)]
-            b = [0.0 for _ in range(k)]
-            M: List[List[float]] = []
+            m = list(default_m)
+            b = list(default_b)
+            M = []
         else:
             samples = make_tinygps_dataset_2d(cities)
-            k = len(cities)
             m = []
-            b = [0.0 for _ in range(k)]
-            M = [[0.0, 0.0] for _ in range(k)]
+            b = list(default_b)
+            # Use default M if available, otherwise zeros
+            default_M = config.get("default_M")
+            M = [list(row) for row in default_M] if default_M else [[0.0, 0.0] for _ in range(k)]
         sample_order = list(range(len(samples)))
         return TinyGpsState(
             dataset=dataset,
@@ -124,7 +156,7 @@ class BackpropService:
             M=M,
         )
 
-    def _init_regression(self, samples: List[Dict[str, float]], loss: LossType, lr: float) -> RegressionState:
+    def _init_regression(self, samples: list[dict[str, float]], loss: LossType, lr: float) -> RegressionState:
         if not samples:
             raise ValueError("regression samples must be non-empty")
         if loss not in ("mse", "l1"):
@@ -136,9 +168,9 @@ class BackpropService:
         self,
         dataset: str | None = None,
         lr: float | None = None,
-        params: Dict[str, Any] | None = None,
-        order: List[int] | None = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        order: list[int] | None = None,
+    ) -> dict[str, Any]:
         dataset_name = dataset or self._tinygps.dataset
         lr_value = self._tinygps.lr if lr is None else lr
         self._tinygps = self._init_tinygps(dataset_name, lr_value)
@@ -171,10 +203,10 @@ class BackpropService:
         self,
         loss: LossType | None = None,
         lr: float | None = None,
-        samples: List[Dict[str, float]] | None = None,
-        order: List[int] | None = None,
-        params: Dict[str, float] | None = None,
-    ) -> Dict[str, Any]:
+        samples: list[dict[str, float]] | None = None,
+        order: list[int] | None = None,
+        params: dict[str, float] | None = None,
+    ) -> dict[str, Any]:
         loss_name = loss or self._regression.loss
         lr_value = self._regression.lr if lr is None else lr
         sample_list = samples if samples is not None else self._regression.samples
@@ -193,7 +225,7 @@ class BackpropService:
             self._regression.sample_order = order
         return self.regression_state()
 
-    def tinygps_state(self) -> Dict[str, Any]:
+    def tinygps_state(self) -> dict[str, Any]:
         state = self._tinygps
         sample = state.samples[state.idx]
         return {
@@ -203,7 +235,7 @@ class BackpropService:
             "idx": state.idx,
             "lr": state.lr,
             "sample_count": len(state.samples),
-            "feature_order": ["lon"] if state.mode == "1d" else ["lat", "lon"],
+            "feature_order": ["lon"] if state.mode == "1d" else ["lon", "lat"],
             "sample_order": state.sample_order,
             "samples": state.samples,
             "params": {
@@ -214,7 +246,7 @@ class BackpropService:
             "next_sample": sample,
         }
 
-    def regression_state(self) -> Dict[str, Any]:
+    def regression_state(self) -> dict[str, Any]:
         state = self._regression
         sample = state.samples[state.idx]
         return {
@@ -228,7 +260,7 @@ class BackpropService:
             "sample_order": state.sample_order,
         }
 
-    def state(self) -> Dict[str, Any]:
+    def state(self) -> dict[str, Any]:
         return {
             "tinygps": self.tinygps_state(),
             "regression": self.regression_state(),
@@ -236,7 +268,7 @@ class BackpropService:
             "tinygps_city_coords": self._city_coords,
         }
 
-    def step_tinygps(self) -> Dict[str, Any]:
+    def step_tinygps(self) -> dict[str, Any]:
         state = self._tinygps
         sample_idx = state.idx
         sample = state.samples[sample_idx]
@@ -265,7 +297,7 @@ class BackpropService:
         pred = max(range(len(forward.probs)), key=lambda idx: forward.probs[idx])
         correct = pred == sample["y"]
 
-        def logits_fn(s: Dict[str, Any]) -> List[float]:
+        def logits_fn(s: dict[str, Any]) -> list[float]:
             if state.mode == "1d":
                 return [mk * s["x"][0] + bk for mk, bk in zip(state.m, state.b)]
             return [row[0] * s["x"][0] + row[1] * s["x"][1] + bk for row, bk in zip(state.M, state.b)]
@@ -284,7 +316,7 @@ class BackpropService:
             "idx": state.idx,
             "sample_idx": sample_idx,
             "lr": state.lr,
-            "feature_order": ["lon"] if state.mode == "1d" else ["lat", "lon"],
+            "feature_order": ["lon"] if state.mode == "1d" else ["lon", "lat"],
             "sample": sample,
             "logits": forward.logits,
             "probs": forward.probs,
@@ -302,7 +334,7 @@ class BackpropService:
             "sample_count": len(state.samples),
         }
 
-    def step_regression(self) -> Dict[str, Any]:
+    def step_regression(self) -> dict[str, Any]:
         state = self._regression
         sample_idx = state.idx
         sample = state.samples[sample_idx]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Sequence, Tuple
+from collections.abc import Sequence
 
 
 def decision_boundary_points(
@@ -10,7 +10,7 @@ def decision_boundary_points(
     b: float,
     x_min: float = -1.5,
     x_max: float = 1.5,
-) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+) -> tuple[tuple[float, float], tuple[float, float]]:
     """Return two points for the decision boundary line w1*x + w2*y + b = 0.
 
     If w2 == 0, returns a vertical line x = -b / w1.
@@ -32,9 +32,8 @@ def decision_boundary_points(
 
 # Optional matplotlib rendering, imported lazily to avoid hard dependency.
 
-def plot_points_and_boundary(ax, X: List[Sequence[float]], y: List[int], w, b) -> None:
-    import matplotlib.pyplot as plt  # type: ignore
 
+def plot_points_and_boundary(ax, X: list[Sequence[float]], y: list[int], w, b) -> None:
     colors = ["#1f77b4" if label == 1 else "#d62728" for label in y]
     xs = [p[0] for p in X]
     ys = [p[1] for p in X]

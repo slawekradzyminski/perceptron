@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import argparse
-from typing import Dict, List
 
 from backend.core.datasets import make_and_dataset_pm1, make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.core.metrics import accuracy, count_mistakes
 from backend.core.perceptron import Perceptron
-
 
 DATASETS = {
     "or": make_or_dataset_pm1,
@@ -17,14 +15,14 @@ DATASETS = {
 }
 
 
-def run_training(dataset: str, epochs: int, lr: float, seed: int | None = 0) -> Dict[str, List[float]]:
+def run_training(dataset: str, epochs: int, lr: float, seed: int | None = 0) -> dict[str, list[float]]:
     if dataset not in DATASETS:
         raise ValueError("dataset must be one of: or, and, xor")
     samples = DATASETS[dataset]()
     p = Perceptron(dim=2, lr=lr, seed=seed, init="zeros")
 
-    mistake_history: List[float] = []
-    accuracy_history: List[float] = []
+    mistake_history: list[float] = []
+    accuracy_history: list[float] = []
 
     for _ in range(epochs):
         results = p.train_epoch(samples, lr=lr, shuffle=True)

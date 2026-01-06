@@ -17,11 +17,11 @@ def test_dense_forward_backward_shapes():
 
 def test_dense_apply_gradients():
     layer = DenseLayer(2, 1, activation=sigmoid, activation_prime_from_output=sigmoid_prime_from_output)
-    out = layer.forward([1.0, 1.0])
+    layer.forward([1.0, 1.0])
     grad_W, grad_b, _ = layer.backward([0.5])
     w_before = [row[:] for row in layer.W]
     layer.apply_gradients(grad_W, grad_b, lr=0.1)
-    assert layer.W != w_before
+    assert w_before != layer.W
 
 
 def test_dense_requires_forward():

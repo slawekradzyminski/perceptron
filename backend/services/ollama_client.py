@@ -6,14 +6,14 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass(frozen=True)
 class NextTokenStats:
     top_token: str
     top_prob: float
-    probs: Dict[str, float]
+    probs: dict[str, float]
     latency_ms: float | None = None
 
 
@@ -42,7 +42,7 @@ class OllamaClient:
     def base_url(self) -> str:
         return self._base_url
 
-    def generate_logprobs(self, prompt: str) -> Dict[str, Any]:
+    def generate_logprobs(self, prompt: str) -> dict[str, Any]:
         payload = {
             "model": self._model,
             "prompt": prompt,
@@ -66,7 +66,7 @@ class OllamaClient:
         top_token, top_prob = self._pick_top_token(probs, data.get("response", ""))
         return NextTokenStats(top_token=top_token, top_prob=top_prob, probs=probs, latency_ms=latency_ms)
 
-    def status(self) -> Dict[str, Any]:
+    def status(self) -> dict[str, Any]:
         try:
             version = self._get_json("/api/version")
             tags = self._get_json("/api/tags")
@@ -88,20 +88,20 @@ class OllamaClient:
                 "last_latency_ms": self._last_latency_ms,
             }
 
-    def _pick_top_token(self, probs: Dict[str, float], fallback: str) -> tuple[str, float]:
+    def _pick_top_token(self, probs: dict[str, float], fallback: str) -> tuple[str, float]:
         if probs:
             token, prob = max(probs.items(), key=lambda item: item[1])
             return token, prob
         return fallback, 0.0
 
-    def _extract_top_probs(self, data: Dict[str, Any]) -> Dict[str, float]:
+    def _extract_top_probs(self, data: dict[str, Any]) -> dict[str, float]:
         logprobs = data.get("logprobs") or {}
         if isinstance(logprobs, list):
             first = logprobs[0] if logprobs else None
             if isinstance(first, dict):
                 top_logprobs = first.get("top_logprobs")
                 if isinstance(top_logprobs, list):
-                    probs: Dict[str, float] = {}
+                    probs: dict[str, float] = {}
                     for item in top_logprobs:
                         if not isinstance(item, dict):
                             continue
@@ -117,19 +117,19 @@ class OllamaClient:
                     return {token: math.exp(logprob)}
             return {}
         top_logprobs = logprobs.get("top_logprobs") if isinstance(logprobs, dict) else None
-        top_map: Dict[str, Any] = {}
+        top_map: dict[str, Any] = {}
         if isinstance(top_logprobs, list):
             if top_logprobs:
                 top_map = top_logprobs[0] or {}
         elif isinstance(top_logprobs, dict):
             top_map = top_logprobs
-        probs: Dict[str, float] = {}
+        probs: dict[str, float] = {}
         for token, logprob in top_map.items():
             if isinstance(logprob, (int, float)):
                 probs[token] = math.exp(logprob)
         return probs
 
-    def _post_json(self, path: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         url = f"{self._base_url}{path}"
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
@@ -137,7 +137,7 @@ class OllamaClient:
             body = resp.read()
         return json.loads(body.decode("utf-8"))
 
-    def _get_json(self, path: str) -> Dict[str, Any]:
+    def _get_json(self, path: str) -> dict[str, Any]:
         url = f"{self._base_url}{path}"
         with urllib.request.urlopen(url, timeout=self._timeout_s) as resp:
             body = resp.read()

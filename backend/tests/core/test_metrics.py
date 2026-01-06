@@ -12,7 +12,10 @@ def test_accuracy():
         {"x": [-1], "y": -1},
         {"x": [1], "y": 1},
     ]
-    predict = lambda x: 1 if x[0] > 0 else -1
+
+    def predict(x):
+        return 1 if x[0] > 0 else -1
+
     assert accuracy(samples, predict) == 1.0
 
 
@@ -20,5 +23,8 @@ def test_margin_helpers():
     assert margin(1, 2.5) == 2.5
     assert margin(-1, 2.5) == -2.5
     samples = [{"x": [1], "y": 1}, {"x": [1], "y": -1}]
-    score = lambda x: 0.5
+
+    def score(_x):
+        return 0.5
+
     assert margins(samples, score) == [0.5, -0.5]

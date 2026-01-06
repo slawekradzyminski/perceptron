@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 
@@ -8,10 +8,10 @@ from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 class LmsService:
     def __init__(self, lr: float = 0.1, dataset: str = "or") -> None:
         self.lr = lr
-        self.custom_samples: Optional[List[Dict[str, Any]]] = None
+        self.custom_samples: list[dict[str, Any]] | None = None
         self.set_dataset(dataset)
 
-    def set_dataset(self, name: str, custom_samples: Optional[List[Dict[str, Any]]] = None) -> None:
+    def set_dataset(self, name: str, custom_samples: list[dict[str, Any]] | None = None) -> None:
         if name == "or":
             samples = make_or_dataset_pm1()
         elif name == "xor":
@@ -33,13 +33,13 @@ class LmsService:
     def set_lr(self, lr: float) -> None:
         self.lr = lr
 
-    def reset(self) -> Dict[str, Any]:
+    def reset(self) -> dict[str, Any]:
         self.idx = 0
         self.w = [0.0, 0.0]
         self.b = 0.0
         return self.state()
 
-    def state(self) -> Dict[str, Any]:
+    def state(self) -> dict[str, Any]:
         sample = self.samples[self.idx]
         return {
             "w": self.w,
@@ -52,7 +52,7 @@ class LmsService:
             "dataset": self.dataset,
         }
 
-    def step(self) -> Dict[str, Any]:
+    def step(self) -> dict[str, Any]:
         sample = self.samples[self.idx]
         x1, x2 = sample["x"]
         y = sample["y"]

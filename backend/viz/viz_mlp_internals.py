@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from typing import List
-
 try:
     import matplotlib.pyplot as plt  # type: ignore
 except Exception:  # pragma: no cover
     plt = None
 
 
-def plot_heatmap(grid: List[List[float]], title: str = "") -> None:
+def plot_heatmap(grid: list[list[float]], title: str = "") -> None:
     if plt is None:
         raise RuntimeError("matplotlib is required for plotting")
     plt.imshow(grid, cmap="coolwarm")
@@ -19,7 +17,7 @@ def plot_heatmap(grid: List[List[float]], title: str = "") -> None:
         plt.title(title)
 
 
-def plot_templates(templates: List[List[List[float]]], title_prefix: str = "Template") -> None:
+def plot_templates(templates: list[list[list[float]]], title_prefix: str = "Template") -> None:
     if plt is None:
         raise RuntimeError("matplotlib is required for plotting")
     count = len(templates)

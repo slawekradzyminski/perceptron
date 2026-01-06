@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Callable, Iterable, List
+from collections.abc import Callable, Iterable
 
 
-def finite_diff_grad(func: Callable[[List[float]], float], theta: Iterable[float], eps: float = 1e-5) -> List[float]:
+def finite_diff_grad(func: Callable[[list[float]], float], theta: Iterable[float], eps: float = 1e-5) -> list[float]:
     """Central-difference gradient estimate for a scalar function."""
     values = list(theta)
     if not values:
         raise ValueError("theta must be non-empty")
-    grads: List[float] = []
+    grads: list[float] = []
     for idx in range(len(values)):
         theta_plus = values.copy()
         theta_minus = values.copy()

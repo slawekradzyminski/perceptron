@@ -21,7 +21,7 @@ class _FakeAxis:
         self.title = None
         self.axis_calls = []
 
-    def imshow(self, _grid, cmap=None):
+    def imshow(self, _grid, cmap=None):  # noqa: ARG002
         self.imshow_calls += 1
 
     def set_title(self, title):
@@ -56,7 +56,7 @@ class _FakePlt:
         self._axes = []
         self._fig = _FakeFig()
 
-    def imshow(self, _grid, cmap=None):
+    def imshow(self, _grid, cmap=None):  # noqa: ARG002
         self.imshow_calls += 1
 
     def colorbar(self):

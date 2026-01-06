@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { CustomConfig, LmsState, LmsStep } from "../types";
+import type { CustomConfig, LmsState, LmsStep } from "../../types";
 import { buildCustomPayload } from "../../utils/custom";
 
 type ResetOptions = {

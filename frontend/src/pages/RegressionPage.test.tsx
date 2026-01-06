@@ -34,7 +34,7 @@ const mockState = {
     ],
     sample_order: [0, 1, 2, 3],
   },
-  tinygps_datasets: ["paris-berlin", "paris-madrid", "madrid-paris-berlin", "four-cities"],
+  tinygps_datasets: ["paris-berlin-4", "paris-madrid-4", "madrid-paris-berlin", "four-cities"],
   tinygps_city_coords: {
     madrid: [[40.4167, -3.7033]],
     paris: [[48.8575, 2.3514]],
@@ -63,16 +63,13 @@ vi.mock("../hooks/common/useHotkeys", () => ({
   useHotkeys: vi.fn(),
 }));
 
-test("renders Regression page and triggers step", async () => {
+test("renders Regression page and uses keyboard shortcuts", async () => {
   render(<RegressionPage apiBase="http://127.0.0.1:8000" />);
   expect(screen.getByText("Backprop Lab (Chapter 3)")).toBeInTheDocument();
-  expect(screen.getByText("Dataset Editor")).toBeInTheDocument();
-  expect(screen.getByText("Book Table Mode")).toBeInTheDocument();
-  expect(screen.getByText("Book Presets")).toBeInTheDocument();
+  expect(screen.getByText("Regression Controls")).toBeInTheDocument();
+  expect(screen.getByText("Book Exercise Setup")).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole("button", { name: "Step Regression" }));
-  expect(stepRegression).toHaveBeenCalled();
-
+  // Step/Reset buttons removed - using keyboard shortcuts instead
   fireEvent.change(screen.getByLabelText("Loss"), { target: { value: "l1" } });
   expect(resetRegression).toHaveBeenCalled();
 

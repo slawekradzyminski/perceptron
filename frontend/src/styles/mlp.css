@@ -1,32 +1,189 @@
+/* MLP Trainer Page Styles - Matching TinyGPS/Regression aesthetic */
 .mlp-train {
   grid-column: 1 / -1;
+  background: linear-gradient(135deg, #f0fff4 0%, #fff0f6 100%);
+  max-width: 100%;
+  margin: 0;
 }
+
 .mlp-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-end;
 }
+
+.mlp-actions button {
+  position: relative;
+  padding: 10px 20px;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.mlp-actions button:first-child {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  border: 2px solid #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.mlp-actions button:first-child:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+}
+
+.mlp-actions button:not(:first-child) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed var(--grid);
+}
+
+.mlp-actions button:not(:first-child):hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #a89278;
+}
+
+/* Main grid layout */
 .mlp-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(260px, 340px);
   grid-template-areas:
     "controls diagram side"
     "controls boundary side"
     "templates templates preds";
-  gap: 16px;
+  gap: 20px;
   align-items: start;
 }
+
+/* Controls section */
 .mlp-controls {
   grid-area: controls;
   display: grid;
-  gap: 12px;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
 }
+
+.mlp-controls:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
+.mlp-controls h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #4a3b2b;
+}
+
+.mlp-controls label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5c4a39;
+}
+
+.mlp-controls input,
+.mlp-controls select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--grid);
+  font-family: "IBM Plex Mono", monospace;
+  background: #fffdf8;
+  transition: all 0.2s ease;
+}
+
+.mlp-controls input:focus,
+.mlp-controls select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Network diagram */
 .mlp-diagram {
   grid-area: diagram;
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 253, 248, 0.95) 100%);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
 }
+
+.mlp-diagram:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
+.mlp-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mlp-node {
+  fill: #fffdf8;
+  stroke: #c7b299;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.mlp-node.hidden {
+  stroke: #10b981;
+  fill: rgba(16, 185, 129, 0.08);
+}
+
+.mlp-node.output {
+  stroke: #8b5cf6;
+  fill: rgba(139, 92, 246, 0.08);
+}
+
+.mlp-weight-text {
+  font-size: 10px;
+  fill: #5a4733;
+}
+
+.mlp-bias-text {
+  font-size: 10px;
+  fill: #7c6a58;
+}
+
+.mlp-diagram line {
+  stroke: #a89278;
+  stroke-width: 1.5;
+  transition: stroke 0.3s ease;
+}
+
+.mlp-equations {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #4a3b2b;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(255, 253, 248, 0.7);
+  border-radius: 12px;
+  border: 1px solid var(--grid);
+}
+
+/* Boundary visualization */
 .mlp-boundary {
   grid-area: boundary;
 }
+
+.mlp-boundary .panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.mlp-boundary .panel:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
 .mlp-boundary .plot-canvas {
   width: 100%;
   max-width: 300px;
@@ -34,158 +191,253 @@
   aspect-ratio: 1 / 1;
   display: block;
   margin: 0 auto;
+  border-radius: 12px;
 }
+
 .mlp-boundary-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 10px;
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(255, 253, 248, 0.8);
+  border-radius: 10px;
+  border: 1px solid var(--grid);
 }
+
+/* Side panel */
 .mlp-side {
   grid-area: side;
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
-.mlp-templates {
-  grid-area: templates;
-}
-.mlp-preds {
-  grid-area: preds;
-}
-.mlp-diagram {
-  border: 1px solid var(--grid);
-  border-radius: 16px;
-  padding: 12px;
-  background: #fffdf8;
-}
-.mlp-diagram svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.mlp-node {
-  fill: #fffdf8;
-  stroke: #c7b299;
-  stroke-width: 2;
-}
-.mlp-node.hidden {
-  stroke: #1f7a6a;
-}
-.mlp-node.output {
-  stroke: #6b3fa0;
-}
-.mlp-weight-text {
-  font-size: 10px;
-  fill: #5a4733;
-}
-.mlp-bias-text {
-  font-size: 10px;
-  fill: #7c6a58;
-}
-.mlp-diagram line {
-  stroke: #8a7562;
-  stroke-width: 1.5;
-}
-.mlp-equations {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #4a3b2b;
-  display: grid;
-  gap: 4px;
-}
+
+/* Weight list */
 .mlp-weights {
-  border: 1px dashed var(--grid);
-  border-radius: 16px;
-  padding: 12px;
-  background: #fff9f2;
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 249, 242, 0.95) 100%);
   display: grid;
-  gap: 8px;
+  gap: 12px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
 }
+
+.mlp-weights:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
 .mlp-weight-row {
   display: flex;
   justify-content: space-between;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
   color: #4a3b2b;
+  padding: 8px 10px;
+  background: rgba(255, 253, 248, 0.7);
+  border-radius: 8px;
+  border: 1px solid var(--grid);
+  transition: all 0.15s ease;
 }
+
+.mlp-weight-row:hover {
+  background: rgba(255, 253, 248, 1);
+  border-color: #a89278;
+}
+
 .mlp-weight-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 12px;
-}
-.mlp-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 12px;
 }
-.mlp-summary div {
-  background: #fff9f2;
-  border: 1px solid var(--grid);
-  border-radius: 12px;
-  padding: 10px 12px;
+
+/* Summary card */
+.mlp-summary {
   display: grid;
-  gap: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.mlp-summary div {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
   font-size: 0.85rem;
   color: #4a3b2b;
+  transition: all 0.2s ease;
 }
+
+.mlp-summary div:hover {
+  box-shadow: 0 4px 12px rgba(78, 52, 24, 0.06);
+  transform: translateY(-1px);
+}
+
+.mlp-summary div span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a7562;
+}
+
+.mlp-summary div strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1rem;
+  color: #1c1b19;
+}
+
+/* Templates section */
+.mlp-templates {
+  grid-area: templates;
+}
+
+.mlp-templates .panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.mlp-templates .panel:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
+/* Predictions section */
+.mlp-preds {
+  grid-area: preds;
+}
+
+.mlp-preds .panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+
+.mlp-preds .panel:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
+/* Evaluation grid */
 .mlp-eval {
-  margin-top: 16px;
+  margin-top: 20px;
 }
+
 .mlp-eval-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
+
 .mlp-eval-row {
   display: grid;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px dashed var(--grid);
-  background: #fffdf8;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid var(--grid);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 253, 248, 0.95) 100%);
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #4a3b2b;
+  transition: all 0.2s ease;
 }
+
+.mlp-eval-row:hover {
+  box-shadow: 0 4px 12px rgba(78, 52, 24, 0.08);
+  transform: translateY(-1px);
+}
+
+.mlp-eval-row.correct {
+  border-color: #10b981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.mlp-eval-row.wrong {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+/* Math card */
+.mlp-math {
+  border: 2px dashed var(--grid);
+  border-radius: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fffdf8 0%, #fff6ee 100%);
+  font-size: 0.9rem;
+  color: #4a3b2b;
+  display: grid;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mlp-math::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+}
+
+.mlp-math h3 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a5a4a;
+}
+
+.mlp-math p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Top section */
+.mlp-top {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .mlp-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "controls diagram"
+      "boundary side"
+      "templates templates"
+      "preds preds";
+  }
+}
+
 @media (max-width: 980px) {
   .mlp-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
       "controls"
-      "boundary"
-      "summary"
       "diagram"
-      "weights"
-      "math"
+      "boundary"
+      "side"
       "templates"
       "preds";
   }
+
+  .mlp-top {
+    grid-template-columns: 1fr;
+  }
 }
-.mlp-top {
-  display: grid;
-  grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1fr);
-  gap: 16px;
-  align-items: start;
-  margin-bottom: 12px;
-}
-.mlp-math {
-  border: 1px dashed var(--grid);
-  border-radius: 14px;
-  padding: 12px;
-  background: #fff9f2;
-  font-size: 0.9rem;
-  color: #4a3b2b;
-  display: grid;
-  gap: 6px;
-}
-.mlp-math h3 {
-  margin: 0 0 4px;
-  font-size: 0.95rem;
-}
-.mlp-math p {
-  margin: 0;
-}
+
 @media (max-width: 1300px) {
   .grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -195,4 +447,50 @@
   .mlp-panel {
     grid-column: span 1;
   }
+}
+
+/* Template section styling */
+.template-section {
+  margin-bottom: 16px;
+}
+
+.template-section h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: #4a3b2b;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.template-card {
+  display: grid;
+  gap: 8px;
+  background: rgba(255, 253, 248, 0.9);
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 10px;
+  justify-items: center;
+  transition: all 0.2s ease;
+}
+
+.template-card:hover {
+  box-shadow: 0 4px 12px rgba(78, 52, 24, 0.08);
+  transform: translateY(-1px);
+}
+
+.template-card span {
+  font-size: 0.8rem;
+  color: #6a5a4a;
+  font-weight: 600;
+}
+
+.template-card canvas {
+  width: 100%;
+  max-width: 120px;
+  border-radius: 10px;
+  border: 2px solid var(--grid);
 }

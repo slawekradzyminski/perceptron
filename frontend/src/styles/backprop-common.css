@@ -1,66 +1,155 @@
+/* Backprop Common Styles - Used across TinyGPS, Regression pages */
+
 .backprop-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.backprop-head h2 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #1c1b19 0%, #4a3b2b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.backprop-head p {
+  margin: 0;
+  color: #6a5a4a;
+  font-size: 0.9rem;
 }
 
 .backprop-actions {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
-.backprop-card {
-  display: grid;
-  gap: 12px;
+.backprop-actions button {
+  position: relative;
+  padding: 12px 24px;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
+.backprop-actions button:first-child {
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+  border: 2px solid #ea580c;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.backprop-actions button:first-child:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+}
+
+.backprop-actions button:last-child {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed var(--grid);
+}
+
+.backprop-actions button:last-child:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #a89278;
+}
+
+/* Backprop Card */
+.backprop-card {
+  display: grid;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.backprop-card:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+}
+
+.backprop-card h3 {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a5a4a;
+}
+
+/* Controls Section */
 .backprop-controls {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .backprop-controls textarea {
   width: 100%;
-  min-height: 120px;
-  padding: 8px;
-  border-radius: 10px;
-  border: 1px solid var(--grid);
+  min-height: 130px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid var(--grid);
   font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
   background: #fffdf8;
+  resize: vertical;
+  transition: all 0.2s ease;
 }
 
+.backprop-controls textarea:focus {
+  outline: none;
+  border-color: var(--cool);
+  box-shadow: 0 0 0 3px rgba(61, 90, 241, 0.1);
+}
+
+/* Inline and Stack Layouts */
 .backprop-inline {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .backprop-stack {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* Labels */
 .backprop-label {
   display: block;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #6a5a4a;
-  margin-bottom: 4px;
+  color: #8a7562;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 
+/* Monospace text */
 .backprop-mono {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
 }
 
+/* Split layout */
 .backprop-split {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
+}
+
+/* Table Styling */
+.backprop-table {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 2px solid var(--grid);
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .backprop-table table {
@@ -72,61 +161,224 @@
 .backprop-table th,
 .backprop-table td {
   text-align: left;
-  padding: 6px 4px;
-  border-bottom: 1px solid var(--grid);
+  padding: 10px 12px;
+  border-bottom: 1px solid #ead8c6;
   font-family: "IBM Plex Mono", monospace;
   font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.backprop-table tbody tr:hover {
+  background: rgba(226, 107, 60, 0.06);
 }
 
 .backprop-table thead th {
   font-weight: 700;
   color: #6a5a4a;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(180deg, #fff8f0 0%, #fff3e4 100%);
+  border-bottom: 2px solid #d1bda7;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
+/* Coordinates Display */
 .backprop-coords {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .backprop-coords ul {
   list-style: none;
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   padding: 0;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
 }
 
+.backprop-coords li {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--grid);
+}
+
+.backprop-coords li:last-child {
+  border-bottom: none;
+}
+
+/* Book Table Wrapper */
 .book-table-wrap {
   position: relative;
   overflow-x: auto;
+  border-radius: 14px;
 }
 
+/* Book Table Hover Tooltip */
 .book-table-hover {
   position: fixed;
   transform: translate(-50%, -100%);
-  background: #fffdf8;
-  border: 1px solid var(--grid);
-  border-radius: 12px;
-  padding: 10px 12px;
+  background: rgba(255, 253, 248, 0.98);
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 14px 16px;
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.8rem;
   max-width: 480px;
-  min-width: 260px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   pointer-events: none;
   white-space: pre-wrap;
-  z-index: 20;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  line-height: 1.5;
 }
 
 .book-table-hover-below {
-  transform: translate(-50%, 0);
+  transform: translate(-50%, 10px);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   TinyGPS Book Table (compact multi-class support)
+   ───────────────────────────────────────────────────────────── */
+.tinygps-book-table-container {
+  overflow: visible;
+}
+
+.tinygps-book-table-container .book-table-wrap {
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+.tinygps-book-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  table-layout: fixed;
+}
+
+.tinygps-book-table th,
+.tinygps-book-table td {
+  text-align: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid #ead8c6;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.tinygps-book-table th {
+  font-weight: 700;
+  color: #6a5a4a;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, #fff8f0 0%, #fff3e4 100%);
+  border-bottom: 2px solid #d1bda7;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tinygps-book-table tbody tr:hover {
+  background: rgba(226, 107, 60, 0.06);
+}
+
+.tinygps-book-table td:hover {
+  background: rgba(226, 107, 60, 0.12);
+}
+
+/* Compact mode for 3+ classes */
+.tinygps-book-table--compact {
+  font-size: 0.7rem;
+}
+
+.tinygps-book-table--compact th,
+.tinygps-book-table--compact td {
+  padding: 4px 2px;
+}
+
+.tinygps-book-table--compact th {
+  font-size: 0.58rem;
+  letter-spacing: 0;
+}
+
+/* Tooltip positioned relative to wrapper */
+.tinygps-book-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: rgba(255, 253, 248, 0.98);
+  border: 2px solid var(--grid);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.75rem;
+  max-width: 320px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  white-space: pre-wrap;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  line-height: 1.4;
+}
+
+/* Value highlighting */
+.backprop-value-positive {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.backprop-value-negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.backprop-value-zero {
+  color: #8a7562;
+}
+
+/* Step indicator */
+.backprop-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  background: linear-gradient(135deg, rgba(61, 90, 241, 0.15) 0%, rgba(61, 90, 241, 0.08) 100%);
+  border: 2px solid rgba(61, 90, 241, 0.3);
+  border-radius: 8px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3d5af1;
+}
+
+/* Current step row highlight */
+.backprop-current-row {
+  background: rgba(249, 115, 22, 0.08) !important;
+  border-left: 3px solid #f97316;
+}
+
+/* Responsive */
 @media (max-width: 980px) {
   .backprop-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .backprop-actions {
+    width: 100%;
+  }
+
+  .backprop-actions button {
+    flex: 1;
+  }
+
+  .backprop-split {
+    grid-template-columns: 1fr;
   }
 }

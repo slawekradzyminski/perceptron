@@ -23,12 +23,8 @@ test("renders header controls and triggers actions", () => {
   fireEvent.change(screen.getByLabelText("Dataset"), { target: { value: "xor" } });
   expect(baseProps.onDatasetChange).toHaveBeenCalledWith("xor");
 
-  fireEvent.click(screen.getByRole("button", { name: "Step" }));
-  expect(baseProps.onStep).toHaveBeenCalled();
-
-  fireEvent.click(screen.getByRole("button", { name: "Reset" }));
-  expect(baseProps.onReset).toHaveBeenCalled();
-
+  // Step and Reset buttons have been removed - keyboard shortcuts are used instead
+  expect(screen.getByText(/Press/)).toBeInTheDocument();
   expect(screen.queryByLabelText("API base")).toBeNull();
 });
 
@@ -40,8 +36,8 @@ test("shows customize button when enabled", () => {
 
 test("hides training controls on non-perceptron view", () => {
   render(<Header {...baseProps} showTrainingControls={false} route="lms" />);
-  expect(screen.queryByRole("button", { name: "Step" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Reset" })).toBeNull();
+  // No Step/Reset buttons anymore, but learning rate should be hidden
+  expect(screen.queryByLabelText("Learning rate")).toBeNull();
 });
 
 test("shows LMS, MLP, and Backprop tabs", () => {

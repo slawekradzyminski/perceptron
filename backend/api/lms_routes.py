@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 
@@ -11,12 +11,12 @@ router = APIRouter(prefix="/lms")
 
 
 @router.get("/state")
-def lms_state() -> Dict[str, Any]:
+def lms_state() -> dict[str, Any]:
     return lms_service.state()
 
 
 @router.post("/reset")
-def lms_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def lms_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     if "lr" in body:
         try:
             lms_service.set_lr(float(body["lr"]))
@@ -41,5 +41,5 @@ def lms_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, An
 
 
 @router.post("/step")
-def lms_step() -> Dict[str, Any]:
+def lms_step() -> dict[str, Any]:
     return lms_service.step()

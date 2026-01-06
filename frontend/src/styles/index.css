@@ -1,4 +1,5 @@
 @import "./base.css";
+@import "./perceptron.css";
 @import "./lms.css";
 @import "./mlp.css";
 @import "./modal.css";

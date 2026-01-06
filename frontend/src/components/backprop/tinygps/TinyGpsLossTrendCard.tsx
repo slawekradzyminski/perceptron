@@ -1,4 +1,4 @@
-import type { TinyGpsStep } from "../../types";
+import type { TinyGpsStep } from "../../../types";
 
 type TinyGpsLossTrendCardProps = {
   history: TinyGpsStep[];

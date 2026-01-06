@@ -1,4 +1,4 @@
-import type { RegressionState, RegressionStep } from "../../types";
+import type { RegressionState, RegressionStep } from "../../../types";
 import { formatNum } from "../common/formatters";
 
 type RegressionStepCardProps = {

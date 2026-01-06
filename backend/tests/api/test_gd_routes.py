@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 
 from backend.api.deps import gd_service
-
 from backend.api_app import app
 
 
@@ -34,7 +33,7 @@ def test_gd_next_token_logprobs(monkeypatch):
     monkeypatch.setattr(
         gd_service,
         "next_token_logprobs",
-        lambda prompt, limit=None: {
+        lambda prompt, limit=None: {  # noqa: ARG005
             "prompt": prompt,
             "tokens": [{"token": " Paris", "prob": 0.7, "logprob": -0.356, "rank": 1}],
         },

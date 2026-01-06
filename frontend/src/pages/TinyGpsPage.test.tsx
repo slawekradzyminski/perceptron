@@ -34,7 +34,7 @@ const mockState = {
     ],
     sample_order: [0, 1, 2, 3],
   },
-  tinygps_datasets: ["paris-berlin", "paris-madrid", "madrid-paris-berlin", "four-cities"],
+  tinygps_datasets: ["paris-berlin-4", "paris-madrid-4", "madrid-paris-berlin", "four-cities"],
   tinygps_city_coords: {
     madrid: [[40.4167, -3.7033]],
     paris: [[48.8575, 2.3514]],
@@ -63,16 +63,14 @@ vi.mock("../hooks/common/useHotkeys", () => ({
   useHotkeys: vi.fn(),
 }));
 
-test("renders TinyGPS page and triggers step", async () => {
+test("renders TinyGPS page and uses keyboard shortcuts", async () => {
   render(<TinyGpsPage apiBase="http://127.0.0.1:8000" />);
   expect(screen.getByText("Backprop Lab (Chapter 3)")).toBeInTheDocument();
   expect(screen.getByText("TinyGPS Setup")).toBeInTheDocument();
   expect(screen.getByText("Book Table")).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole("button", { name: "Step TinyGPS" }));
-  expect(stepTinygps).toHaveBeenCalled();
-
-  fireEvent.change(screen.getByLabelText("Dataset"), { target: { value: "paris-berlin" } });
+  // Step/Reset buttons removed - using keyboard shortcuts instead
+  fireEvent.change(screen.getByLabelText("Dataset"), { target: { value: "paris-berlin-4" } });
   expect(resetTinygps).toHaveBeenCalled();
 
   const { useHotkeys } = await import("../hooks/common/useHotkeys");

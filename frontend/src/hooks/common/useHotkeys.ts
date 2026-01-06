@@ -19,5 +19,5 @@ export function useHotkeys({ onStep, onReset, enabled = true }: HotkeysConfig) {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [onStep, onReset]);
+  }, [onStep, onReset, enabled]);
 }

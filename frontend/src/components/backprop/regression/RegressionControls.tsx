@@ -1,23 +1,17 @@
 type RegressionControlsProps = {
   loss: "mse" | "l1";
   lr: number;
-  loading: boolean;
-  hasState: boolean;
   onLossChange: (value: "mse" | "l1") => void;
   onLrChange: (value: number) => void;
   onLrCommit?: () => void;
-  onReset: () => void;
 };
 
 export function RegressionControls({
   loss,
   lr,
-  loading,
-  hasState,
   onLossChange,
   onLrChange,
   onLrCommit,
-  onReset,
 }: RegressionControlsProps) {
   return (
     <div className="panel backprop-card">
@@ -45,9 +39,6 @@ export function RegressionControls({
             <span>{lr.toFixed(2)}</span>
           </div>
         </label>
-        <button type="button" className="ghost" onClick={onReset} disabled={loading || !hasState}>
-          Reset Regression
-        </button>
       </div>
     </div>
   );

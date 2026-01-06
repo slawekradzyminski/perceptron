@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.core.perceptron import Perceptron
@@ -10,15 +10,15 @@ class PerceptronService:
     def __init__(self, dataset: str = "or", lr: float = 1.0, seed: int | None = 0) -> None:
         self.lr = lr
         self.seed = seed
-        self.custom_samples: List[Dict[str, Any]] | None = None
-        self.custom_shape: Tuple[int, int] | None = None
+        self.custom_samples: list[dict[str, Any]] | None = None
+        self.custom_shape: tuple[int, int] | None = None
         self.set_dataset(dataset)
 
     def set_lr(self, lr: float) -> None:
         self.lr = lr
         self.perceptron.lr = lr
 
-    def set_dataset(self, name: str, custom: Tuple[List[Dict[str, Any]], Tuple[int, int]] | None = None) -> None:
+    def set_dataset(self, name: str, custom: tuple[list[dict[str, Any]], tuple[int, int]] | None = None) -> None:
         if name == "or":
             self.samples = make_or_dataset_pm1()
             grid_shape = (1, 2)
@@ -39,7 +39,7 @@ class PerceptronService:
         self.grid_rows, self.grid_cols = grid_shape
         self.perceptron = Perceptron(dim=self.grid_rows * self.grid_cols, lr=self.lr, seed=self.seed, init="zeros")
 
-    def step(self) -> Dict[str, Any]:
+    def step(self) -> dict[str, Any]:
         sample = self.samples[self.idx]
         result = self.perceptron.train_step(sample["x"], sample["y"], lr=self.lr)
         self.idx = (self.idx + 1) % len(self.samples)
@@ -64,11 +64,11 @@ class PerceptronService:
             "sample_count": len(self.samples),
         }
 
-    def reset(self) -> Dict[str, Any]:
+    def reset(self) -> dict[str, Any]:
         self.set_dataset(self.dataset)
         return self.state()
 
-    def state(self) -> Dict[str, Any]:
+    def state(self) -> dict[str, Any]:
         return {
             "w": self.perceptron.w,
             "b": self.perceptron.b,

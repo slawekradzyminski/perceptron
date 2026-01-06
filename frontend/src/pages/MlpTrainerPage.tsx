@@ -68,8 +68,6 @@ export function MlpTrainerPage({ apiBase, datasetName, customConfig, customAppli
           onHiddenDimChange={setHiddenDim}
           onLrChange={setMlpLr}
           onSeedChange={setSeed}
-          onStep={handleStep}
-          onReset={handleReset}
         />
 
         <MlpBoundaryPanel snapshot={snapshot} />

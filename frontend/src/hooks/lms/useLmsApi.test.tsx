@@ -3,7 +3,7 @@ import { expect, test, vi } from "vitest";
 import { useLmsApi } from "./useLmsApi";
 
 test("loads state and steps LMS", async () => {
-  const fetchMock = vi.fn(async (url: RequestInfo, options?: RequestInit) => {
+  const fetchMock = vi.fn(async (url: RequestInfo, _options?: RequestInit) => {
     const target = typeof url === "string" ? url : url.url;
     if (target.endsWith("/lms/state")) {
       return {
@@ -68,8 +68,8 @@ test("loads state and steps LMS", async () => {
         dataset: "or",
       }),
     } as Response;
-  }) as typeof fetch;
-  global.fetch = fetchMock;
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
 
   const { result } = renderHook(() => useLmsApi("http://127.0.0.1:8000"));
 
@@ -88,9 +88,9 @@ test("loads state and steps LMS", async () => {
     await result.current.resetWithOptions({ lr: 0.2, datasetName: "xor" });
   });
   const resetCall = fetchMock.mock.calls.find((call) =>
-    typeof call[0] === "string" ? call[0].endsWith("/lms/reset") : call[0].url.endsWith("/lms/reset"),
+    typeof call[0] === "string" ? call[0].endsWith("/lms/reset") : (call[0] as Request).url.endsWith("/lms/reset"),
   );
-  const body = JSON.parse(resetCall?.[1]?.body as string);
+  const body = JSON.parse((resetCall?.[1] as RequestInit)?.body as string);
   expect(body.lr).toBe(0.2);
   expect(body.dataset).toBe("xor");
 });

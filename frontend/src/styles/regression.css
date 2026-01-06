@@ -1,6 +1,8 @@
 .regression-panel {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #eef7ff 0%, #f6fff2 100%);
+  background: linear-gradient(135deg, #e8f4f8 0%, #f0f8e8 100%);
+  max-width: 100%;
+  margin: 0;
 }
 
 .regression-grid {
@@ -9,31 +11,116 @@
   gap: 16px;
 }
 
-.regression-panel .backprop-card {
-  background: rgba(255, 255, 255, 0.85);
+/* FULL WIDTH ROW for Plot and Book Table */
+.regression-grid-secondary {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
 }
 
-.backprop-legend {
+.regression-grid-secondary > .backprop-card {
+  background: rgba(255, 255, 255, 0.95);
+  width: 100%;
+  flex: none;
+}
+
+.regression-panel .backprop-card {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Legend for plot lines */
+.regression-legend {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
   flex-wrap: wrap;
-  font-size: 0.8rem;
-  color: #6a5a4a;
+  font-size: 0.85rem;
+  color: #4a3b2b;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 253, 248, 0.8);
+  border-radius: 8px;
+  border: 1px solid var(--grid);
 }
 
+.regression-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.regression-legend-line {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.regression-legend-line.step0 {
+  background: #2a7b8f;
+  background: repeating-linear-gradient(90deg, #2a7b8f 0, #2a7b8f 4px, transparent 4px, transparent 7px);
+}
+
+.regression-legend-line.step1 {
+  background: #2f7d4f;
+  background: repeating-linear-gradient(90deg, #2f7d4f 0, #2f7d4f 6px, transparent 6px, transparent 10px);
+}
+
+.regression-legend-line.step7 {
+  background: #1c1b19;
+}
+
+/* Bottom section */
 .regression-bottom {
   margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.regression-grid .backprop-card:nth-child(2) {
-  grid-column: span 2;
+/* Formula display */
+.regression-formula {
+  background: #fff8f0;
+  border: 1px dashed var(--grid);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.regression-grid .backprop-card:nth-child(3) {
-  grid-column: span 2;
+.regression-formula-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
+.regression-formula-label {
+  font-size: 0.8rem;
+  color: #6a5a4a;
+  min-width: 80px;
+}
+
+.regression-formula-value {
+  font-weight: 600;
+  color: #1c1b19;
+}
+
+/* Loss trend card */
+.regression-loss-card {
+  grid-column: span 4;
+}
+
+.regression-loss-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Responsive grid */
 @media (min-width: 1200px) {
   .regression-grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -44,18 +131,101 @@
   }
 
   .regression-grid .backprop-card:nth-child(2) {
-    grid-column: span 4;
-  }
-
-  .regression-grid .backprop-card:nth-child(3) {
     grid-column: span 5;
   }
 
-  .regression-grid .backprop-card:nth-child(4) {
+  .regression-grid .backprop-card:nth-child(3) {
     grid-column: span 4;
   }
+}
 
-  .regression-grid .backprop-card:nth-child(5) {
-    grid-column: span 4;
-  }
+/* Book table styling */
+.regression-book-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.regression-book-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+
+.regression-book-table th,
+.regression-book-table td {
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid #e9dccb;
+}
+
+.regression-book-table thead th {
+  background: #fff8f0;
+  font-weight: 700;
+  color: #6a5a4a;
+  font-size: 0.8rem;
+  border-bottom: 2px solid #d1bda7;
+}
+
+.regression-book-table tbody tr:nth-child(even) {
+  background: rgba(255, 253, 248, 0.5);
+}
+
+.regression-book-table tbody tr:hover {
+  background: rgba(226, 107, 60, 0.08);
+}
+
+.regression-book-table td {
+  cursor: help;
+  transition: background 0.15s;
+}
+
+.regression-book-table td:hover {
+  background: rgba(226, 107, 60, 0.12);
+}
+
+/* Step column highlight */
+.regression-book-table td:first-child {
+  font-weight: 700;
+  background: rgba(61, 90, 241, 0.08);
+}
+
+/* Preset buttons */
+.regression-presets {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.regression-presets button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Dataset display */
+.regression-dataset {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.regression-dataset-point {
+  background: #fff8f0;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+}
+
+.regression-dataset-point .x {
+  color: #3d5af1;
+  font-weight: 600;
+}
+
+.regression-dataset-point .y {
+  color: #e26b3c;
+  font-weight: 600;
 }

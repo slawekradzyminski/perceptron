@@ -1,0 +1,409 @@
+/* Perceptron Page Styles - Main Lab View */
+
+/* Panel base styling for perceptron components */
+.boundary-panel,
+.switchboard-panel,
+.after-update-panel,
+.step-math-panel,
+.explain {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 239, 0.95) 100%);
+  border: 2px solid var(--grid);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.boundary-panel:hover,
+.switchboard-panel:hover,
+.after-update-panel:hover,
+.step-math-panel:hover,
+.explain:hover {
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Panel header styling */
+.boundary-panel h2,
+.switchboard-panel h2,
+.after-update-panel h2,
+.step-math-panel h2,
+.explain h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+  color: #1c1b19;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.boundary-panel h2::after,
+.switchboard-panel h2::after,
+.after-update-panel h2::after,
+.step-math-panel h2::after,
+.explain h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover, #ff8559));
+  border-radius: 2px;
+}
+
+/* Boundary Panel */
+.boundary-panel {
+  position: relative;
+}
+
+.boundary-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3d5af1, #6366f1, #8b5cf6);
+}
+
+.boundary-panel .plot-canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border: 3px solid var(--grid);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fffdf8 0%, #fff6ee 100%);
+  display: block;
+}
+
+/* Switchboard Panel */
+.switchboard-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f97316, #fb923c, #fbbf24);
+}
+
+.switchboard {
+  display: grid;
+  gap: 16px;
+}
+
+.switch-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.switch-row > div {
+  display: grid;
+  gap: 10px;
+}
+
+.switch-row h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a5a4a;
+  font-weight: 600;
+}
+
+.switch-row canvas {
+  width: 100%;
+  height: auto;
+  border: 3px solid var(--grid);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fffdf8 0%, #fff6ee 100%);
+  cursor: crosshair;
+  transition: border-color 0.2s ease;
+}
+
+.switch-row canvas:hover {
+  border-color: var(--accent);
+}
+
+/* Bias Card */
+.bias-card {
+  background: linear-gradient(135deg, rgba(255, 253, 248, 0.95) 0%, rgba(255, 246, 238, 0.95) 100%);
+  border: 3px solid var(--grid);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.bias-card:hover {
+  border-color: var(--accent);
+}
+
+.bias-after {
+  border-style: solid;
+  border-color: #10b981;
+}
+
+.bias-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.bias-note {
+  font-size: 0.8rem;
+  color: #6a5a4a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Score Meter */
+.meter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(61, 90, 241, 0.08) 0%, rgba(99, 102, 241, 0.06) 100%);
+  border: 2px solid rgba(61, 90, 241, 0.2);
+  border-radius: 12px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.meter span {
+  font-size: 0.9rem;
+  color: #6a5a4a;
+  font-weight: 600;
+}
+
+.meter strong {
+  font-size: 1.3rem;
+  color: #3d5af1;
+}
+
+/* After Update Panel */
+.after-update-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+}
+
+/* Step Math Panel */
+.step-math-panel {
+  grid-column: span 2;
+}
+
+.step-math-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd);
+}
+
+.calc-section {
+  background: rgba(255, 253, 248, 0.9);
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.calc-section:last-child {
+  margin-bottom: 0;
+}
+
+.calc-section h3 {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a5a4a;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--grid);
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.calc-grid div {
+  display: grid;
+  gap: 4px;
+}
+
+.calc-grid span {
+  font-size: 0.75rem;
+  color: #8a7562;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.calc-grid strong {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--grid);
+}
+
+.calc-eq {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06) 0%, rgba(167, 139, 250, 0.04) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 10px;
+  color: #5b21b6;
+  line-height: 1.5;
+}
+
+.calc-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  background: rgba(255, 253, 248, 0.8);
+  border-radius: 10px;
+  border: 1px dashed var(--grid);
+  color: #5c4a39;
+  line-height: 1.5;
+}
+
+/* Explanation Panel */
+.explain {
+  grid-column: 1 / -1;
+}
+
+.explain::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1c1b19, #4a3b2b, #6a5a4a);
+}
+
+.explain .math {
+  display: grid;
+  gap: 10px;
+  font-family: "IBM Plex Mono", monospace;
+  background: linear-gradient(135deg, #fff8f0 0%, #fffdf8 100%);
+  border: 2px solid var(--grid);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.explain .math p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.explain .math p strong {
+  min-width: 100px;
+  color: #5c4a39;
+  font-weight: 600;
+}
+
+.explain .math p span {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--grid);
+  color: var(--ink);
+}
+
+.explain .detail {
+  margin: 0 0 12px;
+  line-height: 1.6;
+  font-size: 0.9rem;
+  color: #5c4a39;
+  padding: 14px 16px;
+  background: rgba(255, 253, 248, 0.7);
+  border-radius: 12px;
+  border: 1px dashed var(--grid);
+}
+
+.explain .detail:last-child {
+  margin-bottom: 0;
+}
+
+/* Cell Tooltip */
+.cell-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(255, 253, 248, 0.98);
+  border: 2px solid var(--grid);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 24px rgba(78, 52, 24, 0.12);
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .step-math-panel {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .step-math-panel {
+    grid-column: span 1;
+  }
+
+  .switch-row {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .boundary-panel h2,
+  .switchboard-panel h2,
+  .after-update-panel h2,
+  .step-math-panel h2,
+  .explain h2 {
+    font-size: 1.1rem;
+  }
+
+  .bias-value {
+    font-size: 1.2rem;
+  }
+
+  .meter strong {
+    font-size: 1.1rem;
+  }
+}
+

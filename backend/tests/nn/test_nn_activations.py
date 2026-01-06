@@ -2,7 +2,15 @@ import math
 
 import pytest
 
-from backend.nn.activations import relu, relu_prime, sigmoid, sigmoid_prime_from_output, step_pm1, tanh, tanh_prime_from_output
+from backend.nn.activations import (
+    relu,
+    relu_prime,
+    sigmoid,
+    sigmoid_prime_from_output,
+    step_pm1,
+    tanh,
+    tanh_prime_from_output,
+)
 
 
 def test_step_pm1():

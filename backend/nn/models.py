@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Sequence
 
 from backend.nn.activations import sigmoid
 from backend.nn.losses import bce_grad_wrt_logit, bce_loss, mse_grad, mse_loss, pm1_to_01
@@ -17,7 +17,7 @@ def _dot(a: Sequence[float], b: Sequence[float]) -> float:
 class AdalineStep:
     y_hat: float
     loss: float
-    grad_w: List[float]
+    grad_w: list[float]
     grad_b: float
 
 
@@ -53,7 +53,7 @@ class Adaline:
 class LogisticStep:
     p_hat: float
     loss: float
-    grad_w: List[float]
+    grad_w: list[float]
     grad_b: float
 
 

@@ -15,7 +15,7 @@ import {
 
 test("renders and steps through backend", async () => {
   mockCanvas();
-  global.fetch = vi.fn(async (url: RequestInfo, options?: RequestInit) => {
+  global.fetch = vi.fn(async (url: RequestInfo, _options?: RequestInit) => {
     const target = typeof url === "string" ? url : url.url;
     if (target.endsWith("/state")) {
       return {
@@ -116,11 +116,13 @@ test("renders and steps through backend", async () => {
   const scoreValue = screen.getByTestId("score-value");
   expect(scoreValue.textContent).toBeDefined();
 
-  fireEvent.click(screen.getByRole("button", { name: "Step" }));
-  await waitFor(() => expect(screen.getByTestId("score-value").textContent).toBe("1.00"));
+  // Step and Reset now use keyboard shortcuts (S and R)
+  // Verify the keyboard hint is visible
+  expect(screen.getByText(/Press/)).toBeInTheDocument();
 
-  fireEvent.click(screen.getByRole("button", { name: "Reset" }));
-  await waitFor(() => expect((global.fetch as any).mock.calls.length).toBeGreaterThan(1));
+  // Simulate keyboard shortcut for step
+  fireEvent.keyDown(document, { key: "s" });
+  await waitFor(() => expect((global.fetch as unknown as { mock: { calls: unknown[] } }).mock.calls.length).toBeGreaterThan(1));
 });
 
 afterEach(() => {
@@ -165,7 +167,7 @@ test("shows custom dataset editor", async () => {
 
 test("switching from custom back to xor resets state", async () => {
   mockCanvas();
-  const fetchMock = vi.fn(async (url: RequestInfo) => {
+  const fetchMock = vi.fn(async (url: RequestInfo, _init?: RequestInit) => {
     const target = typeof url === "string" ? url : url.url;
     if (target.endsWith("/error-surface")) {
       return {
@@ -183,8 +185,8 @@ test("switching from custom back to xor resets state", async () => {
       ok: true,
       json: async () => mockPerceptronState(),
     } as Response;
-  }) as typeof fetch;
-  global.fetch = fetchMock;
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
 
   render(
     <MemoryRouter>
@@ -201,13 +203,13 @@ test("switching from custom back to xor resets state", async () => {
     return url.endsWith("/reset");
   });
   expect(resetCall).toBeTruthy();
-  const body = JSON.parse(resetCall?.[1]?.body as string);
+  const body = JSON.parse((resetCall?.[1] as RequestInit)?.body as string);
   expect(body.dataset).toBe("xor");
 });
 
 test("apply custom dataset posts custom payload", async () => {
   mockCanvas();
-  const fetchMock = vi.fn(async (url: RequestInfo) => {
+  const fetchMock = vi.fn(async (url: RequestInfo, _init?: RequestInit) => {
     const target = typeof url === "string" ? url : url.url;
     if (target.endsWith("/error-surface")) {
       return {
@@ -280,8 +282,8 @@ test("apply custom dataset posts custom payload", async () => {
       ok: true,
       json: async () => mockPerceptronState(),
     } as Response;
-  }) as typeof fetch;
-  global.fetch = fetchMock;
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
 
   render(
     <MemoryRouter>
@@ -296,7 +298,7 @@ test("apply custom dataset posts custom payload", async () => {
 
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
   const lastCall = fetchMock.mock.calls.at(-1);
-  const body = JSON.parse(lastCall?.[1]?.body as string);
+  const body = JSON.parse((lastCall?.[1] as RequestInit)?.body as string);
   expect(body.dataset).toBe("custom");
   expect(body.grid_rows).toBe(2);
   expect(body.grid_cols).toBe(2);

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.nn.grid_mlp import reshape_template
 from backend.nn.mlp import MlpInternals
 
 
-def validate_grid_shape(rows: Any, cols: Any) -> Tuple[int, int]:
+def validate_grid_shape(rows: Any, cols: Any) -> tuple[int, int]:
     try:
         r = int(rows)
         c = int(cols)
@@ -19,11 +20,11 @@ def validate_grid_shape(rows: Any, cols: Any) -> Tuple[int, int]:
 
 
 def normalize_samples(
-    samples: Iterable[Dict[str, Any]],
+    samples: Iterable[dict[str, Any]],
     rows: int,
     cols: int,
-) -> List[Dict[str, Any]]:
-    normalized: List[Dict[str, Any]] = []
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
     for sample in samples:
         y = sample.get("y")
         if y not in (-1, 1):
@@ -33,7 +34,7 @@ def normalize_samples(
         if grid is not None:
             if not isinstance(grid, list) or len(grid) != rows:
                 raise ValueError("grid rows must match grid_rows")
-            flat: List[float] = []
+            flat: list[float] = []
             for row in grid:
                 if not isinstance(row, list) or len(row) != cols:
                     raise ValueError("grid cols must match grid_cols")
@@ -55,7 +56,7 @@ def normalize_samples(
     return normalized
 
 
-def load_samples_from_body(body: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]], Tuple[int, int]]:
+def load_samples_from_body(body: dict[str, Any]) -> tuple[str, list[dict[str, Any]], tuple[int, int]]:
     dataset = body.get("dataset", "or")
     if dataset == "or":
         return "or", make_or_dataset_pm1(), (1, 2)
@@ -76,7 +77,7 @@ def build_mlp_payload(
     sample_index: int,
     sample_count: int,
     dataset: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     templates_before = [reshape_template(row, rows, cols) for row in internals.hidden_W_before]
     templates_after = [reshape_template(row, rows, cols) for row in internals.hidden_W_after]
     gradient_templates = [reshape_template(row, rows, cols) for row in internals.grad_hidden_W]

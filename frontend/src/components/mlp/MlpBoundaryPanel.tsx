@@ -10,7 +10,7 @@ export function MlpBoundaryPanel({ snapshot }: MlpBoundaryPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const points: Point[] = useMemo(() => {
     if (!snapshot) return [];
-    return snapshot.evals.map((row) => ({ x: row.x[0], y: row.x[1], label: row.y }));
+    return snapshot.evals.map((row) => ({ x: row.x[0], y: row.x[1], label: row.y as 1 | -1 }));
   }, [snapshot]);
   const dim = snapshot ? snapshot.grid_rows * snapshot.grid_cols : 0;
   const showBoundary = Boolean(snapshot && dim === 2);

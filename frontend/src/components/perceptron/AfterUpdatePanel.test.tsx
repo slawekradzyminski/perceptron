@@ -3,7 +3,7 @@ import { expect, test, vi } from "vitest";
 import { AfterUpdatePanel } from "./AfterUpdatePanel";
 
 function mockCanvas() {
-  HTMLCanvasElement.prototype.getContext = () =>
+  HTMLCanvasElement.prototype.getContext = (() =>
     ({
       canvas: { width: 100, height: 50 },
       clearRect: () => undefined,
@@ -16,7 +16,7 @@ function mockCanvas() {
       set fillStyle(_: string) {},
       set strokeStyle(_: string) {},
       set lineWidth(_: number) {},
-    }) as unknown as CanvasRenderingContext2D;
+    }) as unknown) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 }
 
 test("renders bias after and triggers tooltip", () => {

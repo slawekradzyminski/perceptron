@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 
@@ -10,19 +10,19 @@ from backend.api.utils import build_mlp_payload, normalize_samples, validate_gri
 router = APIRouter(prefix="/mlp")
 
 
-def _parse_custom_payload(body: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], Tuple[int, int]]:
+def _parse_custom_payload(body: dict[str, Any]) -> tuple[list[dict[str, Any]], tuple[int, int]]:
     rows, cols = validate_grid_shape(body.get("grid_rows"), body.get("grid_cols"))
     samples = normalize_samples(body.get("samples", []), rows, cols)
     return samples, (rows, cols)
 
 
 @router.get("/state")
-def mlp_state() -> Dict[str, Any]:
+def mlp_state() -> dict[str, Any]:
     return mlp_service.snapshot()
 
 
 @router.post("/reset")
-def mlp_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def mlp_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     if "hidden_dim" in body or "lr" in body or "seed" in body:
         try:
             hidden_dim = int(body["hidden_dim"]) if "hidden_dim" in body else None
@@ -53,7 +53,7 @@ def mlp_reset(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, An
 
 
 @router.post("/step")
-def mlp_step() -> Dict[str, Any]:
+def mlp_step() -> dict[str, Any]:
     snapshot, internals = mlp_service.step()
     step_payload = build_mlp_payload(
         internals=internals,

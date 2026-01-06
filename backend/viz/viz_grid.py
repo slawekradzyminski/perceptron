@@ -2,22 +2,22 @@
 
 from __future__ import annotations
 
-from typing import List, Sequence
+from collections.abc import Sequence
 
 
-def contribution_grid(x_grid: Sequence[Sequence[float]], w_grid: Sequence[Sequence[float]]) -> List[List[float]]:
+def contribution_grid(x_grid: Sequence[Sequence[float]], w_grid: Sequence[Sequence[float]]) -> list[list[float]]:
     if len(x_grid) != len(w_grid) or len(x_grid[0]) != len(w_grid[0]):
         raise ValueError("grid sizes must match")
-    out: List[List[float]] = []
+    out: list[list[float]] = []
     for r in range(len(x_grid)):
-        row: List[float] = []
+        row: list[float] = []
         for c in range(len(x_grid[0])):
             row.append(x_grid[r][c] * w_grid[r][c])
         out.append(row)
     return out
 
 
-def flatten(grid: Sequence[Sequence[float]]) -> List[float]:
+def flatten(grid: Sequence[Sequence[float]]) -> list[float]:
     return [cell for row in grid for cell in row]
 
 
@@ -28,9 +28,8 @@ def score_from_grid(x_grid: Sequence[Sequence[float]], w_grid: Sequence[Sequence
 
 # Optional matplotlib rendering, imported lazily to avoid hard dependency.
 
-def render_grid(ax, grid: Sequence[Sequence[float]], title: str = "") -> None:
-    import matplotlib.pyplot as plt  # type: ignore
 
+def render_grid(ax, grid: Sequence[Sequence[float]], title: str = "") -> None:
     ax.imshow(grid, cmap="coolwarm", vmin=-1, vmax=1)
     ax.set_title(title)
     ax.set_xticks([])

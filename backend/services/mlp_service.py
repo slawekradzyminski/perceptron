@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.nn.grid_mlp import reshape_template
@@ -16,8 +16,8 @@ class MlpService:
         self.hidden_dim = hidden_dim
         self.lr = lr
         self.seed = seed
-        self.custom_samples: Optional[List[Dict[str, Any]]] = None
-        self.custom_shape: Optional[Tuple[int, int]] = None
+        self.custom_samples: list[dict[str, Any]] | None = None
+        self.custom_shape: tuple[int, int] | None = None
         self.set_dataset(dataset)
 
     def set_hyperparams(self, hidden_dim: int | None = None, lr: float | None = None, seed: int | None = None) -> None:
@@ -32,7 +32,7 @@ class MlpService:
         if seed is not None:
             self.seed = seed
 
-    def set_dataset(self, name: str, custom: Tuple[List[Dict[str, Any]], Tuple[int, int]] | None = None) -> None:
+    def set_dataset(self, name: str, custom: tuple[list[dict[str, Any]], tuple[int, int]] | None = None) -> None:
         if name == "or":
             self.samples = make_or_dataset_pm1()
             grid_shape = (1, 2)
@@ -61,7 +61,7 @@ class MlpService:
             seed=self.seed,
         )
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         templates = [reshape_template(row, self.grid_rows, self.grid_cols) for row in self.model.hidden.W]
         evals = []
         for sample in self.samples:
@@ -98,7 +98,7 @@ class MlpService:
             "evals": evals,
         }
 
-    def step(self) -> Tuple[Dict[str, Any], MlpInternals]:
+    def step(self) -> tuple[dict[str, Any], MlpInternals]:
         sample = self.samples[self.idx]
         internals = self.model.inspect_step(sample["x"], sample["y"])
         self.idx = (self.idx + 1) % len(self.samples)

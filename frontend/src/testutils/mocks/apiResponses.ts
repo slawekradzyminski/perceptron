@@ -212,8 +212,6 @@ export const mockBackpropState = () => ({
     sample_order: [0, 1, 2, 3],
   },
   tinygps_datasets: [
-    "paris-berlin",
-    "paris-madrid",
     "paris-berlin-4",
     "paris-madrid-4",
     "madrid-paris-berlin",

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Iterable, List, Sequence
 import random
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
 
 def _dot(a: Sequence[float], b: Sequence[float]) -> float:
@@ -16,7 +16,7 @@ class StepResult:
     score: float
     pred: int
     mistake: bool
-    delta_w: List[float]
+    delta_w: list[float]
     delta_b: float
 
 
@@ -62,11 +62,11 @@ class Perceptron:
             self.b += delta_b
         return StepResult(score=score, pred=pred, mistake=mistake, delta_w=delta_w, delta_b=delta_b)
 
-    def train_epoch(self, samples: Iterable[dict], lr: float | None = None, shuffle: bool = True) -> List[StepResult]:
+    def train_epoch(self, samples: Iterable[dict], lr: float | None = None, shuffle: bool = True) -> list[StepResult]:
         data = list(samples)
         if shuffle:
             self._rng.shuffle(data)
-        results: List[StepResult] = []
+        results: list[StepResult] = []
         for sample in data:
             results.append(self.train_step(sample["x"], sample["y"], lr=lr))
         return results

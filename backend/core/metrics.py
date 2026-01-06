@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable
 
 
 def count_mistakes(results: Iterable[dict]) -> int:

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence
 
 from backend.nn.losses import cross_entropy_prob
 from backend.nn.softmax import softmax
@@ -12,30 +12,30 @@ from backend.nn.softmax import softmax
 
 @dataclass
 class TinyGpsForward:
-    logits: List[float]
-    probs: List[float]
+    logits: list[float]
+    probs: list[float]
     loss: float
 
 
 @dataclass
 class TinyGpsGrads1D:
-    dL_dm: List[float]
-    dL_db: List[float]
+    dL_dm: list[float]
+    dL_db: list[float]
 
 
 @dataclass
 class TinyGpsGrads2D:
-    dL_dM: List[List[float]]
-    dL_db: List[float]
+    dL_dM: list[list[float]]
+    dL_db: list[float]
 
 
-def linear_logits_1d(x: float, m: Sequence[float], b: Sequence[float]) -> List[float]:
+def linear_logits_1d(x: float, m: Sequence[float], b: Sequence[float]) -> list[float]:
     if len(m) != len(b):
         raise ValueError("m and b must have same length")
     return [mk * x + bk for mk, bk in zip(m, b)]
 
 
-def linear_logits_2d(x: Sequence[float], M: Sequence[Sequence[float]], b: Sequence[float]) -> List[float]:
+def linear_logits_2d(x: Sequence[float], M: Sequence[Sequence[float]], b: Sequence[float]) -> list[float]:
     if len(M) != len(b):
         raise ValueError("M and b must have same length")
     if len(x) != 2:
@@ -48,7 +48,7 @@ def linear_logits_2d(x: Sequence[float], M: Sequence[Sequence[float]], b: Sequen
     return logits
 
 
-def softmax_probs(logits: Iterable[float]) -> List[float]:
+def softmax_probs(logits: Iterable[float]) -> list[float]:
     return softmax(logits)
 
 
@@ -66,14 +66,16 @@ def forward_1d(x: float, m: Sequence[float], b: Sequence[float], target_index: i
     return TinyGpsForward(logits=logits, probs=probs, loss=loss)
 
 
-def forward_2d(x: Sequence[float], M: Sequence[Sequence[float]], b: Sequence[float], target_index: int) -> TinyGpsForward:
+def forward_2d(
+    x: Sequence[float], M: Sequence[Sequence[float]], b: Sequence[float], target_index: int
+) -> TinyGpsForward:
     logits = linear_logits_2d(x, M, b)
     probs = softmax_probs(logits)
     loss = cross_entropy_from_probs(probs, target_index)
     return TinyGpsForward(logits=logits, probs=probs, loss=loss)
 
 
-def softmax_ce_backward(probs: Sequence[float], target_index: int) -> List[float]:
+def softmax_ce_backward(probs: Sequence[float], target_index: int) -> list[float]:
     if target_index < 0 or target_index >= len(probs):
         raise IndexError("target_index out of range")
     grads = [float(p) for p in probs]
@@ -92,7 +94,7 @@ def backward_2d(x: Sequence[float], probs: Sequence[float], target_index: int) -
     if len(x) != 2:
         raise ValueError("x must be 2D (lat, lon)")
     dL_dh = softmax_ce_backward(probs, target_index)
-    dL_dM: List[List[float]] = []
+    dL_dM: list[list[float]] = []
     for grad in dL_dh:
         dL_dM.append([x[0] * grad, x[1] * grad])
     dL_db = dL_dh

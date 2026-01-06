@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import List, Sequence, Tuple
 
 from backend.nn.mlp import MlpTwoLayer
 
 
-def reshape_template(weights: Sequence[float], rows: int, cols: int) -> List[List[float]]:
+def reshape_template(weights: Sequence[float], rows: int, cols: int) -> list[list[float]]:
     if len(weights) != rows * cols:
         raise ValueError("weights size does not match grid shape")
-    grid: List[List[float]] = []
+    grid: list[list[float]] = []
     for r in range(rows):
         start = r * cols
-        grid.append(list(weights[start:start + cols]))
+        grid.append(list(weights[start : start + cols]))
     return grid
 
 
@@ -38,13 +38,13 @@ class GridMlp:
         step = self.model.step(x, y)
         return GridMlpStep(loss=step.loss, p_hat=step.p_hat)
 
-    def train(self, samples: Sequence[dict], epochs: int) -> List[float]:
+    def train(self, samples: Sequence[dict], epochs: int) -> list[float]:
         return self.model.train(samples, epochs)
 
-    def weight_templates(self) -> List[List[List[float]]]:
+    def weight_templates(self) -> list[list[list[float]]]:
         return [reshape_template(w_row, self.rows, self.cols) for w_row in self.model.hidden.W]
 
-    def gradient_templates(self) -> List[List[List[float]]] | None:
+    def gradient_templates(self) -> list[list[list[float]]] | None:
         if self.model.last_grad_hidden is None:
             return None
         return [reshape_template(row, self.rows, self.cols) for row in self.model.last_grad_hidden]

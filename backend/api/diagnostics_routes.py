@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/error-surface")
-def error_surface(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def error_surface(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     try:
         dataset, samples, grid_shape = load_samples_from_body(body)
     except ValueError as exc:
@@ -44,7 +44,7 @@ def error_surface(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str
 
 
 @router.post("/mlp-internals")
-def mlp_internals(body: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+def mlp_internals(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
     try:
         dataset, samples, grid_shape = load_samples_from_body(body)
     except ValueError as exc:

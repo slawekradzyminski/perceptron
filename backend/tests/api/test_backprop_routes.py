@@ -1,4 +1,3 @@
-
 def test_backprop_state(client):
     state = client.get("/backprop/state").json()
     assert "tinygps" in state

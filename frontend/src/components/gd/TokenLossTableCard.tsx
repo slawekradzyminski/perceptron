@@ -49,6 +49,34 @@ export function TokenLossTableCard({ apiBase, examples }: TokenLossTableCardProp
     () => localExamples.find((item) => item.id === exampleId) ?? localExamples[0],
     [localExamples, exampleId],
   );
+
+  const rows = useMemo<ComputedRow[]>(
+    () => {
+      if (!example) return [];
+      return example.rows.map((row) => ({
+        context: row.context,
+        correctToken: row.correct_token,
+        pCorrect: row.p_correct,
+        topToken: row.top_token,
+        topProb: row.top_prob,
+        ceLoss: row.ce_loss,
+        l1Loss: row.l1_loss,
+      }));
+    },
+    [example],
+  );
+
+  const { minLoss, maxLoss, avgCeLoss, avgL1Loss } = useMemo(() => {
+    if (rows.length === 0) return { minLoss: 0, maxLoss: 0, avgCeLoss: 0, avgL1Loss: 0 };
+    const ceLosses = rows.map((row) => row.ceLoss);
+    return {
+      minLoss: Math.min(...ceLosses),
+      maxLoss: Math.max(...ceLosses),
+      avgCeLoss: ceLosses.reduce((acc, val) => acc + val, 0) / ceLosses.length,
+      avgL1Loss: rows.reduce((acc, row) => acc + row.l1Loss, 0) / rows.length,
+    };
+  }, [rows]);
+
   if (!example) {
     return (
       <div className="lms-math lms-token-loss">
@@ -57,24 +85,6 @@ export function TokenLossTableCard({ apiBase, examples }: TokenLossTableCardProp
       </div>
     );
   }
-  const rows = useMemo<ComputedRow[]>(
-    () =>
-      example.rows.map((row) => ({
-        context: row.context,
-        correctToken: row.correct_token,
-        pCorrect: row.p_correct,
-        topToken: row.top_token,
-        topProb: row.top_prob,
-        ceLoss: row.ce_loss,
-        l1Loss: row.l1_loss,
-      })),
-    [example.rows],
-  );
-  const ceLosses = rows.map((row) => row.ceLoss);
-  const minLoss = Math.min(...ceLosses);
-  const maxLoss = Math.max(...ceLosses);
-  const avgCeLoss = ceLosses.reduce((acc, val) => acc + val, 0) / ceLosses.length;
-  const avgL1Loss = rows.reduce((acc, row) => acc + row.l1Loss, 0) / rows.length;
 
   return (
     <div className="lms-math lms-token-loss">

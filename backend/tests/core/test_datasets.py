@@ -57,17 +57,19 @@ def test_tinygps_dataset_1d_multi():
     samples = make_tinygps_dataset_1d_multi(["madrid", "paris", "berlin"])
     assert len(samples) == 15
     assert all(len(s["x"]) == 1 for s in samples)
-    assert set(s["y"] for s in samples) == {0, 1, 2}
+    assert {s["y"] for s in samples} == {0, 1, 2}
 
 
 def test_tinygps_dataset_2d():
     samples = make_tinygps_dataset_2d(["paris", "madrid", "berlin", "barcelona"])
     assert len(samples) == 20
     assert all(len(s["x"]) == 2 for s in samples)
-    assert set(s["y"] for s in samples) == {0, 1, 2, 3}
-    first = samples[0]
-    assert first["x"][0] == first["lat"]
-    assert first["x"][1] == first["lon"]
+    assert {s["y"] for s in samples} == {0, 1, 2, 3}
+    # x is now normalized: x[0] = lon - paris_lon, x[1] = lat - paris_lat
+    paris_sample = samples[0]  # First Paris sample
+    paris_center_lat, paris_center_lon = 48.8575, 2.3514
+    assert abs(paris_sample["x"][0] - (paris_sample["lon"] - paris_center_lon)) < 1e-6
+    assert abs(paris_sample["x"][1] - (paris_sample["lat"] - paris_center_lat)) < 1e-6
 
 
 def test_tinygps_dataset_1d_exercise_coords():

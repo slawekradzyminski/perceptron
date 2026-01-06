@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useBackpropApi } from "../hooks/backprop/useBackpropApi";
 import { BackpropHeader } from "../components/backprop/common/BackpropHeader";
 import { TinyGpsControls } from "../components/backprop/tinygps/TinyGpsControls";
@@ -16,19 +16,18 @@ export function TinyGpsPage({ apiBase }: { apiBase: string }) {
     state,
     tinygpsHistory,
     error,
-    loading,
+    loading: _loading,
     resetTinygps,
     stepTinygps,
   } = useBackpropApi(apiBase);
-  const [dataset, setDataset] = useState("madrid-paris-berlin");
-  const [lr, setLr] = useState(DEFAULT_LR);
+  // Local state for user selections (controls UI before reset is called)
+  const [localDataset, setLocalDataset] = useState("madrid-paris-berlin");
+  const [localLr, setLocalLr] = useState(DEFAULT_LR);
   const step = tinygpsHistory.length ? tinygpsHistory[tinygpsHistory.length - 1] : null;
 
-  useEffect(() => {
-    if (!state) return;
-    setDataset(state.tinygps.dataset);
-    setLr(state.tinygps.lr);
-  }, [state?.tinygps.dataset, state?.tinygps.lr]);
+  // Use backend state if available, otherwise fall back to local
+  const dataset = state?.tinygps.dataset ?? localDataset;
+  const lr = state?.tinygps.lr ?? localLr;
 
   const coordsList = useMemo(() => {
     if (!state) return [];
@@ -48,37 +47,29 @@ export function TinyGpsPage({ apiBase }: { apiBase: string }) {
 
   const handleReset = () => {
     if (!state) return;
-    void resetTinygps(dataset, lr);
+    void resetTinygps(localDataset, localLr);
   };
 
   useHotkeys({ onStep: handleStep, onReset: handleReset, enabled: Boolean(state) });
 
   return (
     <section className="panel tinygps-panel">
-      <BackpropHeader
-        loading={loading}
-        hasState={Boolean(state)}
-        onStepPrimary={() => stepTinygps()}
-        primaryLabel="Step TinyGPS"
-      />
+      <BackpropHeader />
 
       <div className="tinygps-grid">
         <TinyGpsControls
           datasets={state?.tinygps_datasets ?? []}
           dataset={dataset}
           lr={lr}
-          loading={loading}
-          hasState={Boolean(state)}
           coords={coordsList}
           onDatasetChange={(value) => {
-            setDataset(value);
-            if (state) void resetTinygps(value, lr);
+            setLocalDataset(value);
+            if (state) void resetTinygps(value, localLr);
           }}
-          onLrChange={(value) => setLr(value)}
+          onLrChange={(value) => setLocalLr(value)}
           onLrCommit={() => {
-            if (state) void resetTinygps(dataset, lr);
+            if (state) void resetTinygps(localDataset, localLr);
           }}
-          onReset={handleReset}
         />
 
         <TinyGpsStepSetupCard

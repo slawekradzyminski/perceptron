@@ -2,11 +2,11 @@ import { renderHook, act } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
 import { usePerceptronApi } from "./usePerceptronApi";
 
-function mockFetchOnce(payload: any) {
+function mockFetchOnce(payload: unknown) {
   return vi.fn(async () => ({
     ok: true,
     json: async () => payload,
-  })) as typeof fetch;
+  })) as unknown as typeof fetch;
 }
 
 test("reset updates state", async () => {

@@ -54,3 +54,22 @@ Notes:
 - **Accuracy** in the book’s tables is **dataset accuracy** after each step, not just the current sample.  
   The UI computes accuracy by running **all 4 examples** through the current parameters and reporting the fraction correct.  
   So you should interpret the Accuracy row as “model performance over the whole exercise dataset” at that step.
+
+## 3.18 Question (Regression MSE, how to do it in the UI)
+Use the regression model `ŷ = m x + b` with MSE loss to complete the step table and line plots.
+
+## 3.18 Answer (UI steps)
+1) Open **/backprop/regression**.  
+2) Click **Load MSE (Book)** to load the dataset, order, and initial parameters (m=1, b=0, lr=0.1).  
+3) Press **Step Regression** (or **S**) to advance step-by-step.  
+4) Use **Book Table Mode** to read the exact step values for the table.  
+5) The plot overlays the lines at steps 0/1/7 over the data points.
+
+## 3.24 Question (Regression L1, how to do it in the UI)
+Use L1 loss instead of MSE and compare the gradient updates and loss.
+
+## 3.24 Answer (UI steps)
+1) On **/backprop/regression**, click **Load L1 (Book)**.  
+2) Step with **S** to fill the table.  
+3) If you want the printed-table match, keep **Loss display = Book‑literal**.  
+4) Compare the step history and plotted lines to the MSE case.

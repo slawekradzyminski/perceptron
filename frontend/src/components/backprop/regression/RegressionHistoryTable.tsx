@@ -1,4 +1,4 @@
-import type { RegressionStep } from "../../types";
+import type { RegressionStep } from "../../../types";
 import { formatNum } from "../common/formatters";
 
 type RegressionHistoryTableProps = {

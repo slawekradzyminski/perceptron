@@ -51,7 +51,7 @@ function formatVec(values: number[]) {
 }
 
 export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: LmsPageProps) {
-  const { state, history, stepCount, error, loading, step, resetWithOptions } = useLmsApi(apiBase);
+  const { state, history, stepCount, error, loading: _loading, step, resetWithOptions } = useLmsApi(apiBase);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; x: number; y: number }>({
     visible: false,
@@ -97,14 +97,6 @@ export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: L
           <p className="panel-subtle">
             We minimize squared error by nudging weights in the direction of the gradient.
           </p>
-        </div>
-        <div className="lms-actions">
-          <button type="button" onClick={handleStep} disabled={loading || !canUseCustom}>
-            Step
-          </button>
-          <button type="button" onClick={handleReset} disabled={loading || !canUseCustom}>
-            Reset
-          </button>
         </div>
       </div>
 

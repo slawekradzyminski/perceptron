@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 try:
     import matplotlib.pyplot as plt  # type: ignore
@@ -12,10 +12,10 @@ except Exception:  # pragma: no cover
 
 def mse_surface(
     samples: Iterable[dict],
-    w_range: Tuple[float, float],
+    w_range: tuple[float, float],
     steps: int = 25,
     b: float = 0.0,
-) -> List[List[float]]:
+) -> list[list[float]]:
     """Compute MSE surface for 2D weights over a grid."""
     if steps <= 1:
         raise ValueError("steps must be > 1")
@@ -23,10 +23,10 @@ def mse_surface(
     if w_min >= w_max:
         raise ValueError("w_range must be increasing")
     data = list(samples)
-    grid: List[List[float]] = []
+    grid: list[list[float]] = []
     for i in range(steps):
         w1 = w_min + (w_max - w_min) * i / (steps - 1)
-        row: List[float] = []
+        row: list[float] = []
         for j in range(steps):
             w2 = w_min + (w_max - w_min) * j / (steps - 1)
             loss = 0.0
@@ -41,7 +41,7 @@ def mse_surface(
     return grid
 
 
-def plot_surface(grid: List[List[float]], title: str = "MSE surface") -> None:
+def plot_surface(grid: list[list[float]], title: str = "MSE surface") -> None:
     if plt is None:
         raise RuntimeError("matplotlib is required for plotting")
     plt.imshow(grid, cmap="viridis")

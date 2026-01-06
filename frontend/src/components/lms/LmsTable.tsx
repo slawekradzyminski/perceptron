@@ -79,7 +79,7 @@ function LmsRow({ step, index, firstStepNumber, onHover, onLeave }: LmsRowProps)
 
 export function LmsTable({
   history,
-  stepCount,
+  stepCount: _stepCount,
   firstStepNumber,
   onHover,
   onLeave,
