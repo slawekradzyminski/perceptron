@@ -1,0 +1,410 @@
+/* AlexNet Explorer Styles - Chapter 5 (Unified with project aesthetic) */
+
+.alexnet-panel {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fff7ed 100%);
+  max-width: 100%;
+  margin: 0;
+  padding: 24px;
+}
+
+.alexnet-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.alexnet-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, #1c1b19 0%, #0369a1 60%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.alexnet-header .subtitle {
+  color: #6a5a4a;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Main grid layout */
+.alexnet-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Controls panel */
+.alexnet-controls {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.alexnet-controls:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.control-group {
+  display: grid;
+  gap: 8px;
+}
+
+.control-group > label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5c4a39;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.layer-buttons,
+.sample-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.layer-buttons button,
+.sample-buttons button {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid var(--grid);
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.layer-buttons button:hover,
+.sample-buttons button:hover {
+  border-color: var(--accent);
+  background: #fffdf8;
+}
+
+.layer-buttons button.active,
+.sample-buttons button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+.layer-buttons button:disabled,
+.sample-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+.upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.upload-hint {
+  color: #6a5a4a;
+  font-size: 0.75rem;
+  margin: 6px 0 0 0;
+  font-style: italic;
+}
+
+/* Input image preview in controls */
+.input-preview {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 14px;
+  border: 2px solid var(--grid);
+  text-align: center;
+}
+
+.input-preview label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5c4a39;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.preview-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #f8f4ef;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid var(--grid);
+}
+
+.preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-label {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #6a5a4a;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.layer-info {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 14px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.layer-info h4 {
+  color: #0369a1;
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+}
+
+.layer-info p {
+  color: #5c4a39;
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+
+.layer-info strong {
+  color: var(--ink);
+}
+
+.model-info {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 14px;
+  border-left: 4px solid var(--accent);
+}
+
+.model-info h4 {
+  color: var(--accent);
+  margin: 0 0 6px 0;
+}
+
+.model-info p {
+  color: #5c4a39;
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+
+.model-info strong {
+  color: var(--ink);
+}
+
+/* Main visualization area */
+.alexnet-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.viz-section {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--grid);
+  border-radius: 18px;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.viz-section h3 {
+  color: var(--ink);
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.viz-section h3 .hint {
+  color: #6a5a4a;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+/* Activation header with input reference */
+.activation-header {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--grid);
+}
+
+.input-reference {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ref-label {
+  color: #6a5a4a;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ref-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 2px solid var(--accent);
+  object-fit: cover;
+}
+
+.ref-name {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+/* Filter grid */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+.filter-cell {
+  position: relative;
+  aspect-ratio: 1;
+  background: #f8f4ef;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.filter-cell:hover,
+.filter-cell.hovered {
+  border-color: var(--accent);
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(255, 106, 61, 0.2);
+}
+
+.filter-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.filter-index {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.625rem;
+  color: #5c4a39;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* Activation grid */
+.activation-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+.activation-cell {
+  position: relative;
+  aspect-ratio: 1;
+  background: #f8f4ef;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.activation-cell.highlighted {
+  border-color: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+.activation-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.activation-index {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.625rem;
+  color: #5c4a39;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+/* Error display */
+.alexnet-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .alexnet-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alexnet-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .filter-grid,
+  .activation-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .filter-grid,
+  .activation-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

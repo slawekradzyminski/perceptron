@@ -11,6 +11,8 @@ This project is an educational, step-by-step visualization of perceptron learnin
 - `/backprop/tinygps` TinyGPS: multi-class classification.
 - `/backprop/regression` Regression: line fitting with backprop.
 - `/deep` Deep Learning Lab: variable-depth networks and region counting.
+- `/alexnet` AlexNet Explorer: visualize CNN filters and activation maps.
+- `/transformer` Transformer Flow: tokenization, block trace, and model scale comparison.
 
 ## Keyboard shortcuts
 - `S`: Step

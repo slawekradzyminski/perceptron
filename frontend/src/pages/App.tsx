@@ -7,12 +7,14 @@ import { StepMathPanel } from "../components/perceptron/StepMathPanel";
 import { SwitchboardPanel } from "../components/perceptron/SwitchboardPanel";
 import { CustomModal } from "../components/common/CustomModal";
 import { Header } from "../components/common/Header";
+import { AlexNetPage } from "./AlexNetPage";
 import { LmsPage } from "./LmsPage";
 import { MlpTrainerPage } from "./MlpTrainerPage";
 import { GdPage } from "./GdPage";
 import { RegressionPage } from "./RegressionPage";
 import { TinyGpsPage } from "./TinyGpsPage";
 import { DeepPage } from "./DeepPage";
+import { TransformerPage } from "./TransformerPage";
 import { usePerceptronApi } from "../hooks/perceptron/usePerceptronApi";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 import type { TooltipState } from "../types";
@@ -27,7 +29,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep";
+type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer";
 
 export default function App() {
   const [apiBase] = useState(DEFAULT_API_BASE);
@@ -49,7 +51,11 @@ export default function App() {
               ? "tinygps"
               : location.pathname === "/deep"
                 ? "deep"
-                : "main";
+                : location.pathname === "/alexnet"
+                  ? "alexnet"
+                  : location.pathname === "/transformer"
+                    ? "transformer"
+                    : "main";
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -262,7 +268,11 @@ export default function App() {
                       ? "/backprop/regression"
                       : next === "deep"
                         ? "/deep"
-                        : "/",
+                        : next === "alexnet"
+                          ? "/alexnet"
+                          : next === "transformer"
+                            ? "/transformer"
+                            : "/",
           );
         }}
       />
@@ -338,6 +348,10 @@ export default function App() {
           <RegressionPage apiBase={apiBase} />
         ) : route === "deep" ? (
           <DeepPage apiBase={apiBase} />
+        ) : route === "alexnet" ? (
+          <AlexNetPage apiBase={apiBase} />
+        ) : route === "transformer" ? (
+          <TransformerPage apiBase={apiBase} />
         ) : (
           <GdPage apiBase={apiBase} />
         )}

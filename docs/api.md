@@ -53,3 +53,43 @@ Base URL: `http://127.0.0.1:8000`
   - Returns comparison table entries.
 - `POST /deep/comparison/clear`
   - Clears the comparison table.
+
+## AlexNet endpoints (Chapter 5)
+- `GET /alexnet/state`
+  - Returns current layer, sample images, layer info, and param count.
+- `GET /alexnet/layers`
+  - Returns information about all 5 convolutional layers.
+- `POST /alexnet/layer/{layer}`
+  - Set the current layer for exploration (1-5).
+- `GET /alexnet/filters?layer=1&max_filters=64`
+  - Returns filter visualizations as base64-encoded images.
+- `GET /alexnet/activations?sample=gradient&layer=1&max_activations=64`
+  - Returns activation maps for a sample image.
+- `POST /alexnet/activations?layer=1&max_activations=64`
+  - Upload an image and get activation maps (multipart/form-data).
+- `GET /alexnet/sample/{name}`
+  - Returns a sample test image as base64 (gradient, checkerboard, noise).
+
+## Transformer endpoints (Chapter 5)
+- `GET /transformer/state`
+  - Returns current text, token count, encoding info.
+- `POST /transformer/tokenize`
+  - Tokenize text. Body: `{text}`.
+- `POST /transformer/embed`
+  - Get embedding dimension info. Body: `{text}` (optional).
+- `POST /transformer/trace`
+  - Show matrix flow through transformer blocks. Body: `{text, n_blocks}`.
+- `POST /transformer/generate`
+  - Simulate autoregressive generation. Body: `{prompt, max_steps}`.
+- `GET /transformer/models`
+  - Returns GPT model comparison data.
+- `GET /transformer/scale`
+  - Returns all models for scale comparison (LeNet-5 to GPT-4).
+- `GET /transformer/scale/cnns`
+  - Returns only CNN models.
+- `GET /transformer/scale/transformers`
+  - Returns only Transformer models.
+- `GET /transformer/scale/compare?model1=AlexNet&model2=GPT-4`
+  - Compare two models by name.
+- `GET /transformer/scale/growth`
+  - Returns exponential growth data for visualization.

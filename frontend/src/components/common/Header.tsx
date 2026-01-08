@@ -6,20 +6,22 @@ const DATASET_OPTIONS = [
   { value: "custom", label: "Custom" },
 ];
 
+type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer";
+
 type HeaderProps = {
   datasetName: string;
   gridRows: number;
   gridCols: number;
   lr: number;
   showCustomButton: boolean;
-  route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep";
+  route: AppRoute;
   showTrainingControls: boolean;
   onDatasetChange: (value: string) => void;
   onStep: () => void;
   onReset: () => void;
   onLrChange: (value: number) => void;
   onOpenCustom: () => void;
-  onRouteChange: (route: "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep") => void;
+  onRouteChange: (route: AppRoute) => void;
 };
 
 export function Header({
@@ -110,8 +112,26 @@ export function Header({
           >
             Deep
           </button>
+          <button
+            type="button"
+            className={route === "alexnet" ? "active" : ""}
+            onClick={() => onRouteChange("alexnet")}
+            role="tab"
+            aria-selected={route === "alexnet"}
+          >
+            AlexNet
+          </button>
+          <button
+            type="button"
+            className={route === "transformer" ? "active" : ""}
+            onClick={() => onRouteChange("transformer")}
+            role="tab"
+            aria-selected={route === "transformer"}
+          >
+            Transformer
+          </button>
         </div>
-        {route !== "gd" && route !== "tinygps" && route !== "regression" && route !== "deep" && (
+        {route !== "gd" && route !== "tinygps" && route !== "regression" && route !== "deep" && route !== "alexnet" && route !== "transformer" && (
           <>
             <label>
               <span>Dataset</span>
