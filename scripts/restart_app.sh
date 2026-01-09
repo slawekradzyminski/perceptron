@@ -10,10 +10,12 @@ FE_LOG="/tmp/perceptron_frontend.log"
 API_URL="http://127.0.0.1:8000/state"
 FE_URL="http://127.0.0.1:5173/"
 OLLAMA_CONTAINER="ollama-llama"
-OLLAMA_IMAGE="ollama/ollama:0.13.5"
+OLLAMA_IMAGE="ollama/ollama:latest"
 OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:1b}"
 OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 USE_DOCKER=false
+USE_OLLAMA=false
+COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 
 stop_pid() {
   local pid_file="$1"
@@ -66,8 +68,6 @@ wait_for_url() {
   return 1
 }
 
-require_cmd poetry
-require_cmd npm
 require_cmd curl
 
 for arg in "$@"; do
@@ -75,13 +75,21 @@ for arg in "$@"; do
     --docker)
       USE_DOCKER=true
       ;;
+    --ollama)
+      USE_OLLAMA=true
+      ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--docker]" >&2
+      echo "Usage: $0 [--ollama|--docker]" >&2
       exit 1
       ;;
   esac
 done
+
+if $USE_DOCKER && $USE_OLLAMA; then
+  echo "Choose either --docker or --ollama, not both." >&2
+  exit 1
+fi
 
 start_ollama() {
   if ! docker info >/dev/null 2>&1; then
@@ -113,6 +121,20 @@ start_ollama() {
   docker exec "$OLLAMA_CONTAINER" ollama pull "$OLLAMA_MODEL" >/dev/null
 }
 
+start_docker_stack() {
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker is not running. Start Docker before running this script." >&2
+    exit 1
+  fi
+
+  if ! docker compose version >/dev/null 2>&1; then
+    echo "docker compose is required to run the stack." >&2
+    exit 1
+  fi
+
+  docker compose -f "$COMPOSE_FILE" up -d --build
+}
+
 stop_pid "$API_PID_FILE"
 stop_pid "$FRONTEND_PID_FILE"
 stop_port 8000
@@ -120,20 +142,28 @@ stop_port 5173
 
 if $USE_DOCKER; then
   require_cmd docker
-  start_ollama
+  start_docker_stack
 else
+  require_cmd poetry
+  require_cmd npm
+  if $USE_OLLAMA; then
+    require_cmd docker
+    start_ollama
+  fi
   GD_TOKEN_SOURCE=${GD_TOKEN_SOURCE:-none}
 fi
 
-(
-  cd "$ROOT_DIR"
-  GD_TOKEN_SOURCE=${GD_TOKEN_SOURCE:-none} \
-  OLLAMA_BASE_URL="$OLLAMA_BASE_URL" \
-  OLLAMA_MODEL="$OLLAMA_MODEL" \
-  OLLAMA_TIMEOUT_S="${OLLAMA_TIMEOUT_S:-120}" \
-  poetry run perceptron-api >"$API_LOG" 2>&1 & echo $! >"$API_PID_FILE"
-)
-(cd "$FRONTEND_DIR" && npm run dev -- --host 127.0.0.1 --port 5173 >"$FE_LOG" 2>&1 & echo $! >"$FRONTEND_PID_FILE")
+if ! $USE_DOCKER; then
+  (
+    cd "$ROOT_DIR"
+    GD_TOKEN_SOURCE=${GD_TOKEN_SOURCE:-none} \
+    OLLAMA_BASE_URL="$OLLAMA_BASE_URL" \
+    OLLAMA_MODEL="$OLLAMA_MODEL" \
+    OLLAMA_TIMEOUT_S="${OLLAMA_TIMEOUT_S:-120}" \
+    poetry run perceptron-api >"$API_LOG" 2>&1 & echo $! >"$API_PID_FILE"
+  )
+  (cd "$FRONTEND_DIR" && npm run dev -- --host 127.0.0.1 --port 5173 >"$FE_LOG" 2>&1 & echo $! >"$FRONTEND_PID_FILE")
+fi
 
 if ! wait_for_url "$API_URL"; then
   echo "API failed to start. See $API_LOG" >&2
