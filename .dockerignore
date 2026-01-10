@@ -1,0 +1,16 @@
+.git
+.vscode
+.idea
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+node_modules
+frontend/node_modules
+backend/__pycache__
+frontend/dist
+coverage.xml
+/tmp
+logs

@@ -13,7 +13,8 @@
 
 ## Scripts (preferred)
 - Restart app + health checks (no docker): `scripts/restart_app.sh`
-- Restart app + health checks (docker): `scripts/restart_app.sh --docker`
+- Restart app + health checks (ollama only in docker): `scripts/restart_app.sh --ollama`
+- Restart app + health checks (full docker stack): `scripts/restart_app.sh --docker`
 - Verify app (start + health checks): `scripts/verify_app.sh`
 - Stop app processes: `scripts/stop_app.sh`
 
