@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api import (
     alexnet_router,
     backprop_router,
+    conv_router,
     deep_router,
     diagnostics_router,
     gd_router,
@@ -112,6 +113,7 @@ app.include_router(backprop_router)
 app.include_router(deep_router)
 app.include_router(alexnet_router)
 app.include_router(transformer_router)
+app.include_router(conv_router)
 
 logger.info(f"API logging enabled. Log file: {LOG_FILE.absolute()}")
 

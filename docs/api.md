@@ -93,3 +93,23 @@ Base URL: `http://127.0.0.1:8000`
   - Compare two models by name.
 - `GET /transformer/scale/growth`
   - Returns exponential growth data for visualization.
+
+## Convolution Lab endpoints (Chapter 6)
+- `GET /conv/state`
+  - Returns current image, kernel, parameters, and computed activation map.
+- `GET /conv/presets`
+  - Returns available image and kernel presets.
+- `POST /conv/image/{name}`
+  - Set input image to a preset (gradient, checkerboard, cross, edges, etc.).
+- `POST /conv/image/size`
+  - Set image size. Body: `{size}` (4-28).
+- `POST /conv/image/upload`
+  - Upload custom image (multipart/form-data, resized to current size).
+- `POST /conv/kernel`
+  - Set kernel. Body: `{name}` for preset or `{weights}` for custom 3x3.
+- `POST /conv/params`
+  - Set convolution parameters. Body: `{padding, stride}`.
+- `GET /conv/step?row=0&col=0`
+  - Get step-by-step calculation for output position (patch, kernel, products, sum).
+- `POST /conv/calculate`
+  - Calculate output dimensions. Body: `{input_size, kernel_size, padding, stride}`.

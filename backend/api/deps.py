@@ -1,5 +1,6 @@
 from backend.services.alexnet_service import AlexNetService
 from backend.services.backprop_service import BackpropService
+from backend.services.conv_service import ConvService
 from backend.services.deep_service import DeepService
 from backend.services.gd_service import GdService
 from backend.services.lms_service import LmsService
@@ -17,3 +18,4 @@ deep_service = DeepService()
 alexnet_service = AlexNetService()
 transformer_service = TransformerService()
 scale_service = ScaleService()
+conv_service = ConvService()

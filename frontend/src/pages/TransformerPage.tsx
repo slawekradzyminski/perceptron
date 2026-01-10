@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTransformerApi, TokenEmbedding, BlockOperation } from "../hooks/transformer/useTransformerApi";
+import { TransformerEducation } from "../components/education/TransformerEducation";
 import "../styles/transformer.css";
+import "../styles/education.css";
 
 // Token colors for visualization
 const TOKEN_COLORS = [
@@ -636,8 +638,9 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
         </div>
       </div>
 
+      <TransformerEducation />
+
       {error && <p className="transformer-error">{error}</p>}
     </section>
   );
 }
-

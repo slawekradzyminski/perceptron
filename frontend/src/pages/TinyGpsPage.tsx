@@ -8,6 +8,8 @@ import { TinyGpsCityMap } from "../components/backprop/tinygps/TinyGpsCityMap";
 import { TinyGpsLossTrendCard } from "../components/backprop/tinygps/TinyGpsLossTrendCard";
 import { TinyGpsStepSetupCard } from "../components/backprop/tinygps/TinyGpsStepSetupCard";
 import { useHotkeys } from "../hooks/common/useHotkeys";
+import { TinyGpsEducation } from "../components/education/TinyGpsEducation";
+import "../styles/education.css";
 
 const DEFAULT_LR = 0.1;
 
@@ -88,6 +90,8 @@ export function TinyGpsPage({ apiBase }: { apiBase: string }) {
       <div className="tinygps-history">
         <TinyGpsBookTable history={tinygpsHistory} datasetName={dataset} />
       </div>
+
+      <TinyGpsEducation />
 
       {error && <p className="diag-error">{error}</p>}
     </section>

@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAlexNetApi } from "../hooks/alexnet/useAlexNetApi";
+import { AlexNetEducation } from "../components/education/AlexNetEducation";
 import "../styles/alexnet.css";
+import "../styles/education.css";
 
 const LAYERS = [1, 2, 3, 4, 5];
 const SAMPLES = ["gradient", "checkerboard", "noise", "face", "cat", "car", "landscape"];
@@ -306,8 +308,9 @@ export function AlexNetPage({ apiBase }: { apiBase: string }) {
         </div>
       </div>
 
+      <AlexNetEducation />
+
       {error && <p className="alexnet-error">{error}</p>}
     </section>
   );
 }
-

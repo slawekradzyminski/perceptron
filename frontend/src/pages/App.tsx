@@ -8,6 +8,7 @@ import { SwitchboardPanel } from "../components/perceptron/SwitchboardPanel";
 import { CustomModal } from "../components/common/CustomModal";
 import { Header } from "../components/common/Header";
 import { AlexNetPage } from "./AlexNetPage";
+import { ConvolutionPage } from "./ConvolutionPage";
 import { LmsPage } from "./LmsPage";
 import { MlpTrainerPage } from "./MlpTrainerPage";
 import { GdPage } from "./GdPage";
@@ -19,6 +20,8 @@ import { usePerceptronApi } from "../hooks/perceptron/usePerceptronApi";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 import type { TooltipState } from "../types";
 import { defaultCustomConfig, pointsForDataset } from "../utils/custom";
+import { PerceptronEducation } from "../components/education/PerceptronEducation";
+import "../styles/education.css";
 import {
   contributionGrid,
   createFilledGrid,
@@ -29,7 +32,7 @@ import {
 
 const DEFAULT_API_BASE = "http://127.0.0.1:8000";
 
-type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer";
+type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer" | "convolution";
 
 export default function App() {
   const [apiBase] = useState(DEFAULT_API_BASE);
@@ -55,7 +58,9 @@ export default function App() {
                   ? "alexnet"
                   : location.pathname === "/transformer"
                     ? "transformer"
-                    : "main";
+                    : location.pathname === "/convolution"
+                      ? "convolution"
+                      : "main";
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     text: "",
@@ -272,7 +277,9 @@ export default function App() {
                           ? "/alexnet"
                           : next === "transformer"
                             ? "/transformer"
-                            : "/",
+                            : next === "convolution"
+                              ? "/convolution"
+                              : "/",
           );
         }}
       />
@@ -327,6 +334,7 @@ export default function App() {
             />
 
             <ExplanationPanel />
+            <PerceptronEducation />
           </>
         ) : route === "lms" ? (
           <LmsPage
@@ -352,6 +360,8 @@ export default function App() {
           <AlexNetPage apiBase={apiBase} />
         ) : route === "transformer" ? (
           <TransformerPage apiBase={apiBase} />
+        ) : route === "convolution" ? (
+          <ConvolutionPage apiBase={apiBase} />
         ) : (
           <GdPage apiBase={apiBase} />
         )}

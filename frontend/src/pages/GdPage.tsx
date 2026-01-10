@@ -1,6 +1,8 @@
 import { PromptLogitsCard } from "../components/gd/PromptLogitsCard";
 import { TokenLossTableCard } from "../components/gd/TokenLossTableCard";
 import { useGdApi } from "../hooks/gd/useGdApi";
+import { GradientDescentEducation } from "../components/education/GradientDescentEducation";
+import "../styles/education.css";
 
 export type GdPageProps = {
   apiBase: string;
@@ -61,6 +63,8 @@ export function GdPage({ apiBase }: GdPageProps) {
           </div>
         </div>
       )}
+
+      <GradientDescentEducation />
     </section>
   );
 }

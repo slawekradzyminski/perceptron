@@ -28,3 +28,6 @@ frontend/tsconfig.tsbuildinfo
 # Coverage
 coverage.xml
 .coverage
+
+# Data files (training data, not needed for inference)
+data/MNIST/

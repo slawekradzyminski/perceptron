@@ -13,6 +13,7 @@ This project is an educational, step-by-step visualization of perceptron learnin
 - `/deep` Deep Learning Lab: variable-depth networks and region counting.
 - `/alexnet` AlexNet Explorer: visualize CNN filters and activation maps.
 - `/transformer` Transformer Flow: tokenization, block trace, and model scale comparison.
+- `/convolution` Convolution Lab: interactive 2D convolution visualization with step-by-step math.
 
 ## Keyboard shortcuts
 - `S`: Step

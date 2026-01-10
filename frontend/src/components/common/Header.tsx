@@ -6,7 +6,7 @@ const DATASET_OPTIONS = [
   { value: "custom", label: "Custom" },
 ];
 
-type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer";
+type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer" | "convolution";
 
 type HeaderProps = {
   datasetName: string;
@@ -130,8 +130,17 @@ export function Header({
           >
             Transformer
           </button>
+          <button
+            type="button"
+            className={route === "convolution" ? "active" : ""}
+            onClick={() => onRouteChange("convolution")}
+            role="tab"
+            aria-selected={route === "convolution"}
+          >
+            Conv Lab
+          </button>
         </div>
-        {route !== "gd" && route !== "tinygps" && route !== "regression" && route !== "deep" && route !== "alexnet" && route !== "transformer" && (
+        {route !== "gd" && route !== "tinygps" && route !== "regression" && route !== "deep" && route !== "alexnet" && route !== "transformer" && route !== "convolution" && (
           <>
             <label>
               <span>Dataset</span>

@@ -7,6 +7,8 @@ import { RegressionBookTable } from "../components/backprop/regression/Regressio
 import { RegressionLossTrendCard } from "../components/backprop/regression/RegressionLossTrendCard";
 import { useHotkeys } from "../hooks/common/useHotkeys";
 import type { RegressionStep } from "../types";
+import { RegressionEducation } from "../components/education/RegressionEducation";
+import "../styles/education.css";
 
 const DEFAULT_LR = 0.1;
 
@@ -135,6 +137,8 @@ export function RegressionPage({ apiBase }: { apiBase: string }) {
         <RegressionPlot state={state?.regression ?? null} history={regressionHistory} />
         <RegressionBookTable history={regressionHistory} lossType={loss} bookLiteral={bookLiteral} />
       </div>
+
+      <RegressionEducation />
 
       {error && <p className="diag-error">{error}</p>}
     </section>

@@ -85,3 +85,32 @@ This file summarizes the user-facing features and how to interpret them.
   - Interactive comparison showing parameter ratios.
   - Growth chart showing exponential increase in model sizes.
   - Full table with all historical models (1998-2023).
+
+## Convolution Lab ("/convolution")
+- **Interactive Convolution Visualization**
+  - See how a kernel slides across an input image.
+  - Hover over activation map cells to highlight the receptive field.
+  - Same kernel weights used everywhere (weight sharing visualization).
+- **Kernel Editor**
+  - Choose from preset kernels: identity, edge, sobel, blur, sharpen, emboss.
+  - Manually edit kernel weights in a 3×3 grid.
+  - See immediate effect on the activation map.
+- **Sample Images**
+  - Preset patterns: gradient, checkerboard, cross, edges, diagonal.
+  - Upload custom images (resized to current size).
+  - Adjust image size from 4×4 to 16×16.
+- **Step-by-Step Math**
+  - For any hovered position, displays:
+    - The extracted patch (receptive field)
+    - The kernel weights
+    - Element-wise products
+    - Final sum (activation value)
+- **Convolution Parameters**
+  - Padding: 0, 1, or 2 pixels of zero-padding.
+  - Stride: 1, 2, or 3 pixel step size.
+- **Digit Recognition**
+  - Upload handwritten digit images (0-9).
+  - See CNN predictions with confidence scores.
+  - Visualize layer activations (Conv1 → Pool → Conv2 → Pool).
+  - Probability distribution across all 10 digit classes.
+  - Uses pretrained model with ~97% accuracy on MNIST.

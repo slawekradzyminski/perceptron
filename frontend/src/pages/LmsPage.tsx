@@ -10,6 +10,8 @@ import { LmsMathCard } from "../components/lms/LmsMathCard";
 import { LmsTable } from "../components/lms/LmsTable";
 import { LmsTooltip } from "../components/lms/LmsTooltip";
 import { LmsTrendCard } from "../components/lms/LmsTrendCard";
+import { LmsEducation } from "../components/education/LmsEducation";
+import "../styles/education.css";
 
 type LmsPageProps = {
   apiBase: string;
@@ -129,6 +131,7 @@ export function LmsPage({ apiBase, datasetName, customConfig, customApplied }: L
         />
       </div>
       <LmsTooltip tooltip={tooltip} />
+      <LmsEducation />
     </section>
   );
 }

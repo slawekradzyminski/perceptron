@@ -6,6 +6,8 @@ import { DeepStatsCard } from "../components/deep/DeepStatsCard";
 import { DeepBoundaryCanvas } from "../components/deep/DeepBoundaryCanvas";
 import { DeepComparisonTable } from "../components/deep/DeepComparisonTable";
 import { DeepLossChart } from "../components/deep/DeepLossChart";
+import { DeepEducation } from "../components/education/DeepEducation";
+import "../styles/education.css";
 
 const DATASETS = ["circles", "spiral", "xor", "baarle"];
 
@@ -207,6 +209,8 @@ export function DeepPage({ apiBase }: { apiBase: string }) {
       </div>
 
       <DeepComparisonTable entries={comparison} onClear={clearComparison} />
+
+      <DeepEducation />
 
       {error && <p className="deep-error">{error}</p>}
     </section>

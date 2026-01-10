@@ -11,6 +11,8 @@ import { MlpNetworkDiagram } from "../components/mlp/MlpNetworkDiagram";
 import { MlpEvalList } from "../components/mlp/MlpEvalList";
 import { MlpStepTemplates } from "../components/mlp/MlpStepTemplates";
 import type { CustomConfig } from "../types";
+import { MlpEducation } from "../components/education/MlpEducation";
+import "../styles/education.css";
 
 export type MlpTrainerPageProps = {
   apiBase: string;
@@ -98,6 +100,8 @@ export function MlpTrainerPage({ apiBase, datasetName, customConfig, customAppli
           {snapshot && <MlpEvalList evals={snapshot.evals} />}
         </div>
       </div>
+
+      <MlpEducation />
 
       {!canUseCustom && <p className="diag-note">Apply the custom dataset to train the MLP.</p>}
       {error && <p className="diag-error">{error}</p>}
