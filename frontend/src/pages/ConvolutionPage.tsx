@@ -1,11 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useConvApi } from "../hooks/conv/useConvApi";
 import { ConvControls } from "../components/conv/ConvControls";
-import { ConvImageGrid } from "../components/conv/ConvImageGrid";
-import { ConvActivationGrid } from "../components/conv/ConvActivationGrid";
-import { ConvStepMath } from "../components/conv/ConvStepMath";
-import { ConvEducation } from "../components/conv/ConvEducation";
-import { ConvDigitRecognition } from "../components/conv/ConvDigitRecognition";
+import { ConvMainPanel } from "../components/conv/ConvMainPanel";
 import "../styles/convolution.css";
 
 export function ConvolutionPage({ apiBase }: { apiBase: string }) {
@@ -28,13 +24,11 @@ export function ConvolutionPage({ apiBase }: { apiBase: string }) {
   const [hoveredCell, setHoveredCell] = useState<{ row: number; col: number } | null>(null);
   const [editingKernel, setEditingKernel] = useState<number[][] | null>(null);
 
-  // Initialize on mount
   useEffect(() => {
     void fetchState();
     void fetchPresets();
   }, [fetchState, fetchPresets]);
 
-  // Fetch step details when hovering
   useEffect(() => {
     if (hoveredCell) {
       void getStep(hoveredCell.row, hoveredCell.col);
@@ -115,7 +109,6 @@ export function ConvolutionPage({ apiBase }: { apiBase: string }) {
     [0, 0, 0],
   ];
 
-  // Calculate receptive field bounds in the input image
   const getReceptiveFieldBounds = () => {
     if (!step || !state) return null;
     const { input_row, input_col, kernel_size, padding } = step;
@@ -154,40 +147,14 @@ export function ConvolutionPage({ apiBase }: { apiBase: string }) {
           onStrideChange={handleStrideChange}
         />
 
-        <div className="conv-main">
-          <div className="conv-visualization">
-            {state && (
-              <ConvImageGrid
-                image={state.image}
-                imageSize={state.image_size}
-                imageName={state.image_name}
-                inputShape={state.input_shape}
-                receptiveField={receptiveField}
-              />
-            )}
-
-            <div className="conv-arrow">
-              <span className="arrow-symbol">→</span>
-              <span className="arrow-label">Convolve</span>
-            </div>
-
-            {state && (
-              <ConvActivationGrid
-                activationMap={state.activation_map}
-                activationMapNormalized={state.activation_map_normalized}
-                outputShape={state.output_shape}
-                hoveredCell={hoveredCell}
-                onCellHover={setHoveredCell}
-              />
-            )}
-          </div>
-
-          <ConvStepMath step={step} />
-
-          <ConvDigitRecognition apiBase={apiBase} />
-
-          <ConvEducation />
-        </div>
+        <ConvMainPanel
+          state={state}
+          step={step}
+          apiBase={apiBase}
+          hoveredCell={hoveredCell}
+          receptiveField={receptiveField}
+          onCellHover={setHoveredCell}
+        />
       </div>
 
       {error && <p className="conv-error">{error}</p>}
