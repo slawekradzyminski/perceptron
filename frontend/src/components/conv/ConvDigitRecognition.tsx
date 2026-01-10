@@ -103,7 +103,7 @@ export function ConvDigitRecognition({ apiBase }: ConvDigitRecognitionProps) {
 
       {testImage && (
         <div className="test-preview">
-          <h4>Input Image</h4>
+          <h4 className="input-image-label">Input Image</h4>
           <img src={testImage} alt="Uploaded digit" />
         </div>
       )}

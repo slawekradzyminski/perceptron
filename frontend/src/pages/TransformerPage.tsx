@@ -72,22 +72,23 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
       </header>
 
       <div className="transformer-grid">
-        <TransformerInputSection
-          inputText={inputText}
-          onInputChange={setInputText}
-        />
-
         <TransformerTabNav activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="tab-content">
           {activeTab === "tokenize" && (
-            <TransformerTokenizeTab
-              inputText={inputText}
-              loading={loading}
-              tokens={tokens}
-              embedInfo={embedInfo}
-              onTokenize={handleTokenize}
-            />
+            <>
+              <TransformerInputSection
+                inputText={inputText}
+                onInputChange={setInputText}
+              />
+              <TransformerTokenizeTab
+                inputText={inputText}
+                loading={loading}
+                tokens={tokens}
+                embedInfo={embedInfo}
+                onTokenize={handleTokenize}
+              />
+            </>
           )}
 
           {activeTab === "trace" && (
