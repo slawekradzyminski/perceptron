@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+COMPOSE_OVERRIDE="$ROOT_DIR/docker-compose.ci.yml"
 API_URL="http://127.0.0.1:8000/state"
 FE_URL="http://127.0.0.1:5173/"
 
@@ -18,12 +19,17 @@ wait_for_url() {
   return 1
 }
 
+compose_args=("-f" "$COMPOSE_FILE")
+if [[ -f "$COMPOSE_OVERRIDE" ]]; then
+  compose_args+=("-f" "$COMPOSE_OVERRIDE")
+fi
+
 cleanup() {
-  docker compose -f "$COMPOSE_FILE" down -v --remove-orphans
+  docker compose "${compose_args[@]}" down -v --remove-orphans
 }
 trap cleanup EXIT
 
-docker compose -f "$COMPOSE_FILE" up -d --build
+docker compose "${compose_args[@]}" up -d --build
 
 echo "Waiting for API..."
 if ! wait_for_url "$API_URL"; then
