@@ -12,7 +12,7 @@ This project is an educational, step-by-step visualization of perceptron learnin
 - `/backprop/regression` Regression: line fitting with backprop.
 - `/deep` Deep Learning Lab: variable-depth networks and region counting.
 - `/alexnet` AlexNet Explorer: visualize CNN filters and activation maps.
-- `/transformer` Transformer Flow: tokenization, block trace, and model scale comparison.
+- `/transformer` Transformer Flow: tokenization, block trace, model scale, attention patterns, logit lens, and KV cache comparison.
 - `/convolution` Convolution Lab: interactive 2D convolution visualization with step-by-step math.
 
 ## Keyboard shortcuts

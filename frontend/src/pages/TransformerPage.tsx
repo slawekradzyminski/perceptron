@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { useTransformerApi } from "../hooks/transformer/useTransformerApi";
+import { useGlassBoxApi } from "../hooks/transformer/useGlassBoxApi";
 import { TransformerEducation } from "../components/education/TransformerEducation";
 import { TransformerInputSection } from "../components/transformer/TransformerInputSection";
 import { TransformerTabNav } from "../components/transformer/TransformerTabNav";
@@ -7,11 +9,37 @@ import { TransformerTokenizeTab } from "../components/transformer/TransformerTok
 import { TransformerTraceTab } from "../components/transformer/TransformerTraceTab";
 import { TransformerChatTab } from "../components/transformer/TransformerChatTab";
 import { TransformerScaleTab } from "../components/transformer/TransformerScaleTab";
+import { AttentionTab } from "../components/transformer/AttentionTab";
+import { LogitLensTab } from "../components/transformer/LogitLensTab";
+import { KVCacheTab } from "../components/transformer/KVCacheTab";
 import type { TransformerTab } from "../components/transformer/types";
 import "../styles/transformer.css";
 import "../styles/education.css";
 
+const TAB_ROUTES: Record<string, TransformerTab> = {
+  "tokenization": "tokenize",
+  "block-trace": "trace",
+  "attention": "attention",
+  "logit-lens": "logit-lens",
+  "kv-cache": "kv-cache",
+  "generation": "generate",
+  "model-scale": "scale",
+};
+
+const TAB_TO_ROUTE: Record<TransformerTab, string> = {
+  "tokenize": "tokenization",
+  "trace": "block-trace",
+  "attention": "attention",
+  "logit-lens": "logit-lens",
+  "kv-cache": "kv-cache",
+  "generate": "generation",
+  "scale": "model-scale",
+};
+
 export function TransformerPage({ apiBase }: { apiBase: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     tokens,
     embedInfo,
@@ -22,8 +50,8 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
     scaleModels,
     comparison,
     growth,
-    error,
-    loading,
+    error: transformerError,
+    loading: transformerLoading,
     generating,
     tokenize,
     getEmbedInfo,
@@ -36,8 +64,32 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
     fetchGrowth,
   } = useTransformerApi(apiBase);
 
-  const [inputText, setInputText] = useState("The quick brown fox jumps");
-  const [activeTab, setActiveTab] = useState<TransformerTab>("tokenize");
+  const {
+    attention,
+    logitLens,
+    kvCache,
+    error: glassBoxError,
+    loading: glassBoxLoading,
+    fetchAttention,
+    fetchLogitLens,
+    fetchKvCache,
+  } = useGlassBoxApi(apiBase);
+
+  const [inputText, setInputText] = useState("The American flag is red, white, and");
+
+  // Parse tab from URL path
+  const pathParts = location.pathname.split("/");
+  const tabSlug = pathParts[2] || "tokenization";
+  const activeTab: TransformerTab = TAB_ROUTES[tabSlug] || "tokenize";
+
+  const setActiveTab = useCallback((tab: TransformerTab) => {
+    const route = TAB_TO_ROUTE[tab];
+    navigate(`/transformer/${route}`);
+  }, [navigate]);
+
+  // Combined loading and error states
+  const loading = transformerLoading || glassBoxLoading;
+  const error = transformerError || glassBoxError;
 
   useEffect(() => {
     void fetchScaleModels();
@@ -62,6 +114,27 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
       void compareModels(model1, model2);
     },
     [compareModels],
+  );
+
+  const handleFetchAttention = useCallback(
+    (text: string) => {
+      void fetchAttention(text);
+    },
+    [fetchAttention],
+  );
+
+  const handleFetchLogitLens = useCallback(
+    (text: string, topK?: number) => {
+      void fetchLogitLens(text, topK);
+    },
+    [fetchLogitLens],
+  );
+
+  const handleFetchKvCache = useCallback(
+    (config: Parameters<typeof fetchKvCache>[0]) => {
+      void fetchKvCache(config);
+    },
+    [fetchKvCache],
   );
 
   return (
@@ -97,6 +170,34 @@ export function TransformerPage({ apiBase }: { apiBase: string }) {
               loading={loading}
               trace={trace}
               onTrace={handleTrace}
+            />
+          )}
+
+          {activeTab === "attention" && (
+            <AttentionTab
+              inputText={inputText}
+              onInputChange={setInputText}
+              loading={loading}
+              attention={attention}
+              onFetchAttention={handleFetchAttention}
+            />
+          )}
+
+          {activeTab === "logit-lens" && (
+            <LogitLensTab
+              inputText={inputText}
+              onInputChange={setInputText}
+              loading={loading}
+              logitLens={logitLens}
+              onFetchLogitLens={handleFetchLogitLens}
+            />
+          )}
+
+          {activeTab === "kv-cache" && (
+            <KVCacheTab
+              loading={loading}
+              kvCache={kvCache}
+              onFetchKvCache={handleFetchKvCache}
             />
           )}
 

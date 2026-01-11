@@ -1,10 +1,29 @@
 """Tests for /transformer API routes (Chapter 5)."""
 
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 
 from backend.api_app import app
 
 client = TestClient(app)
+
+
+def _mock_embedding_result() -> dict:
+    """Return a mock embedding result to avoid loading HuggingFace model."""
+    return {
+        "text": "Hello world!",
+        "token_count": 3,
+        "d_model": 768,
+        "model_name": "gpt2",
+        "matrix_shape": [3, 768],
+        "explanation": "Mock embedding explanation",
+        "tokens": [
+            {"id": 1, "text": "Hello", "position": 0, "embedding": [0.1] * 768,
+             "embedding_preview": [0.1] * 10, "min": 0.0, "max": 1.0, "mean": 0.5, "std": 0.1},
+        ],
+        "full_matrix": [[0.1] * 768],
+    }
 
 
 class TestTransformerState:
@@ -53,15 +72,22 @@ class TestTransformerTokenize:
 
 
 class TestTransformerEmbed:
-    def test_embed_with_text(self) -> None:
+    @patch("backend.api.deps.transformer_service.get_embedding_info")
+    def test_embed_with_text(self, mock_embed: MagicMock) -> None:
+        mock_embed.return_value = _mock_embedding_result()
         response = client.post("/transformer/embed", json={"text": "Hello world!"})
         assert response.status_code == 200
         data = response.json()
         assert "matrix_shape" in data
         assert "d_model" in data
         assert "explanation" in data
+        mock_embed.assert_called_once_with("Hello world!")
 
-    def test_embed_without_text(self) -> None:
+    @patch("backend.api.deps.transformer_service.get_embedding_info")
+    def test_embed_without_text(self, mock_embed: MagicMock) -> None:
+        mock_result = _mock_embedding_result()
+        mock_result["text"] = "Previous text"
+        mock_embed.return_value = mock_result
         # First tokenize something
         client.post("/transformer/tokenize", json={"text": "Previous text"})
         # Then embed without text
@@ -155,14 +181,14 @@ class TestScaleEndpoints:
             assert model["type"] == "Transformer"
 
     def test_scale_compare(self) -> None:
-        response = client.get("/transformer/scale/compare?model1=AlexNet&model2=GPT-4")
+        response = client.get("/transformer/scale/compare?model1=GPT-3&model2=GPT-4%20(Base)")
         assert response.status_code == 200
         data = response.json()
         assert "ratio" in data
         assert "explanation" in data
 
     def test_scale_compare_invalid(self) -> None:
-        response = client.get("/transformer/scale/compare?model1=Invalid&model2=GPT-4")
+        response = client.get("/transformer/scale/compare?model1=Invalid&model2=GPT-3")
         assert response.status_code == 400
 
     def test_scale_growth(self) -> None:
@@ -171,4 +197,121 @@ class TestScaleEndpoints:
         data = response.json()
         assert "data" in data
         assert "insight" in data
+
+
+# ====================
+# Glass Box Tests (Chapter 7 & 8)
+# ====================
+
+
+class TestTransformerAttention:
+    """Tests for the attention endpoint.
+
+    Note: The simple test that calls the real model is skipped because
+    it requires loading the HuggingFace model which can be slow/unstable in CI.
+    The validation tests still run.
+    """
+
+    def test_attention_missing_text(self) -> None:
+        response = client.post("/transformer/attention", json={})
+        assert response.status_code == 400
+        assert "Missing 'text'" in response.json()["detail"]
+
+    def test_attention_invalid_type(self) -> None:
+        response = client.post("/transformer/attention", json={"text": 123})
+        assert response.status_code == 400
+        assert "'text' must be a string" in response.json()["detail"]
+
+    def test_attention_too_long(self) -> None:
+        long_text = "a" * 501
+        response = client.post("/transformer/attention", json={"text": long_text})
+        assert response.status_code == 400
+        assert "too long" in response.json()["detail"]
+
+
+class TestTransformerLogitLens:
+    """Tests for the logit-lens endpoint.
+
+    Note: The simple test that calls the real model is skipped because
+    it requires loading the HuggingFace model which can be slow/unstable in CI.
+    The validation tests still run.
+    """
+
+    def test_logit_lens_missing_text(self) -> None:
+        response = client.post("/transformer/logit-lens", json={})
+        assert response.status_code == 400
+        assert "Missing 'text'" in response.json()["detail"]
+
+    def test_logit_lens_invalid_top_k(self) -> None:
+        response = client.post(
+            "/transformer/logit-lens", json={"text": "Test", "top_k": 0}
+        )
+        assert response.status_code == 400
+        assert "top_k" in response.json()["detail"]
+
+    def test_logit_lens_too_long(self) -> None:
+        long_text = "a" * 501
+        response = client.post("/transformer/logit-lens", json={"text": long_text})
+        assert response.status_code == 400
+        assert "too long" in response.json()["detail"]
+
+
+class TestTransformerKVCache:
+    def test_kv_cache_defaults(self) -> None:
+        response = client.post("/transformer/kv-cache", json={})
+        assert response.status_code == 200
+        data = response.json()
+        assert "config" in data
+        assert "architectures" in data
+        assert "mha_to_mla_savings" in data
+        assert "explanation" in data
+
+    def test_kv_cache_custom_params(self) -> None:
+        response = client.post(
+            "/transformer/kv-cache",
+            json={
+                "context_length": 8192,
+                "n_layers": 48,
+                "d_model": 8192,
+                "n_heads": 64,
+                "gqa_groups": 8,
+                "mla_latent_dim": 1024,
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        config = data["config"]
+        assert config["context_length"] == 8192
+        assert config["n_layers"] == 48
+
+    def test_kv_cache_architectures(self) -> None:
+        response = client.post("/transformer/kv-cache", json={})
+        assert response.status_code == 200
+        data = response.json()
+        arch_names = [a["name"] for a in data["architectures"]]
+        assert "MHA" in arch_names
+        assert "MQA" in arch_names
+        assert "GQA" in arch_names
+        assert "MLA" in arch_names
+
+    def test_kv_cache_invalid_context_length(self) -> None:
+        response = client.post(
+            "/transformer/kv-cache", json={"context_length": 0}
+        )
+        assert response.status_code == 400
+        assert "context_length" in response.json()["detail"]
+
+    def test_kv_cache_invalid_n_layers(self) -> None:
+        response = client.post(
+            "/transformer/kv-cache", json={"n_layers": 300}
+        )
+        assert response.status_code == 400
+        assert "n_layers" in response.json()["detail"]
+
+    def test_kv_cache_invalid_gqa_groups(self) -> None:
+        response = client.post(
+            "/transformer/kv-cache", json={"gqa_groups": 100, "n_heads": 32}
+        )
+        assert response.status_code == 400
+        assert "gqa_groups" in response.json()["detail"]
 

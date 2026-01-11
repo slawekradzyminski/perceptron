@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import type {
   EmbedResult,
   TokenEmbedding,
@@ -42,12 +42,37 @@ export function TransformerTokenizeTab({
   embedInfo,
   onTokenize,
 }: TransformerTokenizeTabProps) {
-  const [hoveredToken, setHoveredToken] = useState<TokenEmbedding | null>(null);
+  const [selectedToken, setSelectedToken] = useState<TokenEmbedding | null>(null);
+  const [showFullEmbedding, setShowFullEmbedding] = useState(false);
   const [hoveredMatrixCell, setHoveredMatrixCell] = useState<{
     row: number;
     col: number;
     value: number;
   } | null>(null);
+
+  const toggleFullEmbedding = useCallback(() => {
+    setShowFullEmbedding((prev) => !prev);
+  }, []);
+
+  const handleTokenClick = useCallback((token: TokenEmbedding) => {
+    if (selectedToken?.id === token.id) {
+      setSelectedToken(null);
+      setShowFullEmbedding(false);
+    } else {
+      setSelectedToken(token);
+      setShowFullEmbedding(false);
+    }
+  }, [selectedToken]);
+
+  // Calculate width for first column based on longest token
+  const rowLabelWidth = useMemo(() => {
+    if (!embedInfo) return 60;
+    const longestToken = Math.max(
+      ...embedInfo.tokens.map((t) => (t.text || "⎵").length)
+    );
+    // Approximate: 8px per character + 16px padding
+    return Math.min(Math.max(longestToken * 8 + 16, 60), 120);
+  }, [embedInfo]);
 
   return (
     <div className="tokenize-section">
@@ -80,14 +105,14 @@ export function TransformerTokenizeTab({
               ? embedInfo.tokens.map((token, i) => (
                   <span
                     key={i}
-                    className={`token ${
-                      hoveredToken?.id === token.id ? "hovered" : ""
+                    className={`token clickable ${
+                      selectedToken?.id === token.id ? "selected" : ""
                     }`}
                     style={{
                       backgroundColor: TOKEN_COLORS[i % TOKEN_COLORS.length],
                     }}
-                    onMouseEnter={() => setHoveredToken(token)}
-                    onMouseLeave={() => setHoveredToken(null)}
+                    onClick={() => handleTokenClick(token)}
+                    title="Click to view embedding"
                   >
                     {token.text || "⎵"}
                   </span>
@@ -109,24 +134,42 @@ export function TransformerTokenizeTab({
             <strong>Token IDs:</strong> [{tokens.tokens.map((t) => t.id).join(", ")}] 
           </div>
 
-          {hoveredToken && (
-            <div className="embedding-tooltip">
+          {selectedToken && (
+            <div className={`embedding-tooltip ${showFullEmbedding ? "expanded" : ""}`}>
               <div className="tooltip-header">
                 <span className="token-text">
-                  "{hoveredToken.text || "⎵"}"
+                  "{selectedToken.text || "⎵"}"
                 </span>
-                <span className="token-id">ID: {hoveredToken.id}</span>
+                <span className="token-id">ID: {selectedToken.id}</span>
+                <button
+                  className="close-tooltip-btn"
+                  onClick={() => { setSelectedToken(null); setShowFullEmbedding(false); }}
+                  title="Close"
+                >
+                  ✕
+                </button>
               </div>
               <div className="embedding-stats">
-                <span>min: {hoveredToken.min}</span>
-                <span>max: {hoveredToken.max}</span>
-                <span>μ: {hoveredToken.mean}</span>
-                <span>σ: {hoveredToken.std}</span>
+                <span>min: {selectedToken.min}</span>
+                <span>max: {selectedToken.max}</span>
+                <span>μ: {selectedToken.mean}</span>
+                <span>σ: {selectedToken.std}</span>
               </div>
               <div className="embedding-preview">
-                <strong>First 10 dims:</strong>
-                <code>
-                  {formatEmbedding(hoveredToken.embedding_preview, 10)}
+                <div className="preview-header">
+                  <strong>{showFullEmbedding ? `All 768 dims:` : `First 10 dims:`}</strong>
+                  <button
+                    className="toggle-full-btn"
+                    onClick={toggleFullEmbedding}
+                    title={showFullEmbedding ? "Show less" : "Show all 768 dimensions"}
+                  >
+                    {showFullEmbedding ? "▲ Show less" : "▼ Show all 768"}
+                  </button>
+                </div>
+                <code className={showFullEmbedding ? "full-embedding" : ""}>
+                  {showFullEmbedding
+                    ? `[${selectedToken.embedding.map((v) => v.toFixed(4)).join(", ")}]`
+                    : formatEmbedding(selectedToken.embedding_preview, 10)}
                 </code>
               </div>
             </div>
@@ -149,7 +192,7 @@ export function TransformerTokenizeTab({
 
           <div className="matrix-preview">
             <div className="matrix-header">
-              <span className="row-label"></span>
+              <span className="row-label" style={{ width: rowLabelWidth }}></span>
               {[0, 1, 2, 3, 4, 5, 6, 7].map((d) => (
                 <span key={d} className="col-label">
                   d{d}
@@ -163,7 +206,9 @@ export function TransformerTokenizeTab({
                   className="row-label"
                   style={{
                     backgroundColor: TOKEN_COLORS[row % TOKEN_COLORS.length],
+                    width: rowLabelWidth,
                   }}
+                  title={token.text || "⎵"}
                 >
                   {token.text || "⎵"}
                 </span>

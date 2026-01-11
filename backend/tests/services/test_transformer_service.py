@@ -106,11 +106,10 @@ def _create_mock_model() -> MagicMock:
 
 
 class TestTransformerServiceEmbedding:
-    @patch("backend.services.transformer_service.TransformerService._load_hf_model")
-    def test_get_embedding_info_with_text(self, _mock_load: MagicMock) -> None:
+    @patch("backend.services.transformer_service.get_shared_hf_model")
+    def test_get_embedding_info_with_text(self, mock_get_model: MagicMock) -> None:
+        mock_get_model.return_value = (_create_mock_tokenizer(), _create_mock_model())
         service = TransformerService()
-        service._hf_tokenizer = _create_mock_tokenizer()
-        service._hf_model = _create_mock_model()
 
         result = service.get_embedding_info("Hello world!")
         assert "text" in result
@@ -119,33 +118,30 @@ class TestTransformerServiceEmbedding:
         assert "matrix_shape" in result
         assert "explanation" in result
 
-    @patch("backend.services.transformer_service.TransformerService._load_hf_model")
-    def test_get_embedding_info_uses_cached(self, _mock_load: MagicMock) -> None:
+    @patch("backend.services.transformer_service.get_shared_hf_model")
+    def test_get_embedding_info_uses_cached(self, mock_get_model: MagicMock) -> None:
+        mock_get_model.return_value = (_create_mock_tokenizer(), _create_mock_model())
         service = TransformerService()
-        service._hf_tokenizer = _create_mock_tokenizer()
-        service._hf_model = _create_mock_model()
 
         service.tokenize("Cached text")
         result = service.get_embedding_info()  # No text provided
         # Will use default "Hello" since tokenize caches tiktoken tokens, not HF
         assert "text" in result
 
-    @patch("backend.services.transformer_service.TransformerService._load_hf_model")
-    def test_matrix_shape_correct(self, _mock_load: MagicMock) -> None:
+    @patch("backend.services.transformer_service.get_shared_hf_model")
+    def test_matrix_shape_correct(self, mock_get_model: MagicMock) -> None:
+        mock_get_model.return_value = (_create_mock_tokenizer(), _create_mock_model())
         service = TransformerService()
-        service._hf_tokenizer = _create_mock_tokenizer()
-        service._hf_model = _create_mock_model()
 
         result = service.get_embedding_info("Hello world!")
         shape = result["matrix_shape"]
         assert shape[0] == result["token_count"]
         assert shape[1] == result["d_model"]
 
-    @patch("backend.services.transformer_service.TransformerService._load_hf_model")
-    def test_tokens_have_embeddings(self, _mock_load: MagicMock) -> None:
+    @patch("backend.services.transformer_service.get_shared_hf_model")
+    def test_tokens_have_embeddings(self, mock_get_model: MagicMock) -> None:
+        mock_get_model.return_value = (_create_mock_tokenizer(), _create_mock_model())
         service = TransformerService()
-        service._hf_tokenizer = _create_mock_tokenizer()
-        service._hf_model = _create_mock_model()
 
         result = service.get_embedding_info("Hello")
         for token in result["tokens"]:
@@ -284,3 +280,210 @@ class TestTransformerServiceModelComparison:
             assert "name" in model
             assert "params" in model
             assert "year" in model
+
+
+# ====================
+# Glass Box Tests (Chapter 7 & 8)
+# These tests verify delegation to GlassBoxService
+# ====================
+
+
+def _mock_attention_result() -> dict:
+    """Return a mock attention result for testing delegation."""
+    return {
+        "text": "Hello world!",
+        "tokens": ["Hello", " world", "!"],
+        "n_layers": 12,
+        "n_heads": 12,
+        "seq_len": 3,
+        "model_name": "gpt2",
+        "attentions": [[[
+            [0.5, 0.3, 0.2],
+            [0.4, 0.4, 0.2],
+            [0.3, 0.3, 0.4],
+        ] for _ in range(12)] for _ in range(12)],
+        "explanation": "Test explanation",
+    }
+
+
+def _mock_logit_lens_result() -> dict:
+    """Return a mock logit lens result for testing delegation."""
+    return {
+        "text": "Hello world!",
+        "tokens": ["Hello", " world", "!"],
+        "n_layers": 12,
+        "top_k": 5,
+        "model_name": "gpt2",
+        "layers": [
+            {
+                "layer": i,
+                "layer_name": "Embedding" if i == 0 else f"Layer {i}",
+                "predictions": [
+                    {"token": f"tok{j}", "token_id": j, "probability": 0.2}
+                    for j in range(5)
+                ],
+            }
+            for i in range(13)  # embedding + 12 layers
+        ],
+        "explanation": "Test explanation",
+    }
+
+
+class TestTransformerServiceAttentionDelegation:
+    def test_get_attention_patterns_delegates(self) -> None:
+        service = TransformerService()
+        service._glass_box_service.get_attention_patterns = MagicMock(
+            return_value=_mock_attention_result()
+        )
+
+        result = service.get_attention_patterns("Hello world!")
+        assert "text" in result
+        assert "tokens" in result
+        assert "n_layers" in result
+        assert "n_heads" in result
+        assert "attentions" in result
+        assert "explanation" in result
+        service._glass_box_service.get_attention_patterns.assert_called_once_with("Hello world!")
+
+    def test_attention_shape_from_delegate(self) -> None:
+        service = TransformerService()
+        service._glass_box_service.get_attention_patterns = MagicMock(
+            return_value=_mock_attention_result()
+        )
+
+        result = service.get_attention_patterns("Test")
+        n_layers = result["n_layers"]
+        n_heads = result["n_heads"]
+        seq_len = result["seq_len"]
+
+        # Check attention tensor shape
+        attentions = result["attentions"]
+        assert len(attentions) == n_layers
+        assert len(attentions[0]) == n_heads
+        assert len(attentions[0][0]) == seq_len
+        assert len(attentions[0][0][0]) == seq_len
+
+
+class TestTransformerServiceLogitLensDelegation:
+    def test_get_logit_lens_delegates(self) -> None:
+        service = TransformerService()
+        service._glass_box_service.get_logit_lens = MagicMock(
+            return_value=_mock_logit_lens_result()
+        )
+
+        result = service.get_logit_lens("Hello world!", top_k=5)
+        assert "text" in result
+        assert "tokens" in result
+        assert "n_layers" in result
+        assert "top_k" in result
+        assert "layers" in result
+        assert "explanation" in result
+        service._glass_box_service.get_logit_lens.assert_called_once_with("Hello world!", 5)
+
+    def test_logit_lens_layers_from_delegate(self) -> None:
+        service = TransformerService()
+        service._glass_box_service.get_logit_lens = MagicMock(
+            return_value=_mock_logit_lens_result()
+        )
+
+        result = service.get_logit_lens("Test", top_k=3)
+        layers = result["layers"]
+
+        # Should have embedding layer + n_layers
+        assert len(layers) == result["n_layers"] + 1
+
+        # Each layer should have predictions
+        for layer in layers:
+            assert "layer" in layer
+            assert "layer_name" in layer
+            assert "predictions" in layer
+
+    def test_logit_lens_prediction_structure_from_delegate(self) -> None:
+        service = TransformerService()
+        service._glass_box_service.get_logit_lens = MagicMock(
+            return_value=_mock_logit_lens_result()
+        )
+
+        result = service.get_logit_lens("Test", top_k=5)
+        pred = result["layers"][0]["predictions"][0]
+        assert "token" in pred
+        assert "token_id" in pred
+        assert "probability" in pred
+
+
+class TestTransformerServiceKVCache:
+    def test_get_kv_cache_comparison_defaults(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison()
+
+        assert "config" in result
+        assert "architectures" in result
+        assert "mha_to_mla_savings" in result
+        assert "explanation" in result
+
+    def test_kv_cache_architectures(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison()
+
+        arch_names = [a["name"] for a in result["architectures"]]
+        assert "MHA" in arch_names
+        assert "MQA" in arch_names
+        assert "GQA" in arch_names
+        assert "MLA" in arch_names
+
+    def test_kv_cache_architecture_structure(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison()
+
+        for arch in result["architectures"]:
+            assert "name" in arch
+            assert "full_name" in arch
+            assert "description" in arch
+            assert "memory_bytes" in arch
+            assert "memory_formatted" in arch
+            assert "ratio_to_mha" in arch
+
+    def test_kv_cache_mha_baseline(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison()
+
+        mha = next(a for a in result["architectures"] if a["name"] == "MHA")
+        assert mha["ratio_to_mha"] == 1.0
+
+    def test_kv_cache_mla_smaller_than_mha(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison()
+
+        mha = next(a for a in result["architectures"] if a["name"] == "MHA")
+        mla = next(a for a in result["architectures"] if a["name"] == "MLA")
+
+        assert mla["memory_bytes"] < mha["memory_bytes"]
+        assert result["mha_to_mla_savings"] > 1
+
+    def test_kv_cache_custom_params(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison(
+            context_length=8192,
+            n_layers=48,
+            d_model=8192,
+            n_heads=64,
+            gqa_groups=8,
+            mla_latent_dim=1024,
+        )
+
+        config = result["config"]
+        assert config["context_length"] == 8192
+        assert config["n_layers"] == 48
+        assert config["d_model"] == 8192
+        assert config["n_heads"] == 64
+
+    def test_kv_cache_memory_format(self) -> None:
+        service = TransformerService()
+        result = service.get_kv_cache_comparison(context_length=1024)
+
+        for arch in result["architectures"]:
+            # Memory should be formatted as human-readable
+            assert any(
+                unit in arch["memory_formatted"]
+                for unit in ["B", "KB", "MB", "GB"]
+            )

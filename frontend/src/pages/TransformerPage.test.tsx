@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { expect, test, vi, describe, beforeEach } from "vitest";
 import { TransformerPage } from "./TransformerPage";
 
@@ -120,7 +121,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(screen.getByText("Transformer Flow")).toBeInTheDocument();
@@ -143,7 +148,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -169,13 +178,17 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
     const textarea = screen.getByRole("textbox");
     expect(textarea).toBeInTheDocument();
-    expect(textarea).toHaveValue("The quick brown fox jumps");
+    expect(textarea).toHaveValue("The American flag is red, white, and");
   });
 
   test("tokenize button triggers API call", async () => {
@@ -200,7 +213,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -232,7 +249,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -261,7 +282,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -292,7 +317,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -321,7 +350,11 @@ describe("TransformerPage", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<TransformerPage apiBase="http://127.0.0.1:8000" />);
+    render(
+      <MemoryRouter>
+        <TransformerPage apiBase="http://127.0.0.1:8000" />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
 
@@ -331,4 +364,3 @@ describe("TransformerPage", () => {
     expect(textarea).toHaveValue("New text");
   });
 });
-

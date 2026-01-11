@@ -56,7 +56,7 @@ export default function App() {
                 ? "deep"
                 : location.pathname === "/alexnet"
                   ? "alexnet"
-                  : location.pathname === "/transformer"
+                  : location.pathname.startsWith("/transformer")
                     ? "transformer"
                     : location.pathname === "/convolution"
                       ? "convolution"

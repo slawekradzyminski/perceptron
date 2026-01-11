@@ -94,6 +94,20 @@ Base URL: `http://127.0.0.1:8000`
 - `GET /transformer/scale/growth`
   - Returns exponential growth data for visualization.
 
+## Glass Box endpoints (Chapters 7 & 8)
+- `POST /transformer/attention`
+  - Get attention patterns for text. Body: `{text}`.
+  - Returns attention matrices for all layers and heads.
+  - Max 500 characters for performance.
+- `POST /transformer/logit-lens`
+  - Get Logit Lens predictions for text. Body: `{text, top_k}`.
+  - Shows what the model "believes" at each layer.
+  - Returns top-k predictions per layer.
+- `POST /transformer/kv-cache`
+  - Calculate KV cache memory comparison.
+  - Body: `{context_length, n_layers, d_model, n_heads, gqa_groups, mla_latent_dim}`.
+  - Compares MHA, MQA, GQA, and MLA memory usage.
+
 ## Convolution Lab endpoints (Chapter 6)
 - `GET /conv/state`
   - Returns current image, kernel, parameters, and computed activation map.
