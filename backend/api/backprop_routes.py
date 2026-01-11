@@ -2,68 +2,56 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, HTTPException
 
-from backend.api.deps import backprop_service
+from backend.api.deps import BackpropServiceDep
+from backend.schemas.request import RegressionResetRequest, TinyGpsResetRequest
+from backend.schemas.response import BackpropStateResponse
 
 router = APIRouter(prefix="/backprop")
 
 
 @router.get("/state")
-def backprop_state() -> dict[str, Any]:
-    return backprop_service.state()
+def backprop_state(service: BackpropServiceDep) -> BackpropStateResponse:
+    return BackpropStateResponse(**service.state())
 
 
 @router.post("/tinygps/reset")
-def tinygps_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
-    dataset = body.get("dataset")
-    lr = body.get("lr")
-    params = body.get("params")
-    order = body.get("order")
-    if lr is not None:
-        try:
-            lr = float(lr)
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail="lr must be a number") from exc
-    if params is not None and not isinstance(params, dict):
-        raise HTTPException(status_code=400, detail="params must be an object")
-    if order is not None and not isinstance(order, list):
-        raise HTTPException(status_code=400, detail="order must be a list")
+def tinygps_reset(service: BackpropServiceDep, body: TinyGpsResetRequest) -> dict[str, Any]:
     try:
-        return backprop_service.reset_tinygps(dataset=dataset, lr=lr, params=params, order=order)
+        return service.reset_tinygps(
+            dataset=body.dataset,
+            lr=body.lr,
+            params=body.params,
+            order=body.order,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/tinygps/step")
-def tinygps_step() -> dict[str, Any]:
-    return backprop_service.step_tinygps()
+def tinygps_step(service: BackpropServiceDep) -> dict[str, Any]:
+    return service.step_tinygps()
 
 
 @router.post("/regression/reset")
-def regression_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
-    loss = body.get("loss")
-    lr = body.get("lr")
-    samples = body.get("samples")
-    order = body.get("order")
-    params = body.get("params")
-    if lr is not None:
-        try:
-            lr = float(lr)
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail="lr must be a number") from exc
-    if samples is not None and not isinstance(samples, list):
-        raise HTTPException(status_code=400, detail="samples must be a list")
-    if order is not None and not isinstance(order, list):
-        raise HTTPException(status_code=400, detail="order must be a list")
-    if params is not None and not isinstance(params, dict):
-        raise HTTPException(status_code=400, detail="params must be an object")
+def regression_reset(service: BackpropServiceDep, body: RegressionResetRequest) -> dict[str, Any]:
+    # Convert samples to dict format if provided
+    samples = None
+    if body.samples is not None:
+        samples = [{"x": s.x, "y": s.y} for s in body.samples]
     try:
-        return backprop_service.reset_regression(loss=loss, lr=lr, samples=samples, order=order, params=params)
+        return service.reset_regression(
+            loss=body.loss,
+            lr=body.lr,
+            samples=samples,
+            order=body.order,
+            params=body.params,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/regression/step")
-def regression_step() -> dict[str, Any]:
-    return backprop_service.step_regression()
+def regression_step(service: BackpropServiceDep) -> dict[str, Any]:
+    return service.step_regression()

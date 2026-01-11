@@ -1,45 +1,44 @@
 from __future__ import annotations
 
-from typing import Any
+from fastapi import APIRouter, HTTPException
 
-from fastapi import APIRouter, Body, HTTPException
-
-from backend.api.deps import lms_service
-from backend.api.utils import normalize_samples, validate_grid_shape
+from backend.api.deps import LmsServiceDep
+from backend.api.utils import normalize_samples
+from backend.schemas.request import LmsResetRequest
+from backend.schemas.response import LmsStateResponse, LmsStepResponse
 
 router = APIRouter(prefix="/lms")
 
 
 @router.get("/state")
-def lms_state() -> dict[str, Any]:
-    return lms_service.state()
+def lms_state(service: LmsServiceDep) -> LmsStateResponse:
+    return LmsStateResponse(**service.state())
 
 
 @router.post("/reset")
-def lms_reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
-    if "lr" in body:
-        try:
-            lms_service.set_lr(float(body["lr"]))
-        except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail="lr must be a number") from exc
-    dataset = body.get("dataset", lms_service.dataset)
+def lms_reset(service: LmsServiceDep, body: LmsResetRequest) -> LmsStateResponse:
+    if body.lr is not None:
+        service.set_lr(body.lr)
+    dataset = body.dataset if body.dataset else service.dataset
     if dataset == "custom":
+        if body.samples is None:
+            raise HTTPException(status_code=400, detail="samples required for custom dataset")
+        if body.grid_rows is None or body.grid_cols is None:
+            raise HTTPException(status_code=400, detail="grid_rows and grid_cols required for custom dataset")
         try:
-            rows, cols = validate_grid_shape(body.get("grid_rows"), body.get("grid_cols"))
-            if rows * cols != 2:
-                raise ValueError("LMS requires 2D inputs (grid_rows * grid_cols == 2)")
-            samples = normalize_samples(body.get("samples", []), rows, cols)
+            raw_samples = [s.model_dump() for s in body.samples]
+            samples = normalize_samples(raw_samples, body.grid_rows, body.grid_cols)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        lms_service.set_dataset("custom", custom_samples=samples)
+        service.set_dataset("custom", custom_samples=samples)
     else:
         try:
-            lms_service.set_dataset(dataset)
+            service.set_dataset(dataset)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return lms_service.state()
+    return LmsStateResponse(**service.state())
 
 
 @router.post("/step")
-def lms_step() -> dict[str, Any]:
-    return lms_service.step()
+def lms_step(service: LmsServiceDep) -> LmsStepResponse:
+    return LmsStepResponse(**service.step())

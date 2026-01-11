@@ -3,9 +3,40 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
+from fastapi import HTTPException, UploadFile
+
 from backend.core.datasets import make_or_dataset_pm1, make_xor_dataset_pm1
 from backend.nn.grid_mlp import reshape_template
 from backend.nn.mlp import MlpInternals
+
+# Allowed image MIME types for upload endpoints
+ALLOWED_IMAGE_TYPES = frozenset([
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+])
+
+
+async def validate_image_upload(file: UploadFile) -> bytes:
+    """Validate an uploaded image file and return its bytes.
+
+    Args:
+        file: The uploaded file from FastAPI
+
+    Returns:
+        The file contents as bytes
+
+    Raises:
+        HTTPException: If the file type is not an allowed image type
+    """
+    if file.content_type and file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type: {file.content_type}. Must be JPEG, PNG, WebP, or GIF.",
+        )
+    return await file.read()
 
 
 def validate_grid_shape(rows: Any, cols: Any) -> tuple[int, int]:
