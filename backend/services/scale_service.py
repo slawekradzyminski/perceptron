@@ -4,55 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-# Historical model data for comparison
+# Historical model data for comparison (GPT series only for cleaner visualization)
 MODELS = [
     {
-        "name": "LeNet-5",
-        "year": 1998,
-        "params": 60_000,
-        "type": "CNN",
-        "description": "First successful CNN for digit recognition",
-        "input_size": "32×32",
-        "notable": "Introduced convolutional layers",
-    },
-    {
-        "name": "AlexNet",
-        "year": 2012,
-        "params": 61_000_000,
-        "type": "CNN",
-        "description": "ImageNet breakthrough, sparked deep learning revolution",
-        "input_size": "224×224",
-        "notable": "ReLU activation, dropout, GPU training",
-    },
-    {
-        "name": "VGG-16",
-        "year": 2014,
-        "params": 138_000_000,
-        "type": "CNN",
-        "description": "Deeper network with 3×3 convolutions",
-        "input_size": "224×224",
-        "notable": "Showed depth matters",
-    },
-    {
-        "name": "ResNet-50",
-        "year": 2015,
-        "params": 25_000_000,
-        "type": "CNN",
-        "description": "Introduced skip connections",
-        "input_size": "224×224",
-        "notable": "Enabled training of very deep networks",
-    },
-    {
-        "name": "BERT-base",
-        "year": 2018,
-        "params": 110_000_000,
-        "type": "Transformer",
-        "description": "Bidirectional transformer for NLP",
-        "input_size": "512 tokens",
-        "notable": "Pre-training + fine-tuning paradigm",
-    },
-    {
-        "name": "GPT-2",
+        "name": "GPT-2 (XL)",
         "year": 2019,
         "params": 1_500_000_000,
         "type": "Transformer",
@@ -70,13 +25,22 @@ MODELS = [
         "notable": "100× larger than GPT-2",
     },
     {
-        "name": "GPT-4",
+        "name": "GPT-4 (Base)",
         "year": 2023,
-        "params": 1_800_000_000_000,
+        "params": 1_760_000_000_000,
         "type": "Transformer",
-        "description": "Multimodal, most capable LLM",
-        "input_size": "32k tokens",
-        "notable": "10× larger than GPT-3 (estimated)",
+        "description": "MoE with 16 experts, multimodal",
+        "input_size": "8k tokens",
+        "notable": "~1.8T total, ~280B active per token",
+    },
+    {
+        "name": "GPT-5 / Orion",
+        "year": 2025,
+        "params": 3_500_000_000_000,
+        "type": "Transformer",
+        "description": "Next-gen foundation model (speculative)",
+        "input_size": "128k tokens",
+        "notable": "~3-5T params, wider architecture",
     },
 ]
 
@@ -176,8 +140,8 @@ class ScaleService:
                 for m in MODELS
             ],
             "insight": (
-                "Model sizes have grown exponentially. "
-                "From LeNet-5 (60K) to GPT-4 (1.8T) is a 30,000,000× increase over 25 years."
+                "GPT model sizes have grown exponentially. "
+                "From GPT-2 (1.5B) to GPT-5 (3.5T est.) is a 2,300× increase in just 6 years."
             ),
         }
 

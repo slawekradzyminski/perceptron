@@ -24,6 +24,24 @@ export function TransformerTabNav({
         Block Trace
       </button>
       <button
+        className={activeTab === "attention" ? "active" : ""}
+        onClick={() => onTabChange("attention")}
+      >
+        Attention
+      </button>
+      <button
+        className={activeTab === "logit-lens" ? "active" : ""}
+        onClick={() => onTabChange("logit-lens")}
+      >
+        Logit Lens
+      </button>
+      <button
+        className={activeTab === "kv-cache" ? "active" : ""}
+        onClick={() => onTabChange("kv-cache")}
+      >
+        KV Cache
+      </button>
+      <button
         className={activeTab === "generate" ? "active" : ""}
         onClick={() => onTabChange("generate")}
       >

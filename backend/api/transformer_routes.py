@@ -188,3 +188,98 @@ def scale_growth() -> dict[str, Any]:
     """Get exponential growth data for visualization."""
     return scale_service.get_growth_data()
 
+
+# Chapter 7 & 8: Glass Box endpoints
+@router.post("/attention")
+def transformer_attention(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    """Get attention patterns for text (Chapter 8).
+
+    Body:
+        text: str - Text to analyze
+    """
+    text = body.get("text")
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing 'text' field")
+    if not isinstance(text, str):
+        raise HTTPException(status_code=400, detail="'text' must be a string")
+    if len(text) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail="Text too long (max 500 chars for attention visualization)",
+        )
+
+    return transformer_service.get_attention_patterns(text)
+
+
+@router.post("/logit-lens")
+def transformer_logit_lens(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    """Get Logit Lens predictions for text (Chapter 7).
+
+    The Logit Lens shows what the model "believes" at each layer.
+
+    Body:
+        text: str - Text to analyze
+        top_k: int - Number of top predictions per layer (default: 5)
+    """
+    text = body.get("text")
+    top_k = body.get("top_k", 5)
+
+    if not text:
+        raise HTTPException(status_code=400, detail="Missing 'text' field")
+    if not isinstance(text, str):
+        raise HTTPException(status_code=400, detail="'text' must be a string")
+    if len(text) > 500:
+        raise HTTPException(
+            status_code=400,
+            detail="Text too long (max 500 chars for logit lens)",
+        )
+    if not isinstance(top_k, int) or top_k < 1 or top_k > 20:
+        raise HTTPException(status_code=400, detail="top_k must be an integer between 1 and 20")
+
+    return transformer_service.get_logit_lens(text, top_k)
+
+
+@router.post("/kv-cache")
+def transformer_kv_cache(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
+    """Calculate KV cache memory comparison (Chapter 8).
+
+    Compares MHA, MQA, GQA, and MLA memory usage.
+
+    Body:
+        context_length: int - Sequence length (default: 4096)
+        n_layers: int - Number of layers (default: 32)
+        d_model: int - Hidden dimension (default: 4096)
+        n_heads: int - Number of attention heads (default: 32)
+        gqa_groups: int - Heads per KV group for GQA (default: 8)
+        mla_latent_dim: int - Latent dimension for MLA (default: 512)
+    """
+    context_length = body.get("context_length", 4096)
+    n_layers = body.get("n_layers", 32)
+    d_model = body.get("d_model", 4096)
+    n_heads = body.get("n_heads", 32)
+    gqa_groups = body.get("gqa_groups", 8)
+    mla_latent_dim = body.get("mla_latent_dim", 512)
+
+    # Validation
+    if not isinstance(context_length, int) or context_length < 1 or context_length > 1_000_000:
+        raise HTTPException(status_code=400, detail="context_length must be 1-1,000,000")
+    if not isinstance(n_layers, int) or n_layers < 1 or n_layers > 200:
+        raise HTTPException(status_code=400, detail="n_layers must be 1-200")
+    if not isinstance(d_model, int) or d_model < 64 or d_model > 65536:
+        raise HTTPException(status_code=400, detail="d_model must be 64-65536")
+    if not isinstance(n_heads, int) or n_heads < 1 or n_heads > 256:
+        raise HTTPException(status_code=400, detail="n_heads must be 1-256")
+    if not isinstance(gqa_groups, int) or gqa_groups < 1 or gqa_groups > n_heads:
+        raise HTTPException(status_code=400, detail="gqa_groups must be 1 to n_heads")
+    if not isinstance(mla_latent_dim, int) or mla_latent_dim < 1 or mla_latent_dim > d_model:
+        raise HTTPException(status_code=400, detail="mla_latent_dim must be 1 to d_model")
+
+    return transformer_service.get_kv_cache_comparison(
+        context_length=context_length,
+        n_layers=n_layers,
+        d_model=d_model,
+        n_heads=n_heads,
+        gqa_groups=gqa_groups,
+        mla_latent_dim=mla_latent_dim,
+    )
+

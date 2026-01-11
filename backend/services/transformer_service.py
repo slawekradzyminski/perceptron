@@ -13,6 +13,9 @@ from typing import Any
 import tiktoken
 import torch
 
+from backend.services.glass_box_service import GlassBoxService, get_shared_hf_model
+from backend.services.kv_cache_service import KVCacheService
+
 logger = logging.getLogger(__name__)
 
 # Ollama configuration
@@ -41,31 +44,41 @@ class TokenizationResult:
 # GPT model configurations for scale comparison
 GPT_MODELS = {
     "gpt2": {
-        "name": "GPT-2",
+        "name": "GPT-2 (XL)",
         "year": 2019,
-        "params": 1_500_000_000,
-        "layers": 48,
-        "heads": 25,
-        "d_model": 1600,
-        "context_length": 1024,
+        "params": 1_500_000_000,   # Accurate (1.5B)
+        "layers": 48,              # Accurate
+        "heads": 25,               # Accurate
+        "d_model": 1600,           # Accurate (Head dim = 64)
+        "context_length": 1024,    # Accurate
     },
     "gpt3": {
         "name": "GPT-3",
         "year": 2020,
-        "params": 175_000_000_000,
-        "layers": 96,
-        "heads": 96,
-        "d_model": 12288,
-        "context_length": 2048,
+        "params": 175_000_000_000,  # Accurate (175B)
+        "layers": 96,               # Accurate
+        "heads": 96,                # Accurate
+        "d_model": 12288,           # Accurate (Head dim = 128)
+        "context_length": 2048,     # Accurate
     },
     "gpt4": {
-        "name": "GPT-4",
+        "name": "GPT-4 (Base)",
         "year": 2023,
-        "params": 1_800_000_000_000,  # Estimated
-        "layers": 120,  # Estimated
-        "heads": 96,  # Estimated
-        "d_model": 16384,  # Estimated
-        "context_length": 8192,
+        # GPT-4 is MoE: 16 experts x ~111B params
+        "params": 1_760_000_000_000,  # ~1.8T Total (MoE), ~280B Active per token
+        "layers": 120,                # Strong consensus estimate
+        "heads": 128,                 # Matches d_model/head_dim math
+        "d_model": 16384,             # Estimated (128 heads * 128 dim)
+        "context_length": 8192,       # Accurate (launch base model)
+    },
+    "gpt5": {
+        "name": "GPT-5 / Orion",
+        "year": 2025,                 # Speculative (Late 2025/2026)
+        "params": 3_500_000_000_000,  # Speculative (~3-5T dense equivalent)
+        "layers": 160,                # Speculative (wider rather than deeper)
+        "heads": 160,                 # Speculative
+        "d_model": 20480,             # Speculative (~128 head dimension)
+        "context_length": 128_000,    # Speculative (matches GPT-4 Turbo)
     },
 }
 
@@ -77,10 +90,10 @@ class TransformerService:
         self._encoding: tiktoken.Encoding | None = None
         self._current_text = ""
         self._current_tokens: list[TokenInfo] = []
-        # Lazy-loaded HuggingFace models
-        self._hf_tokenizer = None
-        self._hf_model = None
-        self._model_name = "gpt2"  # GPT-2 small (124M params) - better than distilgpt2
+        self._model_name = "gpt2"  # GPT-2 small (124M params)
+        # Delegate services
+        self._glass_box_service = GlassBoxService()
+        self._kv_cache_service = KVCacheService()
 
     @property
     def encoding(self) -> tiktoken.Encoding:
@@ -89,24 +102,9 @@ class TransformerService:
             self._encoding = tiktoken.get_encoding("cl100k_base")
         return self._encoding
 
-    def _load_hf_model(self) -> None:
-        """Lazy load the HuggingFace model and tokenizer."""
-        if self._hf_tokenizer is None or self._hf_model is None:
-            try:
-                from transformers import AutoModelForCausalLM, AutoTokenizer
-
-                logger.info(f"Loading HuggingFace model: {self._model_name}")
-                self._hf_tokenizer = AutoTokenizer.from_pretrained(self._model_name)
-                self._hf_model = AutoModelForCausalLM.from_pretrained(
-                    self._model_name,
-                    output_hidden_states=True,
-                    torch_dtype=torch.float32,
-                )
-                self._hf_model.eval()
-                logger.info(f"Successfully loaded {self._model_name}")
-            except Exception as e:
-                logger.error(f"Failed to load HuggingFace model: {e}")
-                raise
+    def _get_hf_model(self):
+        """Get the shared HuggingFace model and tokenizer."""
+        return get_shared_hf_model()
 
     def tokenize(self, text: str) -> dict[str, Any]:
         """Tokenize text and return detailed token information.
@@ -156,8 +154,8 @@ class TransformerService:
         if text is not None:
             self.tokenize(text)
 
-        # Load HuggingFace model
-        self._load_hf_model()
+        # Get shared HuggingFace model
+        hf_tokenizer, hf_model = self._get_hf_model()
 
         # Get embeddings from the model
         text_to_embed = text or self._current_text
@@ -165,12 +163,12 @@ class TransformerService:
             text_to_embed = "Hello"
 
         # Tokenize with HF tokenizer
-        inputs = self._hf_tokenizer(text_to_embed, return_tensors="pt")
+        inputs = hf_tokenizer(text_to_embed, return_tensors="pt")
         input_ids = inputs["input_ids"]
 
         with torch.no_grad():
             # Get the embedding layer output (before transformer blocks)
-            embedding_layer = self._hf_model.transformer.wte
+            embedding_layer = hf_model.transformer.wte
             embeddings_tensor = embedding_layer(input_ids)  # [1, seq_len, d_model]
 
         # Extract embeddings
@@ -178,7 +176,7 @@ class TransformerService:
         token_count, d_model = embeddings_np.shape
 
         # Decode tokens from HF tokenizer
-        hf_tokens = [self._hf_tokenizer.decode([tid.item()]) for tid in input_ids[0]]
+        hf_tokens = [hf_tokenizer.decode([tid.item()]) for tid in input_ids[0]]
 
         embeddings = []
         for i, token_text in enumerate(hf_tokens):
@@ -304,14 +302,7 @@ class TransformerService:
         }
 
     def _ollama_chat(self, messages: list[dict[str, str]]) -> dict[str, Any]:
-        """Chat with Ollama using the chat API for natural responses.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-
-        Returns:
-            Dictionary with response and metadata
-        """
+        """Chat with Ollama using the chat API for natural responses."""
         payload = {
             "model": OLLAMA_MODEL,
             "messages": messages,
@@ -341,14 +332,7 @@ class TransformerService:
             raise
 
     def chat_stream(self, messages: list[dict[str, str]]):
-        """Stream chat response from Ollama token by token.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-
-        Yields:
-            Dict with token or done status
-        """
+        """Stream chat response from Ollama token by token."""
         payload = {
             "model": OLLAMA_MODEL,
             "messages": messages,
@@ -397,7 +381,7 @@ class TransformerService:
             return False
 
     def ollama_status(self) -> dict[str, Any]:
-        """Get detailed Ollama status (similar to /gd endpoint)."""
+        """Get detailed Ollama status."""
         try:
             url = f"{OLLAMA_BASE_URL}/api/tags"
             with urllib.request.urlopen(url, timeout=5.0) as resp:
@@ -422,15 +406,7 @@ class TransformerService:
             }
 
     def chat(self, messages: list[dict[str, str]]) -> dict[str, Any]:
-        """Chat with the LLM and get a response.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-
-        Returns:
-            Dictionary with chat result
-        """
-        # Check if Ollama is available
+        """Chat with the LLM and get a response."""
         if not self._ollama_available():
             return {
                 "model_name": OLLAMA_MODEL,
@@ -460,11 +436,7 @@ class TransformerService:
             }
 
     def get_model_comparison(self) -> dict[str, Any]:
-        """Get comparison data for different GPT models.
-
-        Returns:
-            Dictionary with model scale comparison
-        """
+        """Get comparison data for different GPT models."""
         return {
             "models": [
                 {
@@ -479,9 +451,44 @@ class TransformerService:
             ),
         }
 
+    # ==========================================
+    # Delegated methods (Glass Box / KV Cache)
+    # ==========================================
+
+    def get_attention_patterns(self, text: str) -> dict[str, Any]:
+        """Get attention patterns from all layers and heads. Delegates to GlassBoxService."""
+        return self._glass_box_service.get_attention_patterns(text)
+
+    def get_logit_lens(self, text: str, top_k: int = 5) -> dict[str, Any]:
+        """Apply the Logit Lens. Delegates to GlassBoxService."""
+        return self._glass_box_service.get_logit_lens(text, top_k)
+
+    def get_kv_cache_comparison(
+        self,
+        context_length: int = 4096,
+        n_layers: int = 32,
+        d_model: int = 4096,
+        n_heads: int = 32,
+        n_kv_heads: int | None = None,
+        gqa_groups: int = 8,
+        mla_latent_dim: int = 512,
+        bytes_per_param: int = 2,
+    ) -> dict[str, Any]:
+        """Calculate KV cache memory comparison. Delegates to KVCacheService."""
+        return self._kv_cache_service.get_comparison(
+            context_length=context_length,
+            n_layers=n_layers,
+            d_model=d_model,
+            n_heads=n_heads,
+            n_kv_heads=n_kv_heads,
+            gqa_groups=gqa_groups,
+            mla_latent_dim=mla_latent_dim,
+            bytes_per_param=bytes_per_param,
+        )
+
     def state(self) -> dict[str, Any]:
         """Get current service state."""
-        hf_model_loaded = self._hf_model is not None
+        hf_model_loaded = self._glass_box_service.model_loaded
         ollama_available = self._ollama_available()
         return {
             "current_text": self._current_text,

@@ -24,7 +24,7 @@ class TestFormatParams:
 
 class TestModelsData:
     def test_has_models(self) -> None:
-        assert len(MODELS) >= 6
+        assert len(MODELS) >= 4
 
     def test_model_structure(self) -> None:
         for model in MODELS:
@@ -34,17 +34,21 @@ class TestModelsData:
             assert "type" in model
             assert "description" in model
 
-    def test_has_lenet(self) -> None:
+    def test_has_gpt2(self) -> None:
         names = [m["name"] for m in MODELS]
-        assert "LeNet-5" in names
+        assert any("GPT-2" in name for name in names)
 
-    def test_has_alexnet(self) -> None:
+    def test_has_gpt3(self) -> None:
         names = [m["name"] for m in MODELS]
-        assert "AlexNet" in names
+        assert any("GPT-3" in name for name in names)
 
     def test_has_gpt4(self) -> None:
         names = [m["name"] for m in MODELS]
-        assert "GPT-4" in names
+        assert any("GPT-4" in name for name in names)
+
+    def test_has_gpt5(self) -> None:
+        names = [m["name"] for m in MODELS]
+        assert any("GPT-5" in name for name in names)
 
 
 class TestScaleServiceGetAllModels:
@@ -70,11 +74,11 @@ class TestScaleServiceGetCNNs:
         for model in result["models"]:
             assert model["type"] == "CNN"
 
-    def test_includes_alexnet(self) -> None:
+    def test_returns_empty_when_no_cnns(self) -> None:
+        # Current dataset is GPT-only (transformers)
         service = ScaleService()
         result = service.get_cnns()
-        names = [m["name"] for m in result["models"]]
-        assert "AlexNet" in names
+        assert result["total_count"] == 0
 
 
 class TestScaleServiceGetTransformers:
@@ -93,31 +97,31 @@ class TestScaleServiceGetTransformers:
 
 
 class TestScaleServiceComparison:
-    def test_compare_alexnet_gpt4(self) -> None:
+    def test_compare_gpt2_gpt4(self) -> None:
         service = ScaleService()
-        result = service.get_comparison("AlexNet", "GPT-4")
+        result = service.get_comparison("GPT-2 (XL)", "GPT-4 (Base)")
         assert "model1" in result
         assert "model2" in result
         assert "ratio" in result
         assert "explanation" in result
         assert result["ratio"] > 1
 
-    def test_compare_lenet_alexnet(self) -> None:
+    def test_compare_gpt3_gpt5(self) -> None:
         service = ScaleService()
-        result = service.get_comparison("LeNet-5", "AlexNet")
-        assert result["ratio"] > 100  # AlexNet is ~1000x larger
+        result = service.get_comparison("GPT-3", "GPT-5 / Orion")
+        assert result["ratio"] > 10  # GPT-5 is ~20x larger than GPT-3
 
     def test_compare_invalid_model(self) -> None:
         service = ScaleService()
         with pytest.raises(ValueError, match="Unknown model"):
-            service.get_comparison("NonExistent", "AlexNet")
+            service.get_comparison("NonExistent", "GPT-3")
         with pytest.raises(ValueError, match="Unknown model"):
-            service.get_comparison("AlexNet", "NonExistent")
+            service.get_comparison("GPT-3", "NonExistent")
 
     def test_compare_case_insensitive(self) -> None:
         service = ScaleService()
-        result = service.get_comparison("alexnet", "GPT-4")
-        assert result["model1"]["name"] == "AlexNet"
+        result = service.get_comparison("gpt-3", "GPT-4 (Base)")
+        assert result["model1"]["name"] == "GPT-3"
 
 
 class TestScaleServiceGrowth:

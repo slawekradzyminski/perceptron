@@ -85,6 +85,22 @@ This file summarizes the user-facing features and how to interpret them.
   - Interactive comparison showing parameter ratios.
   - Growth chart showing exponential increase in model sizes.
   - Full table with all historical models (1998-2023).
+- **Attention Patterns (Glass Box - Chapter 8)**
+  - Visualize attention weights for any input text.
+  - Select specific layers and heads to explore.
+  - Heatmap shows which tokens attend to which.
+  - Educational notes explain head patterns (previous token, induction, etc.).
+- **Logit Lens (Glass Box - Chapter 7)**
+  - See what the model "believes" at each layer.
+  - Apply output layer to intermediate hidden states.
+  - Watch predictions evolve from uncertain to confident.
+  - Table shows top predictions with probabilities per layer.
+- **KV Cache Calculator (Chapter 8)**
+  - Compare memory usage across attention variants.
+  - Supports MHA, MQA, GQA, and MLA (DeepSeek R1).
+  - Interactive controls for model parameters.
+  - Demonstrates why MLA enables longer context windows.
+  - Preset configurations for GPT-2, Llama 3, DeepSeek R1.
 
 ## Convolution Lab ("/convolution")
 - **Interactive Convolution Visualization**

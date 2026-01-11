@@ -38,9 +38,17 @@ export function TransformerScaleTab({
     ? model2
     : scaleModels[1]?.name ?? scaleModels[0]?.name ?? model2;
 
-  const maxLog = growth
-    ? Math.max(...growth.data.map((model) => model.log_params))
-    : 1;
+  // Use true logarithmic scale for visualization
+  // Range: 1B (10^9) to 10T (10^13) - covering GPT-2 to GPT-5
+  const LOG_MIN = 9;   // 1B
+  const LOG_MAX = 13;  // 10T
+  const CHART_HEIGHT = 200;
+
+  const getBarHeight = (params: number): number => {
+    const logValue = Math.log10(params);
+    const normalized = (logValue - LOG_MIN) / (LOG_MAX - LOG_MIN);
+    return Math.max(normalized * CHART_HEIGHT, 20); // Min height 20px
+  };
 
   return (
     <div className="scale-section">
@@ -91,17 +99,18 @@ export function TransformerScaleTab({
 
       {growth && (
         <div className="growth-section">
-          <h4>Model Growth Over Time</h4>
+          <h4>Model Growth Over Time (Log Scale)</h4>
           <div className="growth-chart-container">
             <div className="y-axis">
+              <span className="y-label">10T</span>
               <span className="y-label">1T</span>
+              <span className="y-label">100B</span>
+              <span className="y-label">10B</span>
               <span className="y-label">1B</span>
-              <span className="y-label">1M</span>
-              <span className="y-label">1K</span>
             </div>
             <div className="growth-chart">
               {growth.data.map((model) => {
-                const height = (model.log_params / maxLog) * 180;
+                const height = getBarHeight(model.params);
                 return (
                   <div
                     key={model.name}
@@ -117,8 +126,7 @@ export function TransformerScaleTab({
             </div>
           </div>
           <div className="chart-legend">
-            <span className="legend-item cnn">■ CNN</span>
-            <span className="legend-item transformer">■ Transformer</span>
+            <span className="legend-item transformer">■ Transformer (GPT series)</span>
           </div>
           <p className="insight">{growth.insight}</p>
         </div>
