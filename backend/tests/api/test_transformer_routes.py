@@ -1,9 +1,10 @@
 """Tests for /transformer API routes (Chapter 5)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
+from backend.api.deps import get_transformer_service
 from backend.api_app import app
 
 client = TestClient(app)
@@ -69,29 +70,42 @@ class TestTransformerTokenize:
 
 
 class TestTransformerEmbed:
-    @patch("backend.api.deps.transformer_service.get_embedding_info")
-    def test_embed_with_text(self, mock_embed: MagicMock) -> None:
-        mock_embed.return_value = _mock_embedding_result()
-        response = client.post("/transformer/embed", json={"text": "Hello world!"})
-        assert response.status_code == 200
-        data = response.json()
-        assert "matrix_shape" in data
-        assert "d_model" in data
-        assert "explanation" in data
-        mock_embed.assert_called_once_with("Hello world!")
+    def test_embed_with_text(self) -> None:
+        mock_service = MagicMock()
+        mock_service.get_embedding_info.return_value = _mock_embedding_result()
 
-    @patch("backend.api.deps.transformer_service.get_embedding_info")
-    def test_embed_without_text(self, mock_embed: MagicMock) -> None:
+        app.dependency_overrides[get_transformer_service] = lambda: mock_service
+        try:
+            test_client = TestClient(app)
+            response = test_client.post("/transformer/embed", json={"text": "Hello world!"})
+            assert response.status_code == 200
+            data = response.json()
+            assert "matrix_shape" in data
+            assert "d_model" in data
+            assert "explanation" in data
+            mock_service.get_embedding_info.assert_called_once_with("Hello world!")
+        finally:
+            app.dependency_overrides.pop(get_transformer_service, None)
+
+    def test_embed_without_text(self) -> None:
+        mock_service = MagicMock()
         mock_result = _mock_embedding_result()
         mock_result["text"] = "Previous text"
-        mock_embed.return_value = mock_result
-        # First tokenize something
-        client.post("/transformer/tokenize", json={"text": "Previous text"})
-        # Then embed without text
-        response = client.post("/transformer/embed", json={})
-        assert response.status_code == 200
-        data = response.json()
-        assert data["text"] == "Previous text"
+        mock_service.get_embedding_info.return_value = mock_result
+
+        app.dependency_overrides[get_transformer_service] = lambda: mock_service
+        try:
+            test_client = TestClient(app)
+            # First tokenize something
+            mock_service.tokenize.return_value = {"text": "Previous text", "tokens": []}
+            test_client.post("/transformer/tokenize", json={"text": "Previous text"})
+            # Then embed without text
+            response = test_client.post("/transformer/embed", json={})
+            assert response.status_code == 200
+            data = response.json()
+            assert data["text"] == "Previous text"
+        finally:
+            app.dependency_overrides.pop(get_transformer_service, None)
 
 
 class TestTransformerTrace:
@@ -301,4 +315,3 @@ class TestTransformerKVCache:
             "/transformer/kv-cache", json={"gqa_groups": 100, "n_heads": 32}
         )
         assert response.status_code == 422  # Pydantic validation error
-

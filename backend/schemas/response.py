@@ -249,3 +249,152 @@ class KVCacheResult(BaseModel):
     architectures: list[KVCacheArchitecture] = Field(description="Architectures")
     mha_to_mla_savings: float = Field(description="MHA to MLA savings ratio")
     explanation: str = Field(description="Educational explanation")
+
+
+# ==============================================================================
+# LMS Models (Chapter 1)
+# ==============================================================================
+
+
+class LmsStateResponse(BaseModel):
+    """Response model for LMS state."""
+
+    w: list[float] = Field(description="Current weights")
+    b: float = Field(description="Current bias")
+    idx: int = Field(description="Current sample index")
+    lr: float = Field(description="Learning rate")
+    x: list[float] = Field(description="Current sample input")
+    y: int = Field(description="Current sample label")
+    sample_count: int = Field(description="Total samples")
+    dataset: str = Field(description="Dataset name")
+
+
+class LmsStepResponse(BaseModel):
+    """Response model for LMS step."""
+
+    x: list[float] = Field(description="Input used in this step")
+    y: int = Field(description="True label")
+    w_before: list[float] = Field(description="Weights before update")
+    b_before: float = Field(description="Bias before update")
+    y_hat: float = Field(description="Prediction")
+    error: float = Field(description="Error value")
+    grad_w1: float = Field(description="Gradient for w1")
+    grad_w2: float = Field(description="Gradient for w2")
+    grad_b: float = Field(description="Gradient for bias")
+    w_after: list[float] = Field(description="Weights after update")
+    b_after: float = Field(description="Bias after update")
+    idx: int = Field(description="Next sample index")
+    lr: float = Field(description="Learning rate")
+
+
+# ==============================================================================
+# Backprop Models (Chapter 3)
+# ==============================================================================
+
+
+class BackpropStateResponse(BaseModel):
+    """Response model for backprop state."""
+
+    tinygps: dict = Field(description="TinyGPS state")
+    regression: dict = Field(description="Regression state")
+    tinygps_datasets: list[str] = Field(description="Available TinyGPS datasets")
+    tinygps_city_coords: dict = Field(description="City coordinates")
+
+
+# ==============================================================================
+# GD Models (Chapter 2)
+# ==============================================================================
+
+
+class LossCurvePoint(BaseModel):
+    """A point on the loss curve."""
+
+    p: float = Field(description="Probability value")
+    l1: float = Field(description="L1 loss")
+    ce: float = Field(description="Cross-entropy loss")
+
+
+class LossCurvesResponse(BaseModel):
+    """Response model for loss curves."""
+
+    points: list[LossCurvePoint] = Field(description="Loss curve points")
+
+
+class TokenLossRow(BaseModel):
+    """A row in the token loss table."""
+
+    context: str = Field(description="Context so far")
+    correct_token: str = Field(description="Correct next token")
+    p_correct: float = Field(description="Probability of correct token")
+    top_token: str = Field(description="Top predicted token")
+    top_prob: float = Field(description="Probability of top token")
+    l1_loss: float = Field(description="L1 loss")
+    ce_loss: float = Field(description="Cross-entropy loss")
+
+
+class TokenLossAverage(BaseModel):
+    """Average losses for an example."""
+
+    l1: float = Field(description="Average L1 loss")
+    ce: float = Field(description="Average cross-entropy loss")
+
+
+class TokenLossExample(BaseModel):
+    """A token loss example."""
+
+    id: str = Field(description="Example ID")
+    title: str = Field(description="Example title")
+    description: str = Field(description="Example description")
+    average: TokenLossAverage = Field(description="Average losses")
+    rows: list[TokenLossRow] = Field(description="Token rows")
+
+
+class TokenLossesResponse(BaseModel):
+    """Response model for token losses."""
+
+    source: str = Field(description="Data source (static or ollama)")
+    examples: list[TokenLossExample] = Field(description="Examples")
+    warning: str | None = Field(None, description="Warning message if any")
+
+
+class NextTokenLogprob(BaseModel):
+    """A token with its logprob."""
+
+    token: str = Field(description="Token text")
+    prob: float = Field(description="Probability")
+    logprob: float = Field(description="Log probability")
+    rank: int = Field(description="Rank")
+
+
+class NextTokenLogprobsResponse(BaseModel):
+    """Response model for next token logprobs."""
+
+    prompt: str = Field(description="Input prompt")
+    tokens: list[NextTokenLogprob] = Field(description="Top tokens")
+    warning: str | None = Field(None, description="Warning if any")
+
+
+class OllamaStatusResponse(BaseModel):
+    """Response model for Ollama status."""
+
+    ok: bool = Field(description="Whether Ollama is reachable")
+    model: str = Field(description="Model name")
+    error: str | None = Field(None, description="Error message if not ok")
+
+
+# ==============================================================================
+# Diagnostics Models
+# ==============================================================================
+
+
+class ErrorSurfaceResponse(BaseModel):
+    """Response model for error surface."""
+
+    dataset: str = Field(description="Dataset name")
+    grid_rows: int = Field(description="Grid rows")
+    grid_cols: int = Field(description="Grid cols")
+    steps: int = Field(description="Grid resolution")
+    w_range: list[float] = Field(description="Weight range [min, max]")
+    bias: float = Field(description="Bias value")
+    sample_count: int = Field(description="Number of samples")
+    grid: list[list[float]] = Field(description="MSE surface values")

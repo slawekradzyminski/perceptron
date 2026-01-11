@@ -73,14 +73,14 @@ class TestConvSetImageSize:
         assert data["image_size"] == 12
 
     def test_set_invalid_size(self, client: TestClient) -> None:
-        """Test setting invalid size returns error."""
+        """Test setting invalid size returns Pydantic validation error."""
         response = client.post("/conv/image/size", json={"size": 100})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_missing_size(self, client: TestClient) -> None:
-        """Test missing size returns error."""
+        """Test missing size returns Pydantic validation error."""
         response = client.post("/conv/image/size", json={})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestConvSetKernel:
@@ -104,9 +104,9 @@ class TestConvSetKernel:
         assert data["kernel_name"] == "custom"
 
     def test_missing_name_and_weights(self, client: TestClient) -> None:
-        """Test missing both name and weights returns error."""
+        """Test missing both name and weights returns Pydantic validation error."""
         response = client.post("/conv/kernel", json={})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestConvSetParams:
@@ -129,9 +129,9 @@ class TestConvSetParams:
         assert data["stride"] == 2
 
     def test_invalid_padding(self, client: TestClient) -> None:
-        """Test invalid padding returns error."""
+        """Test invalid padding returns Pydantic validation error."""
         response = client.post("/conv/params", json={"padding": 10})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestConvGetStep:
@@ -182,9 +182,9 @@ class TestConvCalculate:
         assert data["output_size"] == 14
 
     def test_missing_required_fields(self, client: TestClient) -> None:
-        """Test missing required fields returns error."""
+        """Test missing required fields returns Pydantic validation error."""
         response = client.post("/conv/calculate", json={"input_size": 28})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_invalid_calculation(self, client: TestClient) -> None:
         """Test invalid calculation returns valid=False."""

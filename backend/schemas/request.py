@@ -6,7 +6,210 @@ eliminating manual validation code in route handlers.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
+from typing import Literal
+
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+
+# ==============================================================================
+# Common Types
+# ==============================================================================
+
+
+class GridSample(BaseModel):
+    """A sample with either grid or flat x representation."""
+
+    y: int = Field(..., description="Label (-1 or +1)")
+    grid: list[list[int]] | None = Field(None, description="2D grid representation")
+    x: list[float] | None = Field(None, description="Flat input vector")
+
+    @field_validator("y")
+    @classmethod
+    def validate_y(cls, v: int) -> int:
+        if v not in (-1, 1):
+            raise ValueError("y must be -1 or +1")
+        return v
+
+
+# ==============================================================================
+# Perceptron Request Schemas (Chapter 1)
+# ==============================================================================
+
+
+class PerceptronStepRequest(BaseModel):
+    """Request schema for perceptron step."""
+
+    dataset: str | None = Field(None, description="Dataset name (or, xor, custom)")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom dataset")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom dataset")
+    samples: list[GridSample] | None = Field(None, min_length=1, description="Custom samples")
+
+
+class PerceptronResetRequest(BaseModel):
+    """Request schema for perceptron reset."""
+
+    dataset: str | None = Field(None, description="Dataset name (or, xor, custom)")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom dataset")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom dataset")
+    samples: list[GridSample] | None = Field(None, min_length=1, description="Custom samples")
+
+
+# ==============================================================================
+# LMS Request Schemas (Chapter 1)
+# ==============================================================================
+
+
+class LmsResetRequest(BaseModel):
+    """Request schema for LMS reset."""
+
+    dataset: str | None = Field(None, description="Dataset name (or, xor, custom)")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom dataset")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom dataset")
+    samples: list[GridSample] | None = Field(None, min_length=1, description="Custom samples")
+
+    @model_validator(mode="after")
+    def validate_lms_dimensions(self) -> LmsResetRequest:
+        """LMS requires 2D inputs."""
+        if (
+            self.grid_rows is not None
+            and self.grid_cols is not None
+            and self.grid_rows * self.grid_cols != 2
+        ):
+            raise ValueError("LMS requires 2D inputs (grid_rows * grid_cols == 2)")
+        return self
+
+
+# ==============================================================================
+# MLP Request Schemas (Chapter 3)
+# ==============================================================================
+
+
+class MlpResetRequest(BaseModel):
+    """Request schema for MLP reset."""
+
+    dataset: str | None = Field(None, description="Dataset name (or, xor, custom)")
+    hidden_dim: int | None = Field(None, ge=1, le=256, description="Hidden layer dimension")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    seed: int | None = Field(None, description="Random seed")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom dataset")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom dataset")
+    samples: list[GridSample] | None = Field(None, min_length=1, description="Custom samples")
+
+
+# ==============================================================================
+# Backprop Request Schemas (Chapter 3)
+# ==============================================================================
+
+
+class RegressionSample(BaseModel):
+    """A regression sample."""
+
+    x: float = Field(..., description="Input value")
+    y: float = Field(..., description="Target value")
+
+
+class TinyGpsResetRequest(BaseModel):
+    """Request schema for TinyGPS reset."""
+
+    dataset: str | None = Field(None, description="Dataset name")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    params: dict[str, float] | None = Field(None, description="Initial parameters")
+    order: list[int] | None = Field(None, description="Sample order")
+
+
+class RegressionResetRequest(BaseModel):
+    """Request schema for regression reset."""
+
+    loss: Literal["mse", "l1"] | None = Field(None, description="Loss function (mse, l1)")
+    lr: float | None = Field(None, gt=0, le=10, description="Learning rate")
+    samples: list[RegressionSample] | None = Field(None, min_length=1, description="Training samples")
+    order: list[int] | None = Field(None, description="Sample order")
+    params: dict[str, float] | None = Field(None, description="Initial parameters")
+
+
+# ==============================================================================
+# Diagnostics Request Schemas
+# ==============================================================================
+
+
+class ErrorSurfaceRequest(BaseModel):
+    """Request schema for error surface computation."""
+
+    dataset: str = Field(default="or", description="Dataset name (or, xor, custom)")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom")
+    samples: list[GridSample] | None = Field(None, description="Custom samples")
+    steps: int = Field(default=25, ge=5, le=100, description="Grid resolution")
+    w_min: float = Field(default=-2.0, description="Weight range min")
+    w_max: float = Field(default=2.0, description="Weight range max")
+    b: float = Field(default=0.0, description="Bias value")
+
+    @model_validator(mode="after")
+    def validate_2d_inputs(self) -> ErrorSurfaceRequest:
+        """Error surface requires 2D inputs."""
+        if (
+            self.grid_rows is not None
+            and self.grid_cols is not None
+            and self.grid_rows * self.grid_cols != 2
+        ):
+            raise ValueError("error surface requires 2D inputs (grid_rows * grid_cols == 2)")
+        return self
+
+
+class MlpInternalsRequest(BaseModel):
+    """Request schema for MLP internals visualization."""
+
+    dataset: str = Field(default="or", description="Dataset name (or, xor, custom)")
+    grid_rows: int | None = Field(None, ge=1, le=5, description="Grid rows for custom")
+    grid_cols: int | None = Field(None, ge=1, le=5, description="Grid cols for custom")
+    samples: list[GridSample] | None = Field(None, description="Custom samples")
+    hidden_dim: int = Field(default=2, ge=1, le=256, description="Hidden dimension")
+    lr: float = Field(default=0.5, gt=0, le=10, description="Learning rate")
+    seed: int | None = Field(None, description="Random seed")
+    sample_index: int = Field(default=0, ge=0, description="Sample index to inspect")
+
+
+# ==============================================================================
+# Convolution Request Schemas (Chapter 6)
+# ==============================================================================
+
+
+class ConvKernelRequest(BaseModel):
+    """Request schema for setting convolution kernel."""
+
+    name: str | None = Field(None, description="Preset kernel name")
+    weights: list[list[float]] | None = Field(None, description="Custom 3x3 kernel weights")
+
+    @model_validator(mode="after")
+    def validate_kernel(self) -> ConvKernelRequest:
+        if self.name is None and self.weights is None:
+            raise ValueError("Must provide either 'name' or 'weights'")
+        return self
+
+
+class ConvParamsRequest(BaseModel):
+    """Request schema for convolution parameters."""
+
+    padding: int | None = Field(None, ge=0, le=4, description="Padding value")
+    stride: int | None = Field(None, ge=1, le=4, description="Stride value")
+
+
+class ConvImageSizeRequest(BaseModel):
+    """Request schema for image size."""
+
+    size: int = Field(..., ge=4, le=28, description="Image size")
+
+
+class ConvCalculateRequest(BaseModel):
+    """Request schema for output size calculation."""
+
+    input_size: int = Field(..., ge=1, description="Input dimension")
+    kernel_size: int = Field(..., ge=1, description="Kernel dimension")
+    padding: int = Field(default=0, ge=0, description="Padding")
+    stride: int = Field(default=1, ge=1, description="Stride")
+
 
 # ==============================================================================
 # Deep Learning Request Schemas (Chapter 4)
