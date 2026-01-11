@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import time
@@ -141,10 +142,8 @@ class OllamaClient:
         except urllib.error.HTTPError as e:
             # Read error body if available for better error messages
             error_body = ""
-            try:
+            with contextlib.suppress(Exception):
                 error_body = e.read().decode("utf-8", errors="replace")
-            except Exception:
-                pass
             raise RuntimeError(
                 f"Ollama API error {e.code}: {e.reason}. "
                 f"Is Ollama running at {self._base_url}? "
