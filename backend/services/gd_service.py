@@ -5,9 +5,29 @@ from __future__ import annotations
 import math
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from backend.services.ollama_client import NextTokenStats, OllamaClient
+
+
+class ExampleRow(TypedDict):
+    """Type for example row data."""
+
+    context: str
+    prompt: str
+    correct_token: str
+    p_correct: float
+    top_token: str
+    top_prob: float
+
+
+class Example(TypedDict):
+    """Type for example data."""
+
+    id: str
+    title: str
+    description: str
+    rows: list[ExampleRow]
 
 
 @dataclass(frozen=True)
@@ -34,8 +54,8 @@ def _read_config() -> GdConfig:
 class GdService:
     def __init__(self) -> None:
         self._config = _read_config()
-        self._client = None
-        self._examples = [
+        self._client: OllamaClient | None = None
+        self._examples: list[Example] = [
             {
                 "id": "france-paris",
                 "title": "The capital of France is Paris",
@@ -343,8 +363,8 @@ class GdService:
         example_id: str | None = None,
         prompt: str | None = None,
     ) -> dict[str, Any]:
-        examples = []
-        warning = None
+        examples: list[dict[str, Any]] = []
+        warning: str | None = None
         if example_id == "custom":
             return self._token_loss_custom_ollama(prompt or "")
         selected_ids = ["france-paris", "apple-day"]
@@ -357,9 +377,10 @@ class GdService:
             ce_losses = []
             missing = 0
             for row in example["rows"]:
-                prompt = row["prompt"]
-                correct_token = row["correct_token"]
-                prompt_for_stats = prompt if prompt else " "
+                prompt_val: str = row["prompt"]
+                correct_token: str = row["correct_token"]
+                prompt_for_stats = prompt_val if prompt_val else " "
+                assert self._client is not None
                 stats = self._client.next_token_stats(prompt_for_stats)
                 top_token = stats.top_token
                 top_prob = stats.top_prob
@@ -401,9 +422,9 @@ class GdService:
         if warning:
             payload["warning"] = warning
         if example_id is None:
-            payload["warning"] = (
-                (payload.get("warning") + "; ") if payload.get("warning") else ""
-            ) + "ollama_default_example: france-paris"
+            existing_warning = payload.get("warning")
+            prefix = f"{existing_warning}; " if existing_warning else ""
+            payload["warning"] = prefix + "ollama_default_example: france-paris"
         return payload
 
     def _token_loss_custom_ollama(self, prompt: str) -> dict[str, Any]:
@@ -422,6 +443,7 @@ class GdService:
         for idx, token in enumerate(tokens):
             prefix = " ".join(tokens[:idx]).strip()
             prompt_for_stats = prefix if prefix else " "
+            assert self._client is not None
             stats = self._client.next_token_stats(prompt_for_stats)
             p_correct = self._match_prob(stats, token)
             if p_correct == 0.0:
@@ -472,7 +494,8 @@ class GdService:
                 temperature=self._config.ollama_temperature,
                 top_logprobs=self._config.ollama_top_logprobs,
             )
-        return self._client.status()
+        result: dict[str, Any] = self._client.status()
+        return result
 
     def next_token_logprobs(self, prompt: str, limit: int | None = None) -> dict[str, Any]:
         if self._client is None:
@@ -483,6 +506,7 @@ class GdService:
                 temperature=self._config.ollama_temperature,
                 top_logprobs=self._config.ollama_top_logprobs,
             )
+        assert self._client is not None
         stats = self._client.next_token_stats(prompt)
         probs = stats.probs or {}
         if not probs:

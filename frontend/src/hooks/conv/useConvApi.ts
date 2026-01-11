@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useApi } from "../common/useApi";
 
 export type ConvState = {
   image: number[][];
@@ -37,189 +38,104 @@ export type ConvStepResult = {
   stride: number;
 };
 
+/**
+ * Hook for Convolution visualization API operations.
+ * Uses the centralized useApi hook for consistent error/loading handling.
+ */
 export function useConvApi(apiBase: string) {
+  const { error, setError, loading, get, post, request } = useApi(apiBase);
   const [state, setState] = useState<ConvState | null>(null);
   const [presets, setPresets] = useState<ConvPresets | null>(null);
   const [step, setStep] = useState<ConvStepResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const fetchState = useCallback(async () => {
-    try {
-      const res = await fetch(`${apiBase}/conv/state`);
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
-      }
-      const data = (await res.json()) as ConvState;
+    const data = await get<ConvState>("/conv/state");
+    if (data) {
       setState(data);
-      setError(null);
-    } catch {
-      setError("API unreachable. Check backend.");
     }
-  }, [apiBase]);
+  }, [get]);
 
   const fetchPresets = useCallback(async () => {
-    try {
-      const res = await fetch(`${apiBase}/conv/presets`);
-      if (!res.ok) return;
-      const data = (await res.json()) as ConvPresets;
+    const data = await get<ConvPresets>("/conv/presets");
+    if (data) {
       setPresets(data);
-    } catch {
-      // Silently ignore
     }
-  }, [apiBase]);
+  }, [get]);
 
   const setImage = useCallback(
     async (name: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`${apiBase}/conv/image/${name}`, {
-          method: "POST",
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ConvState;
+      const data = await post<ConvState>(`/conv/image/${name}`);
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [post],
   );
 
   const setImageSize = useCallback(
     async (size: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`${apiBase}/conv/image/size`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ size }),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ConvState;
+      const data = await post<ConvState>("/conv/image/size", { size });
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [post],
   );
 
   const uploadImage = useCallback(
     async (file: File) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
+      // File uploads need rawBody for FormData
+      const formData = new FormData();
+      formData.append("file", file);
 
-        const res = await fetch(`${apiBase}/conv/image/upload`, {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ConvState;
+      const data = await request<ConvState>("/conv/image/upload", {
+        method: "POST",
+        body: formData,
+        rawBody: true,
+      });
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [request],
   );
 
   const setKernel = useCallback(
     async (name?: string, weights?: number[][]) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const body: { name?: string; weights?: number[][] } = {};
-        if (name) body.name = name;
-        if (weights) body.weights = weights;
+      const body: { name?: string; weights?: number[][] } = {};
+      if (name) body.name = name;
+      if (weights) body.weights = weights;
 
-        const res = await fetch(`${apiBase}/conv/kernel`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ConvState;
+      const data = await post<ConvState>("/conv/kernel", body);
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [post],
   );
 
   const setParams = useCallback(
     async (padding?: number, stride?: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const body: { padding?: number; stride?: number } = {};
-        if (padding !== undefined) body.padding = padding;
-        if (stride !== undefined) body.stride = stride;
+      const body: { padding?: number; stride?: number } = {};
+      if (padding !== undefined) body.padding = padding;
+      if (stride !== undefined) body.stride = stride;
 
-        const res = await fetch(`${apiBase}/conv/params`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ConvState;
+      const data = await post<ConvState>("/conv/params", body);
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [post],
   );
 
   const getStep = useCallback(
     async (row: number, col: number) => {
-      try {
-        const res = await fetch(`${apiBase}/conv/step?row=${row}&col=${col}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as ConvStepResult;
+      const data = await get<ConvStepResult>(`/conv/step?row=${row}&col=${col}`);
+      if (data) {
         setStep(data);
-      } catch {
-        // Silently ignore
       }
     },
-    [apiBase],
+    [get],
   );
 
   const clearStep = useCallback(() => {
@@ -241,5 +157,6 @@ export function useConvApi(apiBase: string) {
     setParams,
     getStep,
     clearStep,
+    setError,
   };
 }

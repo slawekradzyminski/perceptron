@@ -29,13 +29,12 @@ import {
   resizeGrid,
   reshapeToGrid,
 } from "../utils/visuals";
-
-const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+import { API_BASE } from "../config/api";
 
 type AppRoute = "main" | "lms" | "mlp" | "gd" | "tinygps" | "regression" | "deep" | "alexnet" | "transformer" | "convolution";
 
 export default function App() {
-  const [apiBase] = useState(DEFAULT_API_BASE);
+  const [apiBase] = useState(API_BASE);
   const [lr, setLr] = useState(1);
   const [customConfig, setCustomConfig] = useState(defaultCustomConfig());
   const [customModalOpen, setCustomModalOpen] = useState(false);

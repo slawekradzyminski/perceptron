@@ -26,10 +26,12 @@ pytest = "^9.0.2"
 httpx = "^0.28.1"
 pytest-cov = "^7.0.0"
 ruff = "^0.14.10"
+mypy = "^1.19.1"
 
 [tool.poetry.scripts]
 perceptron-api = "backend.api_app:run"
 perceptron-runner = "backend.runner:main"
+check = "backend.scripts.check:main"
 
 [tool.pytest.ini_options]
 addopts = "-q --cov=backend --cov-report=term-missing:skip-covered --cov-report=xml"
@@ -43,6 +45,34 @@ source = ["backend"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+
+[tool.mypy]
+python_version = "3.13"
+warn_unused_ignores = true
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+# Ignore missing stubs for third-party libraries
+ignore_missing_imports = true
+# Don't require explicit types everywhere - infer from constants/literals
+disallow_untyped_defs = false
+# But do check types when they are provided
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# Ignore test files entirely
+module = "backend.tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+# Stricter checking for schemas (our new typed code)
+module = "backend.schemas.*"
+disallow_untyped_defs = true
+warn_return_any = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.ruff]
 line-length = 120

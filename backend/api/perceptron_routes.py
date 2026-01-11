@@ -6,17 +6,18 @@ from fastapi import APIRouter, Body, HTTPException
 
 from backend.api.deps import perceptron_service
 from backend.api.utils import normalize_samples, validate_grid_shape
+from backend.schemas.response import PerceptronStateResponse, PerceptronStepResponse
 
 router = APIRouter()
 
 
 @router.get("/state")
-def state() -> dict[str, Any]:
+def state() -> PerceptronStateResponse:
     return perceptron_service.state()
 
 
 @router.post("/step")
-def step(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
+def step(body: dict[str, Any] = Body(default_factory=dict)) -> PerceptronStepResponse:
     if "lr" in body:
         try:
             perceptron_service.set_lr(float(body["lr"]))
@@ -40,7 +41,7 @@ def step(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
 
 
 @router.post("/reset")
-def reset(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
+def reset(body: dict[str, Any] = Body(default_factory=dict)) -> PerceptronStateResponse:
     if "lr" in body:
         try:
             perceptron_service.set_lr(float(body["lr"]))

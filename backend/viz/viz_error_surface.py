@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 try:
-    import matplotlib.pyplot as plt  # type: ignore
+    import matplotlib.pyplot as plt
 except Exception:  # pragma: no cover
     plt = None
 

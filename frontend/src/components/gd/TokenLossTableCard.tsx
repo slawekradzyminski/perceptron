@@ -30,7 +30,7 @@ type TokenLossExample = {
 
 function formatProb(value: number) {
   if (value === 0) return "0";
-  if (value < 0.001) return value.toExponential(2);
+  // Always use decimal notation for consistency (up to 6 decimal places)
   return value.toFixed(6);
 }
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import io
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 import numpy as np
 import torch
@@ -13,8 +13,18 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
 
+
+class LayerInfoDict(TypedDict):
+    """Type for layer info dictionaries."""
+
+    name: str
+    filters: int
+    kernel_size: int
+    in_channels: int
+
+
 # AlexNet layer info
-ALEXNET_LAYERS = {
+ALEXNET_LAYERS: dict[int, LayerInfoDict] = {
     1: {"name": "Conv1", "filters": 64, "kernel_size": 11, "in_channels": 3},
     2: {"name": "Conv2", "filters": 192, "kernel_size": 5, "in_channels": 64},
     3: {"name": "Conv3", "filters": 384, "kernel_size": 3, "in_channels": 192},
@@ -124,7 +134,9 @@ class AlexNetExtractor:
         layer_indices = {1: 0, 2: 3, 3: 6, 4: 8, 5: 10}
         if layer not in layer_indices:
             raise ValueError(f"Invalid layer: {layer}. Must be 1-5.")
-        return self.model.features[layer_indices[layer]]  # type: ignore[return-value]
+        layer_module = self.model.features[layer_indices[layer]]
+        assert isinstance(layer_module, torch.nn.Conv2d)
+        return layer_module
 
     def extract_filters(self, layer: int = 1, max_filters: int | None = None) -> list[FilterInfo]:
         """Extract filter weights as images.
@@ -287,7 +299,7 @@ def create_sample_image(width: int = 224, height: int = 224, pattern: str = "gra
                     arr[y, x] = [0, 0, 0]
 
     elif pattern == "noise":
-        arr = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
+        arr = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)  # type: ignore[assignment]
 
     elif pattern == "face":
         # Simple stylized face - oval with features

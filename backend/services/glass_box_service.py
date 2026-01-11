@@ -10,11 +10,12 @@ import torch
 logger = logging.getLogger(__name__)
 
 # Shared HuggingFace model cache to avoid loading multiple copies
-_shared_hf_tokenizer = None
-_shared_hf_model = None
+# Using Any because HuggingFace models have dynamic attributes (lm_head, transformer, etc.)
+_shared_hf_tokenizer: Any = None
+_shared_hf_model: Any = None
 
 
-def reset_shared_hf_model():
+def reset_shared_hf_model() -> None:
     """Reset the shared model cache to force a reload."""
     global _shared_hf_tokenizer, _shared_hf_model
     _shared_hf_tokenizer = None
@@ -22,7 +23,7 @@ def reset_shared_hf_model():
     logger.info("Shared HuggingFace model cache cleared")
 
 
-def get_shared_hf_model():
+def get_shared_hf_model() -> tuple[Any, Any]:
     """Get or load the shared HuggingFace model and tokenizer."""
     global _shared_hf_tokenizer, _shared_hf_model
     if _shared_hf_tokenizer is None or _shared_hf_model is None:
@@ -75,7 +76,7 @@ class GlassBoxService:
     def __init__(self) -> None:
         self._model_name = "gpt2"
 
-    def _get_model(self):
+    def _get_model(self) -> tuple[Any, Any]:
         """Get the shared model and tokenizer."""
         return get_shared_hf_model()
 

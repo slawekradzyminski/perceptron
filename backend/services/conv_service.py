@@ -200,7 +200,14 @@ class ConvService:
         for y in range(self._image_size):
             row: list[float] = []
             for x in range(self._image_size):
-                row.append(float(img.getpixel((x, y))))
+                pixel = img.getpixel((x, y))
+                # Handle both single values and tuples (e.g., RGBA)
+                if isinstance(pixel, tuple):
+                    row.append(float(pixel[0]))
+                elif pixel is not None:
+                    row.append(float(pixel))
+                else:
+                    row.append(0.0)
             self._image.append(row)
 
         self._image_name = "custom"

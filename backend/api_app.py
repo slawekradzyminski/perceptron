@@ -6,7 +6,7 @@ import logging
 import sys
 import time
 import traceback
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
@@ -63,7 +63,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next: Callable[[Request], Response]) -> Response:
+async def log_requests(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Log all requests and responses."""
     request_id = f"{time.time():.0f}"
     method = request.method

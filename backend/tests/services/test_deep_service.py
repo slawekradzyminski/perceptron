@@ -90,39 +90,40 @@ class TestDeepServiceInit:
     def test_init_creates_state(self) -> None:
         service = DeepService()
         state = service.state()
-        assert "dataset" in state
-        assert "architecture" in state
-        assert "metrics" in state
-        assert "samples" in state
+        # Using attribute access for Pydantic models
+        assert state.dataset is not None
+        assert state.architecture is not None
+        assert state.metrics is not None
+        assert state.samples is not None
 
     def test_init_default_dataset(self) -> None:
         service = DeepService()
         state = service.state()
-        assert state["dataset"] == "circles"
+        assert state.dataset == "circles"
 
     def test_init_default_architecture(self) -> None:
         service = DeepService()
         state = service.state()
-        assert state["architecture"]["hidden_dims"] == [8, 8]
+        assert state.architecture.hidden_dims == [8, 8]
 
 
 class TestDeepServiceReset:
     def test_reset_changes_dataset(self) -> None:
         service = DeepService()
         state = service.reset(dataset="xor")
-        assert state["dataset"] == "xor"
-        assert state["sample_count"] == 4  # XOR has 4 samples
+        assert state.dataset == "xor"
+        assert state.sample_count == 4  # XOR has 4 samples
 
     def test_reset_changes_architecture(self) -> None:
         service = DeepService()
         state = service.reset(hidden_dims=[16, 16, 16])
-        assert state["architecture"]["hidden_dims"] == [16, 16, 16]
-        assert state["architecture"]["depth"] == 3
+        assert state.architecture.hidden_dims == [16, 16, 16]
+        assert state.architecture.depth == 3
 
     def test_reset_changes_lr(self) -> None:
         service = DeepService()
         state = service.reset(lr=0.5)
-        assert state["lr"] == 0.5
+        assert state.lr == 0.5
 
     def test_reset_changes_seed(self) -> None:
         service = DeepService()
@@ -131,8 +132,8 @@ class TestDeepServiceReset:
         state2 = service2.reset(seed=123)
         # Different seeds should produce different initial weights (and thus metrics)
         # Just verify the seed was accepted
-        assert state1["sample_count"] > 0
-        assert state2["sample_count"] > 0
+        assert state1.sample_count > 0
+        assert state2.sample_count > 0
 
     def test_reset_invalid_dataset(self) -> None:
         service = DeepService()
@@ -149,14 +150,14 @@ class TestDeepServiceReset:
     def test_reset_baarle_dataset(self) -> None:
         service = DeepService()
         state = service.reset(dataset="baarle")
-        assert state["dataset"] == "baarle"
-        assert state["sample_count"] > 0
+        assert state.dataset == "baarle"
+        assert state.sample_count > 0
 
     def test_reset_spiral_dataset(self) -> None:
         service = DeepService()
         state = service.reset(dataset="spiral")
-        assert state["dataset"] == "spiral"
-        assert state["sample_count"] > 0
+        assert state.dataset == "spiral"
+        assert state.sample_count > 0
 
 
 class TestDeepServiceStep:
@@ -164,23 +165,23 @@ class TestDeepServiceStep:
         service = DeepService()
         service.reset(dataset="circles")
         state = service.step()
-        assert state["total_steps"] == 1
+        assert state.total_steps == 1
 
     def test_step_batch(self) -> None:
         service = DeepService()
         service.reset(dataset="circles")
         state = service.step(batch_size=10)
-        assert state["total_steps"] == 10
+        assert state.total_steps == 10
 
     def test_step_returns_step_info(self) -> None:
         service = DeepService()
         service.reset(dataset="circles")
         state = service.step()
-        assert "step_info" in state
-        assert "batch_size" in state["step_info"]
-        assert "last_loss" in state["step_info"]
-        assert "last_correct" in state["step_info"]
-        assert "grad_norm" in state["step_info"]
+        assert state.step_info is not None
+        assert state.step_info.batch_size is not None
+        assert state.step_info.last_loss is not None
+        assert state.step_info.last_correct is not None
+        assert state.step_info.grad_norm is not None
 
     def test_step_adds_to_history(self) -> None:
         service = DeepService()
@@ -188,10 +189,11 @@ class TestDeepServiceStep:
         service.step()
         history = service.get_history()
         assert len(history) == 1
-        assert "step" in history[0]
-        assert "epoch" in history[0]
-        assert "loss" in history[0]
-        assert "accuracy" in history[0]
+        # History now returns Pydantic models
+        assert history[0].step >= 0
+        assert history[0].epoch >= 0
+        assert history[0].loss >= 0
+        assert 0 <= history[0].accuracy <= 1
 
     def test_step_wraps_samples(self) -> None:
         service = DeepService()
@@ -200,7 +202,7 @@ class TestDeepServiceStep:
         for _ in range(5):
             service.step()
         state = service.state()
-        assert state["idx"] == 1  # Wrapped around
+        assert state.idx == 1  # Wrapped around
 
 
 class TestDeepServiceTrainEpoch:
@@ -208,8 +210,8 @@ class TestDeepServiceTrainEpoch:
         service = DeepService()
         service.reset(dataset="xor")  # 4 samples
         state = service.train_epoch()
-        assert state["total_steps"] == 4
-        assert state["epoch"] == 1
+        assert state.total_steps == 4
+        assert state.epoch == 1
 
     def test_train_epoch_increments_epoch(self) -> None:
         service = DeepService()
@@ -217,7 +219,7 @@ class TestDeepServiceTrainEpoch:
         service.train_epoch()
         service.train_epoch()
         state = service.state()
-        assert state["epoch"] == 2
+        assert state.epoch == 2
 
 
 class TestDeepServiceRegions:
@@ -225,16 +227,15 @@ class TestDeepServiceRegions:
         service = DeepService()
         service.reset(dataset="circles", hidden_dims=[4])
         regions = service.get_regions(resolution=10)
-        assert "count" in regions
-        assert "theoretical_max" in regions
-        assert "efficiency" in regions
-        assert regions["count"] >= 1
+        assert regions.count >= 1
+        assert regions.theoretical_max >= 1
+        assert regions.efficiency is not None
 
     def test_get_regions_efficiency(self) -> None:
         service = DeepService()
         service.reset(dataset="circles", hidden_dims=[4])
         regions = service.get_regions(resolution=10)
-        assert 0 <= regions["efficiency"] <= 1
+        assert 0 <= regions.efficiency <= 1
 
 
 class TestDeepServiceBoundary:
@@ -242,18 +243,18 @@ class TestDeepServiceBoundary:
         service = DeepService()
         service.reset(dataset="circles")
         boundary = service.get_boundary(resolution=10)
-        assert "predictions" in boundary
-        assert "region_ids" in boundary
-        assert "region_count" in boundary
-        assert "theoretical_max" in boundary
+        assert boundary.predictions is not None
+        assert boundary.region_ids is not None
+        assert boundary.region_count >= 1
+        assert boundary.theoretical_max >= 1
 
     def test_get_boundary_grid_size(self) -> None:
         service = DeepService()
         service.reset(dataset="circles")
         boundary = service.get_boundary(resolution=15)
-        assert len(boundary["predictions"]) == 15
-        assert len(boundary["predictions"][0]) == 15
-        assert len(boundary["region_ids"]) == 15
+        assert len(boundary.predictions) == 15
+        assert len(boundary.predictions[0]) == 15
+        assert len(boundary.region_ids) == 15
 
 
 class TestDeepServiceComparison:
@@ -261,11 +262,11 @@ class TestDeepServiceComparison:
         service = DeepService()
         service.reset(dataset="circles", hidden_dims=[8])
         entry = service.add_to_comparison()
-        assert "depth" in entry
-        assert "width" in entry
-        assert "param_count" in entry
-        assert "actual_regions" in entry
-        assert "accuracy" in entry
+        assert entry.depth is not None
+        assert entry.width is not None
+        assert entry.param_count is not None
+        assert entry.actual_regions is not None
+        assert entry.accuracy is not None
 
     def test_get_comparison_table(self) -> None:
         service = DeepService()
@@ -290,37 +291,37 @@ class TestDeepServiceComparison:
         service.add_to_comparison()
         table = service.get_comparison_table()
         assert len(table) == 2
-        assert table[0]["depth"] == 1
-        assert table[1]["depth"] == 2
+        # Comparison table now returns Pydantic models
+        assert table[0].depth == 1
+        assert table[1].depth == 2
 
 
 class TestDeepServiceMetrics:
     def test_state_includes_metrics(self) -> None:
         service = DeepService()
         state = service.state()
-        assert "metrics" in state
-        assert "loss" in state["metrics"]
-        assert "accuracy" in state["metrics"]
+        assert state.metrics is not None
+        assert state.metrics.loss is not None
+        assert state.metrics.accuracy is not None
 
     def test_metrics_are_valid(self) -> None:
         service = DeepService()
         state = service.state()
-        assert state["metrics"]["loss"] >= 0
-        assert 0 <= state["metrics"]["accuracy"] <= 1
+        assert state.metrics.loss >= 0
+        assert 0 <= state.metrics.accuracy <= 1
 
     def test_training_improves_xor(self) -> None:
         service = DeepService()
         service.reset(dataset="xor", hidden_dims=[8, 8], lr=0.5, seed=42)
         initial_state = service.state()
-        initial_loss = initial_state["metrics"]["loss"]
+        initial_loss = initial_state.metrics.loss
 
         # Train for several epochs
         for _ in range(50):
             service.train_epoch()
 
         final_state = service.state()
-        final_loss = final_state["metrics"]["loss"]
+        final_loss = final_state.metrics.loss
 
         # Loss should decrease with training
         assert final_loss < initial_loss
-

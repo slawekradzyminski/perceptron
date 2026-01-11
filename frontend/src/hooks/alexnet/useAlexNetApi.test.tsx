@@ -60,6 +60,7 @@ describe("useAlexNetApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Server error" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -70,7 +71,7 @@ describe("useAlexNetApi", () => {
     });
 
     expect(result.current.state).toBeNull();
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Server error");
   });
 
   test("fetchState handles network error", async () => {
@@ -109,6 +110,7 @@ describe("useAlexNetApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 400,
+      json: async () => ({ detail: "Invalid layer" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -118,7 +120,7 @@ describe("useAlexNetApi", () => {
       await result.current.setLayer(0);
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Invalid layer");
   });
 
   test("fetchFilters loads filters", async () => {
@@ -142,6 +144,7 @@ describe("useAlexNetApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Filter error" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -151,7 +154,7 @@ describe("useAlexNetApi", () => {
       await result.current.fetchFilters();
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Filter error");
   });
 
   test("fetchActivations loads activations", async () => {
@@ -175,6 +178,7 @@ describe("useAlexNetApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Activation error" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -184,7 +188,7 @@ describe("useAlexNetApi", () => {
       await result.current.fetchActivations();
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Activation error");
   });
 
   test("uploadAndGetActivations posts file", async () => {
@@ -210,7 +214,7 @@ describe("useAlexNetApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 400,
-      text: async () => "Invalid file",
+      json: async () => ({ detail: "Invalid file" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -222,7 +226,7 @@ describe("useAlexNetApi", () => {
       await result.current.uploadAndGetActivations(file);
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Invalid file");
   });
 
   test("loading state is managed correctly", async () => {

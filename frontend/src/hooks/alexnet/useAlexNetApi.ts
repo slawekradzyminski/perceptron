@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useApi } from "../common/useApi";
 
 export type LayerInfo = {
   layer: number;
@@ -59,72 +60,43 @@ export type ActivationGrid = {
   activations: ActivationItem[];
 };
 
+/**
+ * Hook for AlexNet API operations.
+ * Uses the centralized useApi hook for consistent error/loading handling.
+ */
 export function useAlexNetApi(apiBase: string) {
+  const { error, setError, loading, get, post, request } = useApi(apiBase);
   const [state, setState] = useState<AlexNetState | null>(null);
   const [filters, setFilters] = useState<FilterGrid | null>(null);
   const [activations, setActivations] = useState<ActivationGrid | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const fetchState = useCallback(async () => {
-    try {
-      const res = await fetch(`${apiBase}/alexnet/state`);
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
-      }
-      const data = (await res.json()) as AlexNetState;
+    const data = await get<AlexNetState>("/alexnet/state");
+    if (data) {
       setState(data);
-      setError(null);
-    } catch {
-      setError("API unreachable. Check backend.");
     }
-  }, [apiBase]);
+  }, [get]);
 
   const setLayer = useCallback(
     async (layer: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`${apiBase}/alexnet/layer/${layer}`, {
-          method: "POST",
-        });
-        if (!res.ok) {
-          setError(`API error: ${res.status}`);
-          return;
-        }
-        const data = (await res.json()) as AlexNetState;
+      const data = await post<AlexNetState>(`/alexnet/layer/${layer}`);
+      if (data) {
         setState(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [post],
   );
 
   const fetchFilters = useCallback(
     async (layer: number = 1, maxFilters: number = 64) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(
-          `${apiBase}/alexnet/filters?layer=${layer}&max_filters=${maxFilters}`,
-        );
-        if (!res.ok) {
-          setError(`API error: ${res.status}`);
-          return;
-        }
-        const data = (await res.json()) as FilterGrid;
+      const data = await get<FilterGrid>(
+        `/alexnet/filters?layer=${layer}&max_filters=${maxFilters}`,
+      );
+      if (data) {
         setFilters(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [get],
   );
 
   const fetchActivations = useCallback(
@@ -133,56 +105,35 @@ export function useAlexNetApi(apiBase: string) {
       layer: number = 1,
       maxActivations: number = 64,
     ) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(
-          `${apiBase}/alexnet/activations?sample=${sample}&layer=${layer}&max_activations=${maxActivations}`,
-        );
-        if (!res.ok) {
-          setError(`API error: ${res.status}`);
-          return;
-        }
-        const data = (await res.json()) as ActivationGrid;
+      const data = await get<ActivationGrid>(
+        `/alexnet/activations?sample=${sample}&layer=${layer}&max_activations=${maxActivations}`,
+      );
+      if (data) {
         setActivations(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [get],
   );
 
   const uploadAndGetActivations = useCallback(
     async (file: File, layer: number = 1, maxActivations: number = 64) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
+      // File uploads need special handling - use rawBody to send FormData directly
+      const formData = new FormData();
+      formData.append("file", file);
 
-        const res = await fetch(
-          `${apiBase}/alexnet/activations?layer=${layer}&max_activations=${maxActivations}`,
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${res.status} - ${text}`);
-          return;
-        }
-        const data = (await res.json()) as ActivationGrid;
+      const data = await request<ActivationGrid>(
+        `/alexnet/activations?layer=${layer}&max_activations=${maxActivations}`,
+        {
+          method: "POST",
+          body: formData,
+          rawBody: true,
+        },
+      );
+      if (data) {
         setActivations(data);
-      } catch {
-        setError("API unreachable. Check backend.");
-      } finally {
-        setLoading(false);
       }
     },
-    [apiBase],
+    [request],
   );
 
   return {
@@ -196,6 +147,6 @@ export function useAlexNetApi(apiBase: string) {
     fetchFilters,
     fetchActivations,
     uploadAndGetActivations,
+    setError,
   };
 }
-

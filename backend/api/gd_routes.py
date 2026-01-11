@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend.api.deps import gd_service
 
@@ -29,7 +29,11 @@ def gd_token_losses(
 
 @router.get("/next-token-logprobs")
 def gd_next_token_logprobs(prompt: str, limit: int | None = None) -> dict[str, Any]:
-    return gd_service.next_token_logprobs(prompt=prompt, limit=limit)
+    try:
+        return gd_service.next_token_logprobs(prompt=prompt, limit=limit)
+    except RuntimeError as e:
+        # Ollama connection/API errors
+        raise HTTPException(status_code=503, detail=str(e)) from e
 
 
 @router.get("/ollama-status")

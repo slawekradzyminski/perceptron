@@ -74,7 +74,7 @@ class TestDeepReset:
 
     def test_reset_invalid_hidden_dims_empty(self) -> None:
         response = client.post("/deep/reset", json={"hidden_dims": []})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_reset_baarle_dataset(self) -> None:
         response = client.post("/deep/reset", json={"dataset": "baarle"})

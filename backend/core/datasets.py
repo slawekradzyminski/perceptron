@@ -240,7 +240,12 @@ def make_baarle_hertog_dataset(
 
             for y in range(height):
                 for x in range(width):
-                    r, g, b = pixels[x, y]
+                    pixel = pixels[x, y]  # type: ignore[index]
+                    # Pixel can be int (grayscale) or tuple (RGB/RGBA)
+                    if isinstance(pixel, (tuple, list)):
+                        r, g, b = pixel[0], pixel[1], pixel[2]
+                    else:
+                        r = g = b = int(pixel)  # Grayscale
                     # Yellow: high R, high G, low B (the enclave regions)
                     if r > 200 and g > 200 and b < 100:
                         yellow_points.append((x, y))

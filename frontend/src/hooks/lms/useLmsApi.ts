@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { CustomConfig, LmsState, LmsStep } from "../../types";
 import { buildCustomPayload } from "../../utils/custom";
+import { useApi } from "../common/useApi";
 
 type ResetOptions = {
   datasetName?: string;
@@ -9,41 +10,26 @@ type ResetOptions = {
   lr?: number;
 };
 
+/**
+ * Hook for LMS (Least Mean Squares) API operations.
+ * Uses the centralized useApi hook for consistent error/loading handling.
+ */
 export function useLmsApi(apiBase: string) {
+  const { error, setError, loading, get, post } = useApi(apiBase);
   const [state, setState] = useState<LmsState | null>(null);
   const [history, setHistory] = useState<LmsStep[]>([]);
   const [stepCount, setStepCount] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const loadState = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${apiBase}/lms/state`);
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
-      }
-      const data = (await res.json()) as LmsState;
+    const data = await get<LmsState>("/lms/state");
+    if (data) {
       setState(data);
-    } catch {
-      setError("API unreachable. Check backend.");
-    } finally {
-      setLoading(false);
     }
-  }, [apiBase]);
+  }, [get]);
 
   const step = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${apiBase}/lms/step`, { method: "POST", headers: { "Content-Type": "application/json" } });
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
-      }
-      const data = (await res.json()) as LmsStep;
+    const data = await post<LmsStep>("/lms/step");
+    if (data) {
       setHistory((prev) => [...prev, data].slice(-32));
       setStepCount((prev) => prev + 1);
       setState((prev) =>
@@ -60,17 +46,11 @@ export function useLmsApi(apiBase: string) {
               dataset: "or",
             },
       );
-    } catch {
-      setError("API unreachable. Check backend.");
-    } finally {
-      setLoading(false);
     }
-  }, [apiBase]);
+  }, [post]);
 
-  const resetWithOptions = useCallback(async (options: ResetOptions = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
+  const resetWithOptions = useCallback(
+    async (options: ResetOptions = {}) => {
       const body: Record<string, unknown> = {};
       if (options.datasetName) {
         if (options.datasetName === "custom") {
@@ -86,29 +66,19 @@ export function useLmsApi(apiBase: string) {
       if (typeof options.lr === "number") {
         body.lr = options.lr;
       }
-      const res = await fetch(`${apiBase}/lms/reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
+      const data = await post<LmsState>("/lms/reset", body);
+      if (data) {
+        setState(data);
+        setHistory([]);
+        setStepCount(0);
       }
-      const data = (await res.json()) as LmsState;
-      setState(data);
-      setHistory([]);
-      setStepCount(0);
-    } catch {
-      setError("API unreachable. Check backend.");
-    } finally {
-      setLoading(false);
-    }
-  }, [apiBase]);
+    },
+    [post, setError],
+  );
 
   const reset = useCallback(async () => {
     await resetWithOptions();
   }, [resetWithOptions]);
 
-  return { state, history, stepCount, error, loading, loadState, step, reset, resetWithOptions };
+  return { state, history, stepCount, error, loading, loadState, step, reset, resetWithOptions, setError };
 }

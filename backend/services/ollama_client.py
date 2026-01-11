@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import time
@@ -123,22 +124,41 @@ class OllamaClient:
                 top_map = top_logprobs[0] or {}
         elif isinstance(top_logprobs, dict):
             top_map = top_logprobs
-        probs: dict[str, float] = {}
+        result: dict[str, float] = {}
         for token, logprob in top_map.items():
             if isinstance(logprob, (int, float)):
-                probs[token] = math.exp(logprob)
-        return probs
+                result[token] = math.exp(logprob)
+        return result
 
     def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         url = f"{self._base_url}{path}"
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=self._timeout_s) as resp:
-            body = resp.read()
-        return json.loads(body.decode("utf-8"))
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout_s) as resp:
+                body = resp.read()
+            result: dict[str, Any] = json.loads(body.decode("utf-8"))
+            return result
+        except urllib.error.HTTPError as e:
+            # Read error body if available for better error messages
+            error_body = ""
+            with contextlib.suppress(Exception):
+                error_body = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"Ollama API error {e.code}: {e.reason}. "
+                f"Is Ollama running at {self._base_url}? "
+                f"Details: {error_body[:200] if error_body else 'No details'}"
+            ) from e
 
     def _get_json(self, path: str) -> dict[str, Any]:
         url = f"{self._base_url}{path}"
-        with urllib.request.urlopen(url, timeout=self._timeout_s) as resp:
-            body = resp.read()
-        return json.loads(body.decode("utf-8"))
+        try:
+            with urllib.request.urlopen(url, timeout=self._timeout_s) as resp:
+                body = resp.read()
+            result: dict[str, Any] = json.loads(body.decode("utf-8"))
+            return result
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(
+                f"Ollama API error {e.code}: {e.reason}. "
+                f"Is Ollama running at {self._base_url}?"
+            ) from e
