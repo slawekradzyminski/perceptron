@@ -278,21 +278,22 @@ class BackpropService:
             "M": [row[:] for row in state.M],
         }
 
+        grads_payload: dict[str, Any]
         if state.mode == "1d":
             forward = forward_1d(sample["x"][0], state.m, state.b, sample["y"])
-            grads = backward_1d(sample["x"][0], forward.probs, sample["y"])
+            grads_1d = backward_1d(sample["x"][0], forward.probs, sample["y"])
             for i in range(len(state.m)):
-                state.m[i] -= state.lr * grads.dL_dm[i]
-                state.b[i] -= state.lr * grads.dL_db[i]
-            grads_payload = {"m": grads.dL_dm, "b": grads.dL_db}
+                state.m[i] -= state.lr * grads_1d.dL_dm[i]
+                state.b[i] -= state.lr * grads_1d.dL_db[i]
+            grads_payload = {"m": grads_1d.dL_dm, "b": grads_1d.dL_db}
         else:
             forward = forward_2d(sample["x"], state.M, state.b, sample["y"])
-            grads = backward_2d(sample["x"], forward.probs, sample["y"])
+            grads_2d = backward_2d(sample["x"], forward.probs, sample["y"])
             for i in range(len(state.M)):
-                state.M[i][0] -= state.lr * grads.dL_dM[i][0]
-                state.M[i][1] -= state.lr * grads.dL_dM[i][1]
-                state.b[i] -= state.lr * grads.dL_db[i]
-            grads_payload = {"M": grads.dL_dM, "b": grads.dL_db}
+                state.M[i][0] -= state.lr * grads_2d.dL_dM[i][0]
+                state.M[i][1] -= state.lr * grads_2d.dL_dM[i][1]
+                state.b[i] -= state.lr * grads_2d.dL_db[i]
+            grads_payload = {"M": grads_2d.dL_dM, "b": grads_2d.dL_db}
 
         pred = max(range(len(forward.probs)), key=lambda idx: forward.probs[idx])
         correct = pred == sample["y"]

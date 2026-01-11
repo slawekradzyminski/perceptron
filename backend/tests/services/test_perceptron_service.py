@@ -9,25 +9,26 @@ class TestPerceptronServiceInit:
     def test_init_default(self) -> None:
         service = PerceptronService()
         state = service.state()
-        assert state["dataset"] == "or"
-        assert state["lr"] == 1.0
-        assert len(state["w"]) == 2
+        # Using attribute access for Pydantic models
+        assert state.dataset == "or"
+        assert state.lr == 1.0
+        assert len(state.w) == 2
 
     def test_init_with_dataset(self) -> None:
         service = PerceptronService(dataset="xor")
         state = service.state()
-        assert state["dataset"] == "xor"
+        assert state.dataset == "xor"
 
     def test_init_with_lr(self) -> None:
         service = PerceptronService(lr=0.5)
         state = service.state()
-        assert state["lr"] == 0.5
+        assert state.lr == 0.5
 
     def test_init_with_seed(self) -> None:
         service = PerceptronService(seed=42)
         # Two services with same seed should have same initial weights
         service2 = PerceptronService(seed=42)
-        assert service.state()["w"] == service2.state()["w"]
+        assert service.state().w == service2.state().w
 
 
 class TestPerceptronServiceSetLr:
@@ -43,15 +44,15 @@ class TestPerceptronServiceSetDataset:
         service = PerceptronService()
         service.set_dataset("or")
         state = service.state()
-        assert state["dataset"] == "or"
-        assert state["sample_count"] == 4
+        assert state.dataset == "or"
+        assert state.sample_count == 4
 
     def test_set_xor_dataset(self) -> None:
         service = PerceptronService()
         service.set_dataset("xor")
         state = service.state()
-        assert state["dataset"] == "xor"
-        assert state["sample_count"] == 4
+        assert state.dataset == "xor"
+        assert state.sample_count == 4
 
     def test_set_invalid_dataset(self) -> None:
         service = PerceptronService()
@@ -66,8 +67,8 @@ class TestPerceptronServiceSetDataset:
         ]
         service.set_dataset("custom", custom=(custom_samples, (1, 2)))
         state = service.state()
-        assert state["dataset"] == "custom"
-        assert state["sample_count"] == 2
+        assert state.dataset == "custom"
+        assert state.sample_count == 2
 
     def test_set_custom_without_data(self) -> None:
         service = PerceptronService()
@@ -79,16 +80,17 @@ class TestPerceptronServiceStep:
     def test_step_returns_result(self) -> None:
         service = PerceptronService()
         result = service.step()
-        assert "w" in result
-        assert "b" in result
-        assert "x" in result
-        assert "y" in result
-        assert "score" in result
-        assert "pred" in result
-        assert "mistake" in result
-        assert "delta_w" in result
-        assert "delta_b" in result
-        assert "idx" in result
+        # Using attribute access for Pydantic models
+        assert result.w is not None
+        assert result.b is not None
+        assert result.x is not None
+        assert result.y is not None
+        assert result.score is not None
+        assert result.pred is not None
+        assert result.mistake is not None
+        assert result.delta_w is not None
+        assert result.delta_b is not None
+        assert result.idx is not None
 
     def test_step_increments_idx(self) -> None:
         service = PerceptronService()
@@ -104,8 +106,8 @@ class TestPerceptronServiceStep:
     def test_step_provides_next_sample(self) -> None:
         service = PerceptronService()
         result = service.step()
-        assert "next_x" in result
-        assert "next_y" in result
+        assert result.next_x is not None
+        assert result.next_y is not None
 
 
 class TestPerceptronServiceReset:
@@ -115,29 +117,29 @@ class TestPerceptronServiceReset:
         service.step()
         service.reset()
         state = service.state()
-        assert state["idx"] == 0
-        assert all(w == 0 for w in state["w"])
-        assert state["b"] == 0
+        assert state.idx == 0
+        assert all(w == 0 for w in state.w)
+        assert state.b == 0
 
 
 class TestPerceptronServiceState:
     def test_state_structure(self) -> None:
         service = PerceptronService()
         state = service.state()
-        assert "w" in state
-        assert "b" in state
-        assert "idx" in state
-        assert "dataset" in state
-        assert "lr" in state
-        assert "next_x" in state
-        assert "next_y" in state
-        assert "grid_rows" in state
-        assert "grid_cols" in state
-        assert "sample_count" in state
+        # Using attribute access for Pydantic models
+        assert state.w is not None
+        assert state.b is not None
+        assert state.idx is not None
+        assert state.dataset is not None
+        assert state.lr is not None
+        assert state.next_x is not None
+        assert state.next_y is not None
+        assert state.grid_rows is not None
+        assert state.grid_cols is not None
+        assert state.sample_count is not None
 
     def test_state_grid_shape(self) -> None:
         service = PerceptronService()
         state = service.state()
-        assert state["grid_rows"] == 1
-        assert state["grid_cols"] == 2
-
+        assert state.grid_rows == 1
+        assert state.grid_cols == 2

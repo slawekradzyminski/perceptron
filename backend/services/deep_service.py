@@ -4,13 +4,35 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from backend.core.datasets import make_baarle_hertog_dataset, make_xor_dataset_pm1
 from backend.nn.deep_mlp import DeepMlp, DeepMlpStep
+from backend.schemas.response import (
+    DeepArchitecture,
+    DeepBoundaryResponse,
+    DeepComparisonEntry,
+    DeepDatasetInfo,
+    DeepHistoryEntry,
+    DeepMetrics,
+    DeepRegionsResponse,
+    DeepSample,
+    DeepStateResponse,
+    DeepStepInfo,
+    DeepStepResponse,
+)
+
+
+class DatasetInfoDict(TypedDict):
+    """Type for dataset info dictionaries."""
+
+    name: str
+    description: str
+    n_classes: int
+
 
 # Available datasets for deep learning experiments
-DEEP_DATASETS = {
+DEEP_DATASETS: dict[str, DatasetInfoDict] = {
     "baarle": {
         "name": "Baarle-Hertog",
         "description": "Complex enclave borders (Belgium/Netherlands)",
@@ -120,17 +142,16 @@ class DeepService:
             lr=0.1,
             seed=42,
         )
-        self._step_history: list[dict[str, Any]] = []
-        self._comparison_table: list[dict[str, Any]] = []
+        self._step_history: list[DeepHistoryEntry] = []
+        self._comparison_table: list[DeepComparisonEntry] = []
 
     def _load_dataset(self, dataset: str, seed: int) -> list[dict[str, Any]]:
         """Load samples for a dataset."""
         if dataset == "baarle":
             # Try to find the image file
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            image_path = os.path.join(project_root, "data", "Baarle-Nassau_-_Baarle-Hertog-en no legend.png")
-            if not os.path.exists(image_path):
-                image_path = None
+            candidate_path = os.path.join(project_root, "data", "Baarle-Nassau_-_Baarle-Hertog-en no legend.png")
+            image_path: str | None = candidate_path if os.path.exists(candidate_path) else None
             return make_baarle_hertog_dataset(n_samples=500, seed=seed, image_path=image_path)
         elif dataset == "xor":
             # Convert XOR to 0/1 labels and scale inputs
@@ -181,7 +202,7 @@ class DeepService:
         hidden_dims: list[int] | None = None,
         lr: float | None = None,
         seed: int | None = None,
-    ) -> dict[str, Any]:
+    ) -> DeepStateResponse:
         """Reset the model with new configuration."""
         dataset = dataset or self._state.dataset
         hidden_dims = hidden_dims or self._state.model.hidden_dims
@@ -195,8 +216,8 @@ class DeepService:
         self._step_history = []
         return self.state()
 
-    def state(self) -> dict[str, Any]:
-        """Get current state as JSON-serializable dict."""
+    def state(self) -> DeepStateResponse:
+        """Get current state as a typed response model."""
         s = self._state
         model_state = s.model.get_state()
 
@@ -212,30 +233,35 @@ class DeepService:
         accuracy = correct / len(s.samples) if s.samples else 0
         mean_loss = total_loss / len(s.samples) if s.samples else 0
 
-        return {
-            "dataset": s.dataset,
-            "dataset_info": DEEP_DATASETS[s.dataset],
-            "sample_count": len(s.samples),
-            "idx": s.idx,
-            "epoch": s.epoch,
-            "total_steps": s.total_steps,
-            "lr": s.lr,
-            "architecture": {
-                "input_dim": model_state.input_dim,
-                "hidden_dims": model_state.hidden_dims,
-                "output_dim": model_state.output_dim,
-                "depth": s.model.depth,
-                "width": s.model.width,
-                "param_count": model_state.param_count,
-            },
-            "metrics": {
-                "loss": mean_loss,
-                "accuracy": accuracy,
-            },
-            "samples": s.samples,
-        }
+        dataset_info_dict = DEEP_DATASETS[s.dataset]
+        return DeepStateResponse(
+            dataset=s.dataset,
+            dataset_info=DeepDatasetInfo(
+                name=dataset_info_dict["name"],
+                description=dataset_info_dict["description"],
+                n_classes=dataset_info_dict["n_classes"],
+            ),
+            sample_count=len(s.samples),
+            idx=s.idx,
+            epoch=s.epoch,
+            total_steps=s.total_steps,
+            lr=s.lr,
+            architecture=DeepArchitecture(
+                input_dim=model_state.input_dim,
+                hidden_dims=model_state.hidden_dims,
+                output_dim=model_state.output_dim,
+                depth=s.model.depth,
+                width=s.model.width,
+                param_count=model_state.param_count,
+            ),
+            metrics=DeepMetrics(
+                loss=mean_loss,
+                accuracy=accuracy,
+            ),
+            samples=[DeepSample(x=sample["x"], y=sample["y"]) for sample in s.samples],
+        )
 
-    def step(self, batch_size: int = 1) -> dict[str, Any]:
+    def step(self, batch_size: int = 1) -> DeepStepResponse:
         """Take one or more training steps."""
         s = self._state
         steps: list[DeepMlpStep] = []
@@ -251,77 +277,80 @@ class DeepService:
                 s.epoch += 1
 
         # Compute metrics after batch
-        state = self.state()
+        state_response = self.state()
         last_step = steps[-1]
 
-        step_info = {
-            "batch_size": batch_size,
-            "last_loss": last_step.loss,
-            "last_correct": last_step.correct,
-            "last_prediction": last_step.forward.prediction,
-            "grad_norm": last_step.grad_norm,
-        }
+        step_info = DeepStepInfo(
+            batch_size=batch_size,
+            last_loss=last_step.loss,
+            last_correct=last_step.correct,
+            last_prediction=last_step.forward.prediction,
+            grad_norm=last_step.grad_norm,
+        )
 
         # Add to history
-        self._step_history.append({
-            "step": s.total_steps,
-            "epoch": s.epoch,
-            "loss": state["metrics"]["loss"],
-            "accuracy": state["metrics"]["accuracy"],
-        })
+        self._step_history.append(DeepHistoryEntry(
+            step=s.total_steps,
+            epoch=s.epoch,
+            loss=state_response.metrics.loss,
+            accuracy=state_response.metrics.accuracy,
+        ))
 
-        return {**state, "step_info": step_info}
+        return DeepStepResponse(
+            **state_response.model_dump(),
+            step_info=step_info,
+        )
 
-    def train_epoch(self) -> dict[str, Any]:
+    def train_epoch(self) -> DeepStepResponse:
         """Train for one full epoch."""
         return self.step(batch_size=len(self._state.samples))
 
-    def get_regions(self, resolution: int = 50) -> dict[str, Any]:
+    def get_regions(self, resolution: int = 50) -> DeepRegionsResponse:
         """Get region counting information."""
         regions = self._state.model.count_regions(resolution=resolution)
-        return {
-            "count": regions.count,
-            "theoretical_max": regions.theoretical_max,
-            "efficiency": regions.count / regions.theoretical_max if regions.theoretical_max > 0 else 0,
-        }
+        return DeepRegionsResponse(
+            count=regions.count,
+            theoretical_max=regions.theoretical_max,
+            efficiency=regions.count / regions.theoretical_max if regions.theoretical_max > 0 else 0,
+        )
 
-    def get_boundary(self, resolution: int = 50) -> dict[str, Any]:
+    def get_boundary(self, resolution: int = 50) -> DeepBoundaryResponse:
         """Get boundary and tiling data for visualization."""
         predictions, region_ids = self._state.model.predict_batch(resolution=resolution)
         regions = self._state.model.count_regions(resolution=resolution)
 
-        return {
-            "resolution": resolution,
-            "predictions": predictions,
-            "region_ids": region_ids,
-            "region_count": regions.count,
-            "theoretical_max": regions.theoretical_max,
-        }
+        return DeepBoundaryResponse(
+            resolution=resolution,
+            predictions=predictions,
+            region_ids=region_ids,
+            region_count=regions.count,
+            theoretical_max=regions.theoretical_max,
+        )
 
-    def get_history(self) -> list[dict[str, Any]]:
+    def get_history(self) -> list[DeepHistoryEntry]:
         """Get training history."""
         return self._step_history
 
-    def add_to_comparison(self) -> dict[str, Any]:
+    def add_to_comparison(self) -> DeepComparisonEntry:
         """Add current architecture to comparison table."""
-        state = self.state()
+        state_response = self.state()
         regions = self.get_regions(resolution=50)
 
-        entry = {
-            "depth": state["architecture"]["depth"],
-            "width": state["architecture"]["width"],
-            "hidden_dims": state["architecture"]["hidden_dims"],
-            "param_count": state["architecture"]["param_count"],
-            "actual_regions": regions["count"],
-            "theoretical_max": regions["theoretical_max"],
-            "accuracy": state["metrics"]["accuracy"],
-            "loss": state["metrics"]["loss"],
-            "total_steps": state["total_steps"],
-        }
+        entry = DeepComparisonEntry(
+            depth=state_response.architecture.depth,
+            width=state_response.architecture.width,
+            hidden_dims=state_response.architecture.hidden_dims,
+            param_count=state_response.architecture.param_count,
+            actual_regions=regions.count,
+            theoretical_max=regions.theoretical_max,
+            accuracy=state_response.metrics.accuracy,
+            loss=state_response.metrics.loss,
+            total_steps=state_response.total_steps,
+        )
         self._comparison_table.append(entry)
         return entry
 
-    def get_comparison_table(self) -> list[dict[str, Any]]:
+    def get_comparison_table(self) -> list[DeepComparisonEntry]:
         """Get the architecture comparison table."""
         return self._comparison_table
 

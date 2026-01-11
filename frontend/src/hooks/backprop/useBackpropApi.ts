@@ -11,6 +11,17 @@ type TinyGpsResetParams = {
   M?: number[][];
 };
 
+/**
+ * NOTE: This hook does NOT use the centralized useApi hook because:
+ *
+ * 1. **Auto-loading on mount**: This hook auto-fetches state when mounted using useEffect.
+ *    The useApi hook's setState calls within the effect trigger the ESLint
+ *    react-hooks/set-state-in-effect rule when combined with auto-loading.
+ *
+ * 2. **Complex state updates**: The step functions update state by merging partial objects
+ *    with the previous state, which requires access to the previous state value.
+ *    This pattern doesn't map cleanly to the useApi return-and-set pattern.
+ */
 export function useBackpropApi(apiBase: string) {
   const [state, setState] = useState<BackpropState | null>(null);
   const [tinygpsHistory, setTinygpsHistory] = useState<TinyGpsStep[]>([]);

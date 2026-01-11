@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { CustomConfig, MlpTrainerResponse, MlpTrainerSnapshot, MlpInternalsResponse } from "../../types";
 import { buildCustomPayload } from "../../utils/custom";
+import { useApi } from "../common/useApi";
 
 type ResetOptions = {
   datasetName?: string;
@@ -11,16 +12,17 @@ type ResetOptions = {
   seed?: number;
 };
 
+/**
+ * Hook for MLP Trainer API operations.
+ * Uses the centralized useApi hook for consistent error/loading handling.
+ */
 export function useMlpTrainerApi(apiBase: string) {
+  const { error, setError, loading, post } = useApi(apiBase);
   const [snapshot, setSnapshot] = useState<MlpTrainerSnapshot | null>(null);
   const [lastStep, setLastStep] = useState<MlpInternalsResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const resetWithOptions = useCallback(async (options: ResetOptions = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
+  const resetWithOptions = useCallback(
+    async (options: ResetOptions = {}) => {
       const body: Record<string, unknown> = {};
       if (options.datasetName) {
         if (options.datasetName === "custom") {
@@ -36,46 +38,23 @@ export function useMlpTrainerApi(apiBase: string) {
       if (typeof options.hiddenDim === "number") body.hidden_dim = options.hiddenDim;
       if (typeof options.lr === "number") body.lr = options.lr;
       if (typeof options.seed === "number") body.seed = options.seed;
-      const res = await fetch(`${apiBase}/mlp/reset`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
+
+      const data = await post<MlpTrainerSnapshot>("/mlp/reset", body);
+      if (data) {
+        setSnapshot(data);
+        setLastStep(null);
       }
-      const data = (await res.json()) as MlpTrainerSnapshot;
-      setSnapshot(data);
-      setLastStep(null);
-    } catch {
-      setError("API unreachable. Check backend.");
-    } finally {
-      setLoading(false);
-    }
-  }, [apiBase]);
+    },
+    [post, setError],
+  );
 
   const step = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${apiBase}/mlp/step`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) {
-        setError(`API error: ${res.status}`);
-        return;
-      }
-      const data = (await res.json()) as MlpTrainerResponse;
+    const data = await post<MlpTrainerResponse>("/mlp/step");
+    if (data) {
       setSnapshot(data);
       setLastStep(data.step ?? null);
-    } catch {
-      setError("API unreachable. Check backend.");
-    } finally {
-      setLoading(false);
     }
-  }, [apiBase]);
+  }, [post]);
 
-  return { snapshot, lastStep, error, loading, resetWithOptions, step };
+  return { snapshot, lastStep, error, loading, resetWithOptions, step, setError };
 }

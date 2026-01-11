@@ -1,5 +1,26 @@
 import { useCallback, useState } from "react";
 
+/**
+ * NOTE: This hook does NOT use the centralized useApi hook because:
+ *
+ * 1. **Streaming chat support**: The sendChat function uses ReadableStream to process
+ *    Server-Sent Events (SSE) for real-time token streaming. This fundamentally differs
+ *    from the standard request/response pattern that useApi supports.
+ *
+ * 2. **Chat message history management**: The hook maintains chatMessages state that is
+ *    updated during the streaming process, adding user messages before the request and
+ *    assistant messages after completion.
+ *
+ * 3. **Multiple loading states**: This hook has both `loading` (for regular requests) and
+ *    `generating` (for chat streaming) states, which the useApi pattern doesn't support.
+ *
+ * 4. **Large number of endpoints**: With 10+ different API endpoints, converting all of
+ *    them while maintaining the streaming functionality would require significant effort.
+ *
+ * The non-streaming methods (tokenize, getEmbedInfo, etc.) could theoretically use useApi,
+ * but mixing patterns within the same hook would create inconsistency.
+ */
+
 export type TransformerState = {
   current_text: string;
   current_token_count: number;

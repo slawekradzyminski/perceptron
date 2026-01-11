@@ -73,6 +73,7 @@ describe("useConvApi", () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Server error" }),
     });
 
     const { result } = renderHook(() => useConvApi(apiBase));
@@ -80,7 +81,7 @@ describe("useConvApi", () => {
     await result.current.fetchState();
 
     await waitFor(() => {
-      expect(result.current.error).toContain("API error: 500");
+      expect(result.current.error).toContain("Server error");
     });
   });
 

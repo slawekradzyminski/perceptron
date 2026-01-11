@@ -3,6 +3,23 @@ import type { LastStep } from "../../types";
 import type { CustomConfig } from "../../types";
 import { buildCustomPayload } from "../../utils/custom";
 
+/**
+ * NOTE: This hook does NOT use the centralized useApi hook because:
+ *
+ * 1. **Complex internal state management**: This hook manages a single unified state object
+ *    that combines API responses with local UI state (customApplied, lastStep, etc.)
+ *
+ * 2. **Config-based API calls**: Unlike other hooks that receive `apiBase` as a parameter,
+ *    this hook receives the entire config object (with apiBase, lr, customConfig) on each call.
+ *    This is needed because the perceptron page passes config per-call rather than at init time.
+ *
+ * 3. **Response-driven state updates**: The state update logic is deeply coupled with the
+ *    response data, merging multiple fields conditionally. The useApi pattern of returning
+ *    data and calling setState separately would require significant restructuring.
+ *
+ * Refactoring this hook would require changing the component interface significantly.
+ */
+
 export type ApiState = {
   datasetName: string;
   gridRows: number;

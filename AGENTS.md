@@ -21,17 +21,20 @@
 ## Backend
 - Run API (Poetry): `poetry run perceptron-api`
 - Run runner: `poetry run perceptron-runner --dataset or --epochs 10`
-- Lint: `poetry run ruff check backend/`
+- **Full check (lint + types + tests)**: `poetry run check` (~2-3 min)
+- Lint only: `poetry run ruff check backend/`
 - Lint + fix: `poetry run ruff check backend/ --fix`
 - Format: `poetry run ruff format backend/`
-- Backend tests: `poetry run pytest` (or `. .venv/bin/activate && pytest`)
+- Type check only: `poetry run mypy backend/`
+- Tests only: `poetry run pytest`
 
 ## Frontend
 - Dev server: `npm run dev` (from `frontend/`)
-- Lint: `npm run lint` (from `frontend/`)
-- Lint + fix: `npm run lint:fix` (from `frontend/`)
-- Build: `npm run build` (from `frontend/`)
-- Frontend tests: `npm test` (from `frontend/`)
+- **Full check (lint + build + tests)**: `npm run check` (~30s)
+- Lint only: `npm run lint`
+- Lint + fix: `npm run lint:fix`
+- Build only: `npm run build`
+- Tests only: `npm test`
 
 ## Conventions
 - Backend is the single source of truth; frontend should not duplicate ML logic.
@@ -43,18 +46,15 @@
 - Frontend: `http://127.0.0.1:5173/`
 
 ## After changes (required)
-1) Run backend lint: `poetry run ruff check backend/`
-2) Run backend tests: `poetry run pytest`
-3) Run frontend lint: `npm run lint` (from `frontend/`)
-4) Run frontend tests: `npm test` (from `frontend/`)
-5) Ensure frontend build passes: `npm run build` (from `frontend/`)
-6) If backend-related, restart app with `scripts/restart_app.sh`.
-7) Frontend changes are hot-reloaded and do not require a restart.
+1) **Backend**: `poetry run check` (~2-3 min) - runs lint, type check, and tests
+2) **Frontend**: `npm run check` (~30s from `frontend/`) - runs lint, build, and tests
+3) If backend-related, restart app with `scripts/restart_app.sh`.
+4) Frontend changes are hot-reloaded and do not require a restart.
 
-## Lint as feedback loop
-- **Always run lint after code changes** — it catches errors faster than tests or builds.
-- Backend: `poetry run ruff check backend/` (use `--fix` to auto-fix)
-- Frontend: `npm run lint` (use `lint:fix` to auto-fix)
-- A clean lint run is a prerequisite before running tests or build.
+## Quick feedback loop
+- For fast iteration, use individual commands:
+  - Backend lint: `poetry run ruff check backend/` (use `--fix` to auto-fix)
+  - Frontend lint: `npm run lint` (use `lint:fix` to auto-fix)
+- Before committing, always run the full `check` commands.
 
 Do not use Playwright MCP unless explicitly requested

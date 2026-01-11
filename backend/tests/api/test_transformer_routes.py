@@ -56,19 +56,16 @@ class TestTransformerTokenize:
 
     def test_tokenize_missing_text(self) -> None:
         response = client.post("/transformer/tokenize", json={})
-        assert response.status_code == 400
-        assert "Missing 'text'" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_tokenize_invalid_type(self) -> None:
         response = client.post("/transformer/tokenize", json={"text": 123})
-        assert response.status_code == 400
-        assert "'text' must be a string" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_tokenize_too_long(self) -> None:
         long_text = "a" * 10001
         response = client.post("/transformer/tokenize", json={"text": long_text})
-        assert response.status_code == 400
-        assert "too long" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestTransformerEmbed:
@@ -114,11 +111,11 @@ class TestTransformerTrace:
 
     def test_trace_invalid_n_blocks(self) -> None:
         response = client.post("/transformer/trace", json={"text": "Test", "n_blocks": 0})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_trace_too_many_blocks(self) -> None:
         response = client.post("/transformer/trace", json={"text": "Test", "n_blocks": 100})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestTransformerChat:
@@ -131,12 +128,11 @@ class TestTransformerChat:
 
     def test_chat_missing_messages(self) -> None:
         response = client.post("/transformer/chat", json={})
-        assert response.status_code == 400
-        assert "Missing 'messages'" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_chat_invalid_message_format(self) -> None:
         response = client.post("/transformer/chat", json={"messages": [{"wrong": "format"}]})
-        assert response.status_code == 400
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestTransformerOllamaStatus:
@@ -214,19 +210,16 @@ class TestTransformerAttention:
 
     def test_attention_missing_text(self) -> None:
         response = client.post("/transformer/attention", json={})
-        assert response.status_code == 400
-        assert "Missing 'text'" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_attention_invalid_type(self) -> None:
         response = client.post("/transformer/attention", json={"text": 123})
-        assert response.status_code == 400
-        assert "'text' must be a string" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_attention_too_long(self) -> None:
         long_text = "a" * 501
         response = client.post("/transformer/attention", json={"text": long_text})
-        assert response.status_code == 400
-        assert "too long" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestTransformerLogitLens:
@@ -239,21 +232,18 @@ class TestTransformerLogitLens:
 
     def test_logit_lens_missing_text(self) -> None:
         response = client.post("/transformer/logit-lens", json={})
-        assert response.status_code == 400
-        assert "Missing 'text'" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_logit_lens_invalid_top_k(self) -> None:
         response = client.post(
             "/transformer/logit-lens", json={"text": "Test", "top_k": 0}
         )
-        assert response.status_code == 400
-        assert "top_k" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_logit_lens_too_long(self) -> None:
         long_text = "a" * 501
         response = client.post("/transformer/logit-lens", json={"text": long_text})
-        assert response.status_code == 400
-        assert "too long" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
 
 class TestTransformerKVCache:
@@ -298,20 +288,17 @@ class TestTransformerKVCache:
         response = client.post(
             "/transformer/kv-cache", json={"context_length": 0}
         )
-        assert response.status_code == 400
-        assert "context_length" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_kv_cache_invalid_n_layers(self) -> None:
         response = client.post(
             "/transformer/kv-cache", json={"n_layers": 300}
         )
-        assert response.status_code == 400
-        assert "n_layers" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 
     def test_kv_cache_invalid_gqa_groups(self) -> None:
         response = client.post(
             "/transformer/kv-cache", json={"gqa_groups": 100, "n_heads": 32}
         )
-        assert response.status_code == 400
-        assert "gqa_groups" in response.json()["detail"]
+        assert response.status_code == 422  # Pydantic validation error
 

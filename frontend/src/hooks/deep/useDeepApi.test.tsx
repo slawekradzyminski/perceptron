@@ -88,6 +88,7 @@ describe("useDeepApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Server error" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -98,7 +99,7 @@ describe("useDeepApi", () => {
     });
 
     expect(result.current.state).toBeNull();
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Server error");
   });
 
   test("fetchState handles network error", async () => {
@@ -172,7 +173,7 @@ describe("useDeepApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 400,
-      text: async () => "Invalid parameters",
+      json: async () => ({ detail: "Invalid parameters" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -182,7 +183,7 @@ describe("useDeepApi", () => {
       await result.current.reset({});
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Invalid parameters");
   });
 
   test("step calls API and updates state", async () => {
@@ -230,6 +231,7 @@ describe("useDeepApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Step failed" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -239,7 +241,7 @@ describe("useDeepApi", () => {
       await result.current.step();
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Step failed");
   });
 
   test("trainEpoch calls API", async () => {
@@ -263,6 +265,7 @@ describe("useDeepApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Epoch failed" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -272,7 +275,7 @@ describe("useDeepApi", () => {
       await result.current.trainEpoch();
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Epoch failed");
   });
 
   test("fetchBoundary loads boundary data", async () => {
@@ -297,6 +300,7 @@ describe("useDeepApi", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Boundary failed" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
@@ -306,7 +310,7 @@ describe("useDeepApi", () => {
       await result.current.fetchBoundary();
     });
 
-    expect(result.current.error).toContain("API error");
+    expect(result.current.error).toContain("Boundary failed");
   });
 
   test("fetchRegions loads region data", async () => {

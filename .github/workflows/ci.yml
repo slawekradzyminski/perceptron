@@ -16,12 +16,8 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: poetry -C .. install --no-interaction --no-ansi
-      - name: Ruff
-        working-directory: backend
-        run: poetry -C .. run ruff check backend/
-      - name: Pytest
-        working-directory: backend
-        run: poetry -C .. run pytest
+      - name: Check (lint + types + tests)
+        run: poetry run check
 
   frontend:
     runs-on: ubuntu-latest
@@ -35,15 +31,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
-      - name: Lint
+      - name: Check (lint + build + tests)
         working-directory: frontend
-        run: npm run lint
-      - name: Test
-        working-directory: frontend
-        run: npm test
-      - name: Build
-        working-directory: frontend
-        run: npm run build
+        run: npm run check
 
   docker-compose:
     runs-on: ubuntu-latest

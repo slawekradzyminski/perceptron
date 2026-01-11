@@ -2,10 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
+
+
+class ModelData(TypedDict):
+    """Type for model data dictionaries."""
+
+    name: str
+    year: int
+    params: int
+    type: str
+    description: str
+    input_size: str
+    notable: str
+
 
 # Historical model data for comparison (GPT series only for cleaner visualization)
-MODELS = [
+MODELS: list[ModelData] = [
     {
         "name": "GPT-2 (XL)",
         "year": 2019,

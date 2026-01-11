@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 try:
-    import matplotlib.pyplot as plt  # type: ignore
+    import matplotlib.pyplot as plt
 except Exception:  # pragma: no cover
     plt = None
 

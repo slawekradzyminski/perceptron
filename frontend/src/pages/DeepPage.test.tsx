@@ -255,17 +255,20 @@ describe("DeepPage", () => {
         return {
           ok: false,
           status: 500,
-          text: async () => "Server error",
-        } as Response;
+          json: async () => ({ detail: "Server error" }),
+        } as unknown as Response;
       }
-      return { ok: false } as Response;
+      return {
+        ok: false,
+        json: async () => ({ detail: "Server error" }),
+      } as unknown as Response;
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(<DeepPage apiBase="http://127.0.0.1:8000" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/API error/)).toBeInTheDocument();
+      expect(screen.getByText(/Server error/)).toBeInTheDocument();
     });
   });
 

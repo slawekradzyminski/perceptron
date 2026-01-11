@@ -236,13 +236,14 @@ describe("AlexNetPage", () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,
       status: 500,
+      json: async () => ({ detail: "Server error" }),
     })) as unknown as typeof fetch;
     global.fetch = fetchMock;
 
     render(<AlexNetPage apiBase="http://127.0.0.1:8000" />);
 
     await waitFor(() => {
-      expect(screen.getByText(/API error/)).toBeInTheDocument();
+      expect(screen.getByText(/Server error/)).toBeInTheDocument();
     });
   });
 });
